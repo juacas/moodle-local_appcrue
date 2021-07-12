@@ -23,16 +23,16 @@
  * @copyright 2021 onwards juanpablo.decastro@uva.es
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['pluginname'] = 'AppCrue connection services';
-$string['idpheader'] = 'Verification of tokens';
-$string['idpheader_help'] = 'AppCrue token verification service configuration';
-$string['idp_url'] = 'URL of the IDP';
-$string['idp_url_help'] = 'URL of the IDP to invoke the usertoken service.';
+$string['pluginname'] = 'Servicios de conexión a AppCrue';
+$string['idpheader'] = 'Verificación de tokens';
+$string['idpheader_help'] = 'Configuración del servico de verificación de tokens AppCrue';
+$string['idp_url'] = 'URL del IDP';
+$string['idp_url_help'] = 'URL del IDP para invocar el servicio usertoken.';
 $string['calendarheader'] = 'User calendar';
 $string['calendarheader_help'] = 'User calendar';
-$string['share_site_events'] = 'Return the institution\'s events';
+$string['share_site_events'] = 'Devolver los eventos de la institución';
 $string['share_site_events_help'] = 'Devolver los eventos de la institución';
-$string['share_course_events'] = 'Return course events';
+$string['share_course_events'] = 'Devolver los eventos de los cursos';
 $string['share_course_events_help'] = 'Devolver los eventos de los cursos';
-$string['share_user_events'] = 'Return personal events';
+$string['share_user_events'] = 'Devolver los eventos personales';
 $string['share_user_events_help'] = 'Devolver los eventos personales';
