@@ -69,7 +69,7 @@ if ($fromdate) {
     $timestart = time() - 432000;
 }
 if ($todate) {
-    $timeend = DateTime::createFromFormat('Y-m-d', $toDate).add(new DateInterval("P1D")).getTimestamp();
+    $timeend = DateTime::createFromFormat('Y-m-d', $todate).add(new DateInterval("P1D")).getTimestamp();
 } else {
     // Next 60 days.
     $timeend = time() + 5184000;

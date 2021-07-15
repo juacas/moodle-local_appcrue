@@ -44,7 +44,15 @@ if ($hassiteconfig) {
             get_string('calendarheader_help', 'local_appcrue')
         )
     );
-    $settings->add(new admin_setting_configcheckbox('local_appcrue_share_site_events', get_string('share_site_events', 'local_appcrue'), get_string('share_site_events_help', 'local_appcrue'), true));
-    $settings->add(new admin_setting_configcheckbox('local_appcrue_share_course_events', get_string('share_course_events', 'local_appcrue'), get_string('share_course_events_help', 'local_appcrue'), true));
-    $settings->add(new admin_setting_configcheckbox('local_appcrue_share_personal_events', get_string('share_user_events', 'local_appcrue'), get_string('share_user_events_help', 'local_appcrue'), true));
+    $settings->add(new admin_setting_configcheckbox(
+                        'local_appcrue_share_site_events',
+                        get_string('share_site_events', 'local_appcrue'),
+                        get_string('share_site_events_help', 'local_appcrue'), true));
+    $settings->add(new admin_setting_configcheckbox(
+                        'local_appcrue_share_course_events',
+                        get_string('share_course_events', 'local_appcrue'),
+                        get_string('share_course_events_help', 'local_appcrue'), true));
+    $settings->add(new admin_setting_configcheckbox('local_appcrue_share_personal_events',
+                        get_string('share_user_events', 'local_appcrue'),
+                        get_string('share_user_events_help', 'local_appcrue'), true));
 }
