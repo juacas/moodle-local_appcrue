@@ -26,8 +26,8 @@ require_once($CFG->dirroot.'/calendar/lib.php');
 require_once('locallib.php');
 
 $token = required_param('token', PARAM_RAW);
-$fromDate = optional_param('fromDate', '', PARAM_ALPHA);
-$toDate = optional_param('toDate', '', PARAM_ALPHA);
+$fromdate = optional_param('fromDate', '', PARAM_ALPHA);
+$todate = optional_param('toDate', '', PARAM_ALPHA);
 $category = optional_param('category', '', PARAM_ALPHA);
 $lang = required_param('lang', PARAM_ALPHA);
 
@@ -61,17 +61,17 @@ if ($CFG->local_appcrue_share_personal_events) {
     $users = array();
 }
 // Time range.
-//Events in the last 5 or next 60 days
-if ($fromDate) {
-    $timestart = DateTime::createFromFormat('Y-m-d', $fromDate).getTimestamp();
+// Events in the last 5 or next 60 days.
+if ($fromdate) {
+    $timestart = DateTime::createFromFormat('Y-m-d', $fromdate).getTimestamp();
 } else {
     // Last 5 days.
     $timestart = time() - 432000;
 }
-if ($toDate) {
+if ($todate) {
     $timeend = DateTime::createFromFormat('Y-m-d', $toDate).add(new DateInterval("P1D")).getTimestamp();
 } else {
-    // next 60 days.
+    // Next 60 days.
     $timeend = time() + 5184000;
 }
 
@@ -82,7 +82,7 @@ $events = calendar_get_legacy_events($timestart, $timeend, $users, $groups, arra
 $eventsbyday = array();
 foreach ($events as $event) {
     $day = date('Y-m-d', $event->timesort);
-    $eventsbyday[$day][]= $event;
+    $eventsbyday[$day][] = $event;
 }
 // Format output.
 $outputmessage = new stdClass;

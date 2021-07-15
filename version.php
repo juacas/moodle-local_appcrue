@@ -31,5 +31,4 @@ $plugin->component    = 'local_appcrue';
 $plugin->maturity     = MATURITY_BETA;
 $plugin->release      = '0.1.1';
 $plugin->dependencies = [
-    
 ];
