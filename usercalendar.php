@@ -123,4 +123,5 @@ if ($user != null) {
         $outputmessage->calendar[] = $dayitem;
     }
 }
+header('Content-Type: text/json; charset=utf-8');
 echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
