@@ -37,7 +37,7 @@ function appcrue_get_user($token) {
             break;
         case 'JWT_UVa':
             // Validate signature with Midleware at UVa.
-            $checktokenurl = get_config('local_appcrue', 'idp_token_url');
+            $checktokenurl = $CFG->local_appcrue_idp_token_url;
             //'https://appcrue-des.uva.es:449/appcrueservices/meID';
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $checktokenurl);
@@ -57,8 +57,8 @@ function appcrue_get_user($token) {
             break;
         case 'OAUTH2':
             // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
-            $idpurl = get_config('local_appcrue', 'idp_token_url');
-            $idptokenurl = $CFG->local_appcrue_idp_url . "?token=$token";
+            $idpurl = $CFG->local_appcrue_idp_token_url;
+            $idptokenurl = "$idpurl?token=$token";
             // Get the token to query $idp_token_url.
             $authtoken = appcrue_get_idp_token();
             // Make a request to obtain a user name.
@@ -104,9 +104,10 @@ function appcrue_get_event_type($event) {
 }
 function appcrue_get_new_idp_token() {
     // Mockup pseudocode.
-    $idpgettokenurl = get_config('local_appcrue', 'idp_token_url');
-    $idpid = get_config('local_appcrue', 'idp_client_id');
-    $idpsecret = get_config('local_appcrue', 'idp_client_secret');
+    global $CFG;
+    $idpgettokenurl =  $CFG->local_appcrue_idp_token_url;
+    $idpid = $CFG->local_appcrue_idp_client_id;
+    $idpsecret = $CFG->local_appcrue_idp_client_secret;
     $username = base64_encode("$idpid:$idpsecret");
     $password = '';
     // Make a request to obtain a new token.
