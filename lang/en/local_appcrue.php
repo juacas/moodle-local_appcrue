@@ -26,8 +26,15 @@
 $string['pluginname'] = 'AppCrue connection services';
 $string['idpheader'] = 'Verification of tokens';
 $string['idpheader_help'] = 'AppCrue token verification service configuration';
+$string['idp_token_url'] = 'URL tokenof the IDP';
+$string['idp_token_url_help'] = 'URL token of the IDP to invoke the usertoken service.';
 $string['idp_url'] = 'URL of the IDP';
 $string['idp_url_help'] = 'URL of the IDP to invoke the usertoken service.';
+$string['idp_client_id'] = 'Clientid for the IDP';
+$string['idp_client_id_help'] = 'Client id for the IDP to invoke the usertoken service.';
+$string['idp_client_secret'] = 'Client secret for the IDP';
+$string['idp_client_secret_help'] = 'Client secret for the IDP to invoke the usertoken service.';
+
 $string['calendarheader'] = 'User calendar';
 $string['calendarheader_help'] = 'User calendar';
 $string['share_site_events'] = 'Return the institution\'s events';

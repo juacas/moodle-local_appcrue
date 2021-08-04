@@ -31,93 +31,96 @@ $todate = optional_param('toDate', '', PARAM_ALPHA);
 $category = optional_param('category', '', PARAM_ALPHA);
 $lang = required_param('lang', PARAM_ALPHA);
 
-// Check token.
-$user = appcrue_get_user($token);
-
-// Get the calendar type we are using.
-$calendartype = \core_calendar\type_factory::get_calendar_instance();
-if ($CFG->local_appcrue_share_course_events) {
-    // All courses.
-    $courses = enrol_get_users_courses($user->id, true, 'id, visible, shortname');
-    // All groups.
-    $groups = array();
-    foreach ($courses as $course) {
-        $course_groups = groups_get_all_groups($course->id, $user->id);
-        $groups = array_merge($groups, array_keys($course_groups));
-    }
-} else {
-    $courses = array();
-    $groups = array();
-}
-// Site events.
-if ($CFG->local_appcrue_share_site_events) {
-    $courses[SITEID] = new stdClass;
-    $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
-}
-$category = true;
-if ($CFG->local_appcrue_share_personal_events) {
-    $users = $user->id;
-} else {
-    $users = array();
-}
-// Time range.
-// Events in the last 5 or next 60 days.
-if ($fromdate) {
-    $timestart = DateTime::createFromFormat('Y-m-d', $fromdate).getTimestamp();
-} else {
-    // Last 5 days.
-    $timestart = time() - 432000;
-}
-if ($todate) {
-    $timeend = DateTime::createFromFormat('Y-m-d', $todate).add(new DateInterval("P1D")).getTimestamp();
-} else {
-    // Next 60 days.
-    $timeend = time() + 5184000;
-}
-
-$limitnum = 0;
-$events = calendar_get_legacy_events($timestart, $timeend, $users, $groups, array_keys($courses), false, true,
-        $category, $limitnum);
-// Order events by day.
-$eventsbyday = array();
-foreach ($events as $event) {
-    $day = date('Y-m-d', $event->timesort);
-    $eventsbyday[$day][] = $event;
-}
-// Format output.
 $outputmessage = new stdClass;
 $outputmessage->calendar = array();
-foreach ($eventsbyday as $day => $eventlist) {
-    $dayitem = new stdClass;
-    $dayitem->date = $day;
-    $dayitem->events = array();
-    foreach ($eventlist as $event) {
-        $me = new calendar_event($event); // To use moodle calendar event services.
-        // Hide if module is hidden.
-        if (!empty($event->modulename)) {
-            $instances = get_fast_modinfo($event->courseid, $user->id)->get_instances_of($event->modulename);
-            if (empty($instances[$event->instance]->uservisible)) {
-                continue;
-            }
+
+// Check token.
+$user = appcrue_get_user($token);
+if ($user != null) {
+    // Get the calendar type we are using.
+    $calendartype = \core_calendar\type_factory::get_calendar_instance();
+    if ($CFG->local_appcrue_share_course_events) {
+        // All courses.
+        $courses = enrol_get_users_courses($user->id, true, 'id, visible, shortname');
+        // All groups.
+        $groups = array();
+        foreach ($courses as $course) {
+            $course_groups = groups_get_all_groups($course->id, $user->id);
+            $groups = array_merge($groups, array_keys($course_groups));
         }
-        $eventitem = new stdClass;
-        $eventitem->id = $event->id;
-        $eventitem->title = $event->name;
-
-        // Format the description text.
-        $description = format_text($me->description, $me->format, ['context' => $me->context]);
-        // Then convert it to plain text, since it's the only format allowed for the event description property.
-        // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
-        $description = html_to_text($description, 0);
-        $eventitem->description = $description;
-
-        $eventitem->nameAuthor = "Profesor"; // TODO: get author.
-        $eventitem->type = appcrue_get_event_type($event);
-        $eventitem->startsAt = $event->timestart;
-        $eventitem->endsAt = $event->timestart + $event->timeduration;
-        $eventitem->url = $instances[$event->instance]->url->out(true);
-        $dayitem->events[] = $eventitem;
+    } else {
+        $courses = array();
+        $groups = array();
     }
-    $outputmessage->calendar[] = $dayitem;
+    // Site events.
+    if ($CFG->local_appcrue_share_site_events) {
+        $courses[SITEID] = new stdClass;
+        $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
+    }
+    $category = true;
+    if ($CFG->local_appcrue_share_personal_events) {
+        $users = $user->id;
+    } else {
+        $users = array();
+    }
+    // Time range.
+    // Events in the last 5 or next 60 days.
+    if ($fromdate) {
+        $timestart = DateTime::createFromFormat('Y-m-d', $fromdate).getTimestamp();
+    } else {
+        // Last 5 days.
+        $timestart = time() - 432000;
+    }
+    if ($todate) {
+        $timeend = DateTime::createFromFormat('Y-m-d', $todate).add(new DateInterval("P1D")).getTimestamp();
+    } else {
+        // Next 60 days.
+        $timeend = time() + 5184000;
+    }
+
+    $limitnum = 0;
+    $events = calendar_get_legacy_events($timestart, $timeend, $users, $groups, array_keys($courses), false, true,
+            $category, $limitnum);
+    // Order events by day.
+    $eventsbyday = array();
+    foreach ($events as $event) {
+        $day = date('Y-m-d', $event->timesort);
+        $eventsbyday[$day][] = $event;
+    }
+    // Format output.
+
+    foreach ($eventsbyday as $day => $eventlist) {
+        $dayitem = new stdClass;
+        $dayitem->date = $day;
+        $dayitem->events = array();
+        foreach ($eventlist as $event) {
+            $me = new calendar_event($event); // To use moodle calendar event services.
+            // Hide if module is hidden.
+            if (!empty($event->modulename)) {
+                $instances = get_fast_modinfo($event->courseid, $user->id)->get_instances_of($event->modulename);
+                if (empty($instances[$event->instance]->uservisible)) {
+                    continue;
+                }
+            }
+            $eventitem = new stdClass;
+            $eventitem->id = $event->id;
+            $eventitem->title = $event->name;
+
+            // Format the description text.
+            $description = format_text($me->description, $me->format, ['context' => $me->context]);
+            // Then convert it to plain text, since it's the only format allowed for the event description property.
+            // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
+            $description = html_to_text($description, 0);
+            $eventitem->description = $description;
+
+            $eventitem->nameAuthor = appcrue_get_username($event->userid); // TODO: get author.
+            $eventitem->type = appcrue_get_event_type($event);
+            $eventitem->startsAt = $event->timestart;
+            $eventitem->endsAt = $event->timestart + $event->timeduration;
+            $eventitem->url = $instances[$event->instance]->url->out(true);
+            $dayitem->events[] = $eventitem;
+        }
+        $outputmessage->calendar[] = $dayitem;
+    }
 }
-echo json_encode($outputmessage, JSON_HEX_QUOT);
+echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
