@@ -33,7 +33,7 @@ $lang = required_param('lang', PARAM_ALPHA);
 
 $outputmessage = new stdClass;
 $outputmessage->calendar = array();
-
+$PAGE->set_context(null);
 // Check token.
 $user = appcrue_get_user($token);
 if ($user != null) {
