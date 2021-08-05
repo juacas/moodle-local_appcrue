@@ -118,7 +118,17 @@ if ($user != null) {
             $eventitem->type = appcrue_get_event_type($event);
             $eventitem->startsAt = $event->timestart;
             $eventitem->endsAt = $event->timestart + $event->timeduration;
-            $eventitem->url = $instances[$event->instance]->url->out(true);
+            if ($event->instance != null) {
+                $eventitem->url = $instances[$event->instance]->url->out(true);
+            } else {
+                // The event is a calendar event.
+                $url = new moodle_url("/calendar/view.php",[
+                    'view'=>'day',
+                    'time'=> $timestart,
+                    'course' => $course->id]);
+                $eventitem->url = $url->out(false);
+            }
+
             $dayitem->events[] = $eventitem;
         }
         $outputmessage->calendar[] = $dayitem;
