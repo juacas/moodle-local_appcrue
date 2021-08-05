@@ -122,10 +122,14 @@ if ($user != null) {
                 $eventitem->url = $instances[$event->instance]->url->out(true);
             } else {
                 // The event is a calendar event.
-                $url = new moodle_url("/calendar/view.php",[
-                    'view'=>'day',
-                    'time'=> $timestart,
-                    'course' => $course->id]);
+                $params = [
+                    'view' => 'day',
+                    'time' => $event->timestart
+                ];
+                if (isset($event->courseid)) {
+                    $params['course'] = $event->courseid;
+                }
+                $url = new moodle_url("/calendar/view.php", $params);
                 $eventitem->url = $url->out(false);
             }
 
