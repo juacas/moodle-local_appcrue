@@ -64,10 +64,10 @@ if ($hassiteconfig) {
     foreach($modules as $mod) {
         $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
     }
-    $settings->add(new admin_setting_configmulticheckbox(
+    uasort($modulelist, function($a,$b) { return strcmp($a, $b);});
+    $settings->add(new admin_setting_configmultiselect(
         'local_appcrue/examen_event_type',
         get_string('examen_event_type', 'local_appcrue'),
         get_string('examen_event_type_help', 'local_appcrue'),
-        "quiz,quest,assign,workshop", $modulelist
-    ));
+        ['quiz','quest','assign','workshop'], $modulelist ));
 }
