@@ -31,15 +31,15 @@ if ($hassiteconfig) {
     $ADMIN->add('localplugins', $settings);
     $settings->add(
         new admin_setting_heading(
-            'local_appcrue_idp_header',
+            'local_appcrue/idp_header',
             get_string('idpheader', 'local_appcrue'),
             get_string('idpheader_help', 'local_appcrue')
         )
     );
-    $settings->add(new admin_setting_configtext('local_appcrue_idp_url', get_string('idp_url', 'local_appcrue'), get_string('idp_url_help', 'local_appcrue'), 'https://idp.uva.es/OAUTH2/authserver.php', PARAM_URL));
-    $settings->add(new admin_setting_configtext('local_appcrue_idp_token_url', get_string('idp_token_url', 'local_appcrue'), get_string('idp_token_url_help', 'local_appcrue'), 'https://idp.uva.es/api/adas/oauth2/tokendata', PARAM_URL));
-    $settings->add(new admin_setting_configtext('local_appcrue_idp_client_id', get_string('idp_client_id', 'local_appcrue'), get_string('idp_client_id_help', 'local_appcrue'), '', PARAM_RAW_TRIMMED));
-    $settings->add(new admin_setting_configtext('local_appcrue_idp_client_secret', get_string('idp_client_secret', 'local_appcrue'), get_string('idp_client_secret_help', 'local_appcrue'), '', PARAM_RAW_TRIMMED));
+    $settings->add(new admin_setting_configtext('local_appcrue/idp_url', get_string('idp_url', 'local_appcrue'), get_string('idp_url_help', 'local_appcrue'), 'https://idp.uva.es/OAUTH2/authserver.php', PARAM_URL));
+    $settings->add(new admin_setting_configtext('local_appcrue/idp_token_url', get_string('idp_token_url', 'local_appcrue'), get_string('idp_token_url_help', 'local_appcrue'), 'https://idp.uva.es/api/adas/oauth2/tokendata', PARAM_URL));
+    $settings->add(new admin_setting_configtext('local_appcrue/idp_client_id', get_string('idp_client_id', 'local_appcrue'), get_string('idp_client_id_help', 'local_appcrue'), '', PARAM_RAW_TRIMMED));
+    $settings->add(new admin_setting_configtext('local_appcrue/idp_client_secret', get_string('idp_client_secret', 'local_appcrue'), get_string('idp_client_secret_help', 'local_appcrue'), '', PARAM_RAW_TRIMMED));
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_calendar_header',
@@ -48,14 +48,14 @@ if ($hassiteconfig) {
         )
     );
     $settings->add(new admin_setting_configcheckbox(
-                        'local_appcrue_share_site_events',
+                        'local_appcrue/share_site_events',
                         get_string('share_site_events', 'local_appcrue'),
                         get_string('share_site_events_help', 'local_appcrue'), true));
     $settings->add(new admin_setting_configcheckbox(
-                        'local_appcrue_share_course_events',
+                        'local_appcrue/share_course_events',
                         get_string('share_course_events', 'local_appcrue'),
                         get_string('share_course_events_help', 'local_appcrue'), true));
-    $settings->add(new admin_setting_configcheckbox('local_appcrue_share_personal_events',
+    $settings->add(new admin_setting_configcheckbox('local_appcrue/share_personal_events',
                         get_string('share_user_events', 'local_appcrue'),
                         get_string('share_user_events_help', 'local_appcrue'), true));
 }

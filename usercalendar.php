@@ -39,7 +39,8 @@ $user = appcrue_get_user($token);
 if ($user != null) {
     // Get the calendar type we are using.
     $calendartype = \core_calendar\type_factory::get_calendar_instance();
-    if ($CFG->local_appcrue_share_course_events) {
+    // Select events.
+    if (get_config('local_appcrue', 'share_course_events')) {
         // All courses.
         $courses = enrol_get_users_courses($user->id, true, 'id, visible, shortname');
         // All groups.
@@ -53,12 +54,12 @@ if ($user != null) {
         $groups = array();
     }
     // Site events.
-    if ($CFG->local_appcrue_share_site_events) {
+    if (get_config('local_appcrue', 'share_site_events')) {
         $courses[SITEID] = new stdClass;
         $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
     }
     $category = true;
-    if ($CFG->local_appcrue_share_personal_events) {
+    if (get_config('local_appcrue', 'share_personal_events')) {
         $users = $user->id;
     } else {
         $users = array();
