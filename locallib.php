@@ -97,7 +97,7 @@ function appcrue_get_username($userid) {
  */
 function appcrue_get_event_type($event) {
     $examentype = get_config('local_appcrue', 'examen_event_type');
-    if (strpos($examentype, $event->modulename) !== false) {
+    if (strpos(strval($examentype), strval($event->modulename)) !== false) {
         return 'EXAMEN';
     }
     return 'HORARIO';
