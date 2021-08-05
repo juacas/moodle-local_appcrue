@@ -58,4 +58,16 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configcheckbox('local_appcrue/share_personal_events',
                         get_string('share_user_events', 'local_appcrue'),
                         get_string('share_user_events_help', 'local_appcrue'), true));
+    global $DB;
+    $modules = $DB->get_records("modules");
+    $modulelist = [];
+    foreach($modules as $mod) {
+        $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
+    }
+    $settings->add(new admin_setting_configmulticheckbox(
+        'local_appcrue/examen_event_type',
+        get_string('examen_event_type', 'local_appcrue'),
+        get_string('examen_event_type_help', 'local_appcrue'),
+        "quiz,quest,assign,workshop", $modulelist
+    ));
 }

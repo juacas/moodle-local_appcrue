@@ -89,19 +89,22 @@ function appcrue_get_username($userid) {
     $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
     return fullname($user);
 }
+/**
+ * Classify the events into the AppCrue types of events: “EXAMEN”, “HORARIO”, “REVISION_DE_EXAMEN”, “TUTORIA”
+ * TODO: Refine events types for more activities.
+ * @param stdClass $event
+ * @return "EXAMEN"|"HORARIO"
+ */
 function appcrue_get_event_type($event) {
-    switch ($event->modulename) {
-        case 'quiz':
-            return 'EXAMEN';
-            break;
-        case 'assign':
-            return 'EXAMEN';
-            break;
-        default:
-            return 'HORARIO';
-            break;
+    $examentype = get_config('local_appcrue', 'examen_event_type');
+    if (strpos($examentype, $event->modulename) !== false) {
+        return 'EXAMEN';
     }
+    return 'HORARIO';
 }
+/**
+ * Renew the idp token.
+ */
 function appcrue_get_new_idp_token() {
     // Mockup pseudocode.
     $idpgettokenurl =  get_config('local_appcrue', 'idp_token_url');
@@ -129,6 +132,9 @@ function appcrue_get_new_idp_token() {
     set_config('local_appcrue',"idp_last_token", $result);
     return $token;
 }
+/**
+ * Gets last_known token to connect to IDP.
+ */
 function appcrue_get_idp_token() {
     $token = json_decode(get_config('local_appcrue',"idp_last_token"));
     if ($token && $token->expires_in < time() ) {

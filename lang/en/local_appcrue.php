@@ -36,10 +36,12 @@ $string['idp_client_secret'] = 'Client secret for the IDP';
 $string['idp_client_secret_help'] = 'Client secret for the IDP to invoke the usertoken service.';
 
 $string['calendarheader'] = 'User calendar';
-$string['calendarheader_help'] = 'User calendar';
+$string['calendarheader_help'] = 'Integration of the user\'s calendar in AppCrue';
 $string['share_site_events'] = 'Return the institution\'s events';
 $string['share_site_events_help'] = 'Devolver los eventos de la institución';
 $string['share_course_events'] = 'Return course events';
 $string['share_course_events_help'] = 'Devolver los eventos de los cursos';
 $string['share_user_events'] = 'Return personal events';
 $string['share_user_events_help'] = 'Devolver los eventos personales';
+$string['examen_event_type'] = '"Exam" activities.';
+$string['examen_event_type_help'] = 'Activities that may generate "Exam events" in the calendar';

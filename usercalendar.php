@@ -26,8 +26,8 @@ require_once($CFG->dirroot.'/calendar/lib.php');
 require_once('locallib.php');
 
 $token = required_param('token', PARAM_RAW);
-$fromdate = optional_param('fromDate', '', PARAM_ALPHA);
-$todate = optional_param('toDate', '', PARAM_ALPHA);
+$fromdate = optional_param('fromDate', '', PARAM_ALPHANUM);
+$todate = optional_param('toDate', '', PARAM_ALPHANUM);
 $category = optional_param('category', '', PARAM_ALPHA);
 $lang = required_param('lang', PARAM_ALPHA);
 
@@ -58,22 +58,26 @@ if ($user != null) {
         $courses[SITEID] = new stdClass;
         $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
     }
-    $category = true;
+
     if (get_config('local_appcrue', 'share_personal_events')) {
         $users = $user->id;
     } else {
         $users = array();
     }
     // Time range.
-    // Events in the last 5 or next 60 days.
-    if ($fromdate) {
-        $timestart = DateTime::createFromFormat('Y-m-d', $fromdate).getTimestamp();
+    // By default events in the last 5 or next 60 days.
+    if ($fromdate != '') {
+        $date = DateTime::createFromFormat('Ymd', $fromdate);
+        $date->setTime(0,0,0);
+        $timestart = $date->getTimeStamp();
     } else {
         // Last 5 days.
         $timestart = time() - 432000;
     }
-    if ($todate) {
-        $timeend = DateTime::createFromFormat('Y-m-d', $todate).add(new DateInterval("P1D")).getTimestamp();
+    if ($todate != '') {
+        $date = DateTime::createFromFormat('Ymd', $todate);
+        $date->setTime(0, 0, 0);
+        $timeend = $date->add(new DateInterval("P1D"))->getTimestamp();
     } else {
         // Next 60 days.
         $timeend = time() + 5184000;
@@ -81,10 +85,14 @@ if ($user != null) {
 
     $limitnum = 0;
     $events = calendar_get_legacy_events($timestart, $timeend, $users, $groups, array_keys($courses), false, true,
-            $category, $limitnum);
+            true, $limitnum);
     // Order events by day.
     $eventsbyday = array();
     foreach ($events as $event) {
+        $eventtype = appcrue_get_event_type($event);
+        if ($category != '' && $eventtype != $category) {
+            continue;
+        }
         $day = date('Y-m-d', $event->timesort);
         $eventsbyday[$day][] = $event;
     }
@@ -95,6 +103,7 @@ if ($user != null) {
         $dayitem->date = $day;
         $dayitem->events = array();
         foreach ($eventlist as $event) {
+
             $me = new calendar_event($event); // To use moodle calendar event services.
             // Hide if module is hidden.
             if (!empty($event->modulename)) {
