@@ -46,3 +46,7 @@ $string['share_user_events_help'] = 'Devolver los eventos personales';
 $string['examen_event_type'] = '"Exam" activities.';
 $string['examen_event_type_help'] = 'Activities that may generate "Exam events" in the calendar';
 $string['privacy:metadata'] = 'The "AppCrue connection services" plugin does not store any personal data.';
+$string['autologinheader'] = 'Auto-login service';
+$string['autologinheader_help'] = 'Allows the users to jump into Moodle from the AppCrue.';
+$string['enable_autologin'] = 'Enable autologin';
+$string['enable_autologin_help'] = 'Autologin service takes a user\'s token, verifies it and redirects to an internal url.';

@@ -70,4 +70,17 @@ if ($hassiteconfig) {
         get_string('examen_event_type', 'local_appcrue'),
         get_string('examen_event_type_help', 'local_appcrue'),
         ['quiz','quest','assign','workshop'], $modulelist ));
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_autologin_header',
+            get_string('autologinheader', 'local_appcrue'),
+            get_string('autologinheader_help', 'local_appcrue')
+        )
+    );
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_autologin',
+        get_string('enable_autologin', 'local_appcrue'),
+        get_string('enable_autologin', 'local_appcrue'),
+        true
+    ));
 }
