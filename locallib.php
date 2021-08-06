@@ -26,6 +26,7 @@
 /**
  * Checks the token and gets the user associated with it.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
+ * @return stdClass|null
  */
 function appcrue_get_user($token) {
     global $DB;
@@ -97,7 +98,7 @@ function appcrue_get_username($userid) {
  */
 function appcrue_get_event_type($event) {
     $examentype = get_config('local_appcrue', 'examen_event_type');
-    if (strpos(strval($examentype), strval($event->modulename)) !== false) {
+    if ($event->modulename != null && strpos($examentype, $event->modulename) !== false) {
         return 'EXAMEN';
     }
     return 'HORARIO';

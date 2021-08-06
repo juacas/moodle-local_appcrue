@@ -45,3 +45,4 @@ $string['share_user_events'] = 'Return personal events';
 $string['share_user_events_help'] = 'Devolver los eventos personales';
 $string['examen_event_type'] = '"Exam" activities.';
 $string['examen_event_type_help'] = 'Activities that may generate "Exam events" in the calendar';
+$string['privacy:metadata'] = 'The "AppCrue connection services" plugin does not store any personal data.';
