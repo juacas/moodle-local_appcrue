@@ -80,7 +80,6 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/enable_autologin',
         get_string('enable_autologin', 'local_appcrue'),
-        get_string('enable_autologin', 'local_appcrue'),
-        true
-    ));
+        get_string('enable_autologin_help', 'local_appcrue'),
+        true ));
 }

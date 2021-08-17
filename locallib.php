@@ -85,6 +85,36 @@ function appcrue_get_user($token) {
     }
     return $user;
 }
+/**
+ * Returns the target URL according to @see optional_param parameters
+ * - urltogo: if present uses it as relative path.
+ * - course, group: search a course with idnumber matching the pattern '%-{$course}-{$group}-%'. Resolves any metalinking and returns the parent course.
+ * @return \moodle_url
+ */
+function appcrue_get_target_url() {
+    $urltogo = optional_param('urltogo', null, PARAM_URL);    // relative URL to redirect.
+    $course = optional_param('course', null, PARAM_INT); // Course internal ID SIGMA
+    $group = optional_param('group', 1, PARAM_INT); // Grupo docente.
+    if ($urltogo !== null) {
+        return new moodle_url($urltogo);
+    } else if ($course !== null) {
+        // Search a course with this SIGMA code and group.
+        /** @var moodle_database $DB */
+        global $DB;
+        $courserecord = $DB->get_record_select('course', "idnumber LIKE '%-{$course}-{$group}-%'");
+        if ($courserecord) {
+            // Check if it is metalinked to any parent "META" course.
+            $metaid = $DB->get_record('enrol', array('customint1' => $courserecord->id, 'enrol' => 'meta'), 'courseid');
+            if ($metaid) {
+                return new moodle_url("/course/view.php?id={$metaid->courseid}");
+            } else {
+                return new moodle_url("/course/view.php?id={$courserecord->id}");
+            }
+        }
+    }
+    // Default target.
+    return new moodle_url("/my");
+}
 function appcrue_get_username($userid) {
     global $DB;
     $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
