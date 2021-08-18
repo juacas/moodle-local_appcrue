@@ -36,10 +36,30 @@ if ($hassiteconfig) {
             get_string('idpheader_help', 'local_appcrue')
         )
     );
-    $settings->add(new admin_setting_configtext('local_appcrue/idp_url', get_string('idp_url', 'local_appcrue'), get_string('idp_url_help', 'local_appcrue'), 'https://idp.uva.es/OAUTH2/authserver.php', PARAM_URL));
-    $settings->add(new admin_setting_configtext('local_appcrue/idp_token_url', get_string('idp_token_url', 'local_appcrue'), get_string('idp_token_url_help', 'local_appcrue'), 'https://idp.uva.es/api/adas/oauth2/tokendata', PARAM_URL));
-    $settings->add(new admin_setting_configtext('local_appcrue/idp_client_id', get_string('idp_client_id', 'local_appcrue'), get_string('idp_client_id_help', 'local_appcrue'), '', PARAM_RAW_TRIMMED));
-    $settings->add(new admin_setting_configtext('local_appcrue/idp_client_secret', get_string('idp_client_secret', 'local_appcrue'), get_string('idp_client_secret_help', 'local_appcrue'), '', PARAM_RAW_TRIMMED));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/idp_url',
+        get_string('idp_url', 'local_appcrue'),
+        get_string('idp_url_help', 'local_appcrue'),
+        'https://idp.uva.es/OAUTH2/authserver.php',
+        PARAM_URL));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/idp_token_url',
+        get_string('idp_token_url', 'local_appcrue'),
+        get_string('idp_token_url_help', 'local_appcrue'),
+        'https://idp.uva.es/api/adas/oauth2/tokendata',
+        PARAM_URL));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/idp_client_id',
+        get_string('idp_client_id', 'local_appcrue'),
+        get_string('idp_client_id_help', 'local_appcrue'),
+        '',
+        PARAM_RAW_TRIMMED));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/idp_client_secret',
+        get_string('idp_client_secret', 'local_appcrue'),
+        get_string('idp_client_secret_help', 'local_appcrue'),
+        '',
+        PARAM_RAW_TRIMMED));
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_calendar_header',
@@ -61,15 +81,17 @@ if ($hassiteconfig) {
     global $DB;
     $modules = $DB->get_records("modules");
     $modulelist = [];
-    foreach($modules as $mod) {
+    foreach ($modules as $mod) {
         $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
     }
-    uasort($modulelist, function($a,$b) { return strcmp($a, $b);});
+    uasort($modulelist, function($a, $b) {
+        return strcmp($a, $b);
+        });
     $settings->add(new admin_setting_configmultiselect(
         'local_appcrue/examen_event_type',
         get_string('examen_event_type', 'local_appcrue'),
         get_string('examen_event_type_help', 'local_appcrue'),
-        ['quiz','quest','assign','workshop'], $modulelist ));
+        ['quiz', 'quest', 'assign', 'workshop'], $modulelist ));
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_autologin_header',

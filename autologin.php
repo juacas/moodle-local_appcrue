@@ -23,7 +23,6 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
-//require_once($CFG->libdir . '/externallib.php');
 require_once('locallib.php');
 
 $context = context_system::instance();
@@ -49,8 +48,8 @@ if (isloggedin() and !isguestuser()) {
         redirect(new moodle_url($urltogo));
     } else {
         // TODO: Best to close other user's session and relogin, to throw an exception of just to ovewrite session?
-        //require_logout();
-        //throw new moodle_exception('alreadyloggedin', 'error', '', format_string(fullname($USER)));
+        // require_logout();
+        // throw new moodle_exception('alreadyloggedin', 'error', '', format_string(fullname($USER)));
     }
 }
 

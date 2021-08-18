@@ -46,8 +46,8 @@ if ($user != null) {
         // All groups.
         $groups = array();
         foreach ($courses as $course) {
-            $course_groups = groups_get_all_groups($course->id, $user->id);
-            $groups = array_merge($groups, array_keys($course_groups));
+            $coursegroups = groups_get_all_groups($course->id, $user->id);
+            $groups = array_merge($groups, array_keys($coursegroups));
         }
     } else {
         $courses = array();
@@ -68,7 +68,7 @@ if ($user != null) {
     // By default events in the last 5 or next 60 days.
     if ($fromdate != '') {
         $date = DateTime::createFromFormat('Ymd', $fromdate);
-        $date->setTime(0,0,0);
+        $date->setTime(0, 0, 0);
         $timestart = $date->getTimeStamp();
     } else {
         // Last 5 days.

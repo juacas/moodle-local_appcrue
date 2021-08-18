@@ -33,21 +33,22 @@ function appcrue_get_user($token) {
     $tokentype = 'JWT_UVa';
     switch ($tokentype) {
         case 'JWT_unsecure':
-            $tokendata = json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $token)[1]))));
+            $tokendata = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
             $username = 'e' . strtolower($tokendata->ID->document);
             break;
         case 'JWT_UVa':
             // Validate signature with Midleware at UVa.
             $checktokenurl = get_config('local_appcrue', 'idp_token_url');
-            //'https://appcrue-des.uva.es:449/appcrueservices/meID';
+            // Currently something like 'https://appcrue-des.uva.es:449/appcrueservices/meID'.
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $checktokenurl);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30); //timeout after 30 seconds
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Timeout after 30 seconds.
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $token"]);
             $result = curl_exec($ch);
-            $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);   //get status code
+            $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
+            // TODO: Maybe check status code. Probably it's enough with parsing the result.
             curl_close($ch);
             $response = json_decode($result);
             if (isset($response->dni)) {
@@ -66,12 +67,13 @@ function appcrue_get_user($token) {
             // TODO: Test make request to IDP to get de username.
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $idptokenurl);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30); //timeout after 30 seconds
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Timeout after 30 seconds.
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $authtoken"]);
             $result = curl_exec($ch);
-            $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);   //get status code
+            $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
+            // TODO: Maybe check status code. Probably it's enough with parsing the result.
             curl_close($ch);
             // Get username of the token from the idp.
             $username = json_decode($result)->USUARIO_MOODLE;
@@ -88,18 +90,20 @@ function appcrue_get_user($token) {
 /**
  * Returns the target URL according to @see optional_param parameters
  * - urltogo: if present uses it as relative path.
- * - course, group: search a course with idnumber matching the pattern '%-{$course}-{$group}-%'. Resolves any metalinking and returns the parent course.
+ * - course, group: search a course with idnumber matching
+ *   the pattern '%-{$course}-{$group}-%'. Resolves any metalinking and
+ *   returns the parent course.
  * @return \moodle_url
  */
 function appcrue_get_target_url() {
-    $urltogo = optional_param('urltogo', null, PARAM_URL);    // relative URL to redirect.
+    $urltogo = optional_param('urltogo', null, PARAM_URL);    // Relative URL to redirect.
     $course = optional_param('course', null, PARAM_INT); // Course internal ID SIGMA
     $group = optional_param('group', 1, PARAM_INT); // Grupo docente.
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
     } else if ($course !== null) {
         // Search a course with this SIGMA code and group.
-        /** @var moodle_database $DB */
+        /** @var \moodle_database $DB */
         global $DB;
         $courserecord = $DB->get_record_select('course', "idnumber LIKE '%-{$course}-{$group}-%'");
         if ($courserecord) {
@@ -138,7 +142,7 @@ function appcrue_get_event_type($event) {
  */
 function appcrue_get_new_idp_token() {
     // Mockup pseudocode.
-    $idpgettokenurl =  get_config('local_appcrue', 'idp_token_url');
+    $idpgettokenurl = get_config('local_appcrue', 'idp_token_url');
     $idpid = get_config('local_appcrue', 'idp_client_id');
     $idpsecret = get_config('local_appcrue', 'idp_client_secret');
     $username = base64_encode("$idpid:$idpsecret");
@@ -146,21 +150,20 @@ function appcrue_get_new_idp_token() {
     // Make a request to obtain a new token.
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $idpgettokenurl);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10); //timeout after 30 seconds
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Timeout after 30 seconds.
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
     curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
     $result = curl_exec($ch);
-    $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);   //get status code
+    $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
+    // TODO: Maybe check status code. Probably it's enough with parsing the result.
     curl_close($ch);
-    // Expected return:
-    //     {
-    // "token_type": "Bearer",
-    // "access_token": "f57e1777-a199-416e-917b-f3ea8e93f5be",
-    // "expires_in": 1627040493
-    // }
+    /* Expected return:
+     { "token_type": "Bearer",
+     "access_token": "f57e1777-a199-416e-917b-f3ea8e93f5be",
+     "expires_in": 1627040493 } */
     $token = json_decode($result);
-    set_config('local_appcrue',"idp_last_token", $result);
+    set_config('local_appcrue', "idp_last_token", $result);
     return $token;
 }
 /**
