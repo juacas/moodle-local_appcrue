@@ -30,7 +30,7 @@
  */
 function appcrue_get_user($token) {
     global $DB;
-    $tokentype = 'JWT_UVa';
+    $tokentype = 'OAUTH2'; // TODO: Quitar todas menos OAUTH (genérico).
     switch ($tokentype) {
         case 'JWT_unsecure':
             $tokendata = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
@@ -57,35 +57,82 @@ function appcrue_get_user($token) {
                 $username = false;
             }
             break;
-        case 'OAUTH2':
+        case 'OAUTH2': // TODO: dejar como Generic token information.
+            global $CFG;
+            require_once($CFG->dirroot . '/lib/filelib.php');
             // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
             $idpurl = get_config('local_appcrue', 'idp_token_url');
-            $idptokenurl = "$idpurl?token=$token";
-            // Get the token to query $idp_token_url.
-            $authtoken = appcrue_get_idp_token();
-            // Make a request to obtain a user name.
-            // TODO: Test make request to IDP to get de username.
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $idptokenurl);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Timeout after 30 seconds.
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $authtoken"]);
-            $result = curl_exec($ch);
-            $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
-            // TODO: Maybe check status code. Probably it's enough with parsing the result.
-            curl_close($ch);
+            $idpurl = 'https://appcrue-des.uva.es:449/appcrueservices/meID'; // TODO: Quitar.
+            $idpurl = 'https://idpre.uva.es/api/adas/oauth2/tokendata'; // TODO: Quitar
+            $curl = new \curl();
+            $options = [
+                'CURLOPT_RETURNTRANSFER' => true,
+                'CURLOPT_CONNECTTIMEOUT' => 5,
+                'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
+            ];
+            $curl->setHeader(["Authorization: Bearer $token"]);
+            $result = $curl->get($idpurl, null, $options);
+            $statuscode = $curl->get_info()['http_code'];
+            // $result = '{"USUARIO_MOODLE": ["e11965920d"]}';
+
+            // $idptokenurl = "$idpurl";
+            // // Get the token to query $idp_token_url.
+            // $authtoken = appcrue_get_idp_token(); // TODO Deprecated
+            // // Make a request to obtain a user name.
+            // // TODO: Test make request to IDP to get de username.
+            // $ch = curl_init();
+            // curl_setopt($ch, CURLOPT_URL, $idptokenurl);
+            // curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Timeout after 30 seconds.
+            // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            // curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+            // curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $authtoken"]);
+            // $result = curl_exec($ch);
+            // $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
+            // // TODO: Maybe check status code. Probably it's enough with parsing the result.
+            // curl_close($ch);
             // Get username of the token from the idp.
-            $username = json_decode($result)->USUARIO_MOODLE;
+            if ($statuscode == 200) {
+                $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
+                $username = appcrue_get_json_node($result, $jsonpath);
+            } else {
+                debugging("Permission denied for the token: $token", DEBUG_NORMAL);
+                $username = false;
+            }
             break;
     }
     // Get user.
     if ($username == false) {
         $user = null;
     } else {
-        $user = $DB->get_record('user', array('username' => $username), '*');
+        $userfield = get_config('local_appcrue', 'match_user_by');
+        // First check in standard fieldnames.
+        $fields = get_user_fieldnames();
+        if (array_search($userfield, $fields) !== false) {
+            $user = $DB->get_record('user', array($userfield => $username), '*');
+        } else {
+            // TODO: Search in custom fields.
+        }
     }
     return $user;
+}
+/**
+ * Simple path traversal. Support only dot separator. If it finds an array takes the first item.
+ * @param string text the text to search in
+ * @param string jsonpath a list of dot separated terms.
+ */
+function appcrue_get_json_node($text, $jsonpath) {
+    $steps = explode('.',$jsonpath);
+    $json = json_decode($text);
+    // Traverse the steps.
+    $node = $json;
+    foreach($steps as $step) {
+        if ($step == '') continue;
+        $node = $node->$step;
+        if (is_array($node)) {
+            $node = $node[0];
+        }
+    }
+    return $node;
 }
 /**
  * Returns the target URL according to @see optional_param parameters
@@ -139,6 +186,8 @@ function appcrue_get_event_type($event) {
 }
 /**
  * Renew the idp token.
+ * @deprecated
+ * TODO: Este proceso no será necesario si usamos directametne el token válido.
  */
 function appcrue_get_new_idp_token() {
     // Mockup pseudocode.
@@ -158,7 +207,7 @@ function appcrue_get_new_idp_token() {
     $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
     // TODO: Maybe check status code. Probably it's enough with parsing the result.
     curl_close($ch);
-    /* Expected return:
+    /* Expected return is:
      { "token_type": "Bearer",
      "access_token": "f57e1777-a199-416e-917b-f3ea8e93f5be",
      "expires_in": 1627040493 } */
@@ -170,7 +219,7 @@ function appcrue_get_new_idp_token() {
  * Gets last_known token to connect to IDP.
  */
 function appcrue_get_idp_token() {
-    $token = json_decode(get_config('local_appcrue',"idp_last_token"));
+    $token = json_decode(get_config('local_appcrue', "idp_last_token"));
     if ($token && $token->expires_in < time() ) {
         return $token->access_token;
     } else {

@@ -36,12 +36,12 @@ if ($hassiteconfig) {
             get_string('idpheader_help', 'local_appcrue')
         )
     );
-    $settings->add(new admin_setting_configtext(
-        'local_appcrue/idp_url',
-        get_string('idp_url', 'local_appcrue'),
-        get_string('idp_url_help', 'local_appcrue'),
-        'https://idp.uva.es/OAUTH2/authserver.php',
-        PARAM_URL));
+    // $settings->add(new admin_setting_configtext(
+    //     'local_appcrue/idp_url',
+    //     get_string('idp_url', 'local_appcrue'),
+    //     get_string('idp_url_help', 'local_appcrue'),
+    //     'https://idp.uva.es/OAUTH2/authserver.php',
+    //     PARAM_URL));
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',
         get_string('idp_token_url', 'local_appcrue'),
@@ -49,17 +49,42 @@ if ($hassiteconfig) {
         'https://idp.uva.es/api/adas/oauth2/tokendata',
         PARAM_URL));
     $settings->add(new admin_setting_configtext(
-        'local_appcrue/idp_client_id',
-        get_string('idp_client_id', 'local_appcrue'),
-        get_string('idp_client_id_help', 'local_appcrue'),
-        '',
-        PARAM_RAW_TRIMMED));
-    $settings->add(new admin_setting_configtext(
-        'local_appcrue/idp_client_secret',
-        get_string('idp_client_secret', 'local_appcrue'),
-        get_string('idp_client_secret_help', 'local_appcrue'),
-        '',
-        PARAM_RAW_TRIMMED));
+        'local_appcrue/idp_user_json_path',
+        get_string('idp_user_json_path', 'local_appcrue'),
+        get_string('idp_user_json_path_help', 'local_appcrue'),
+        '.USUARIO_MOODLE',
+        PARAM_RAW_TRIMMED
+    ));
+    $fields = get_user_fieldnames();
+    $customfields = profile_get_custom_fields();
+    $userfields = [];
+    // Make the keys string values and not indexes.
+    foreach ($fields as $field) {
+        $userfields[$field] = $field;
+    }
+    foreach ($customfields as $field) {
+        $userfields["profile_field_{$field->shortname}"] = $field->name;
+    }
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/match_user_by',
+        get_string('match_user_by', 'local_appcrue'),
+        get_string('match_user_by_help', 'local_appcrue'),
+        'id',
+        $userfields
+    ));
+
+    // $settings->add(new admin_setting_configtext(
+    //     'local_appcrue/idp_client_id',
+    //     get_string('idp_client_id', 'local_appcrue'),
+    //     get_string('idp_client_id_help', 'local_appcrue'),
+    //     '',
+    //     PARAM_RAW_TRIMMED));
+    // $settings->add(new admin_setting_configtext(
+    //     'local_appcrue/idp_client_secret',
+    //     get_string('idp_client_secret', 'local_appcrue'),
+    //     get_string('idp_client_secret_help', 'local_appcrue'),
+    //     '',
+    //     PARAM_RAW_TRIMMED));
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_calendar_header',
@@ -86,7 +111,7 @@ if ($hassiteconfig) {
     }
     uasort($modulelist, function($a, $b) {
         return strcmp($a, $b);
-        });
+    });
     $settings->add(new admin_setting_configmultiselect(
         'local_appcrue/examen_event_type',
         get_string('examen_event_type', 'local_appcrue'),

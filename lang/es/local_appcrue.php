@@ -43,3 +43,7 @@ $string['share_course_events'] = 'Devolver los eventos de los cursos';
 $string['share_course_events_help'] = 'Devolver los eventos de los cursos';
 $string['share_user_events'] = 'Devolver los eventos personales';
 $string['share_user_events_help'] = 'Devolver los eventos personales';
+$string['match_user_by'] = 'Campo de coincidencia con el perfil del usuario';
+$string['match_user_by_help'] = 'El token de autorización devuelve una identificación que debe coincidir con un campo de usuario.';
+$string['idp_user_json_path'] = 'Selector del identificador';
+$string['idp_user_json_path_help'] = 'Selector tipo jsonpath para identificar el valor para identificar al usuario.';

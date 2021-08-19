@@ -34,6 +34,8 @@ $lang = required_param('lang', PARAM_ALPHA);
 $outputmessage = new stdClass;
 $outputmessage->calendar = array();
 $PAGE->set_context(null);
+header('Content-Type: text/json; charset=utf-8');
+
 // Check token.
 $user = appcrue_get_user($token);
 if ($user != null) {
@@ -147,5 +149,4 @@ if ($user != null) {
         $outputmessage->calendar[] = $dayitem;
     }
 }
-header('Content-Type: text/json; charset=utf-8');
 echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);

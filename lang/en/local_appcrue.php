@@ -50,3 +50,7 @@ $string['autologinheader'] = 'Auto-login service';
 $string['autologinheader_help'] = 'Allows the users to jump into Moodle from the AppCrue.';
 $string['enable_autologin'] = 'Enable autologin';
 $string['enable_autologin_help'] = 'Autologin service takes a user\'s token, verifies it and redirects to an internal url.';
+$string['match_user_by'] = 'Field for matching user\'s profile';
+$string['match_user_by_help'] = 'The authorization token returns a identifcation that need to be matched to a user field.';
+$string['idp_user_json_path'] = 'Selector in the IDP response.';
+$string['idp_user_json_path_help'] = 'Selector like jsonpath to identify the value to identify the user.';
