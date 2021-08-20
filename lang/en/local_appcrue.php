@@ -54,3 +54,5 @@ $string['match_user_by'] = 'Field for matching user\'s profile';
 $string['match_user_by_help'] = 'The authorization token returns a identifcation that need to be matched to a user field.';
 $string['idp_user_json_path'] = 'Selector in the IDP response.';
 $string['idp_user_json_path_help'] = 'Selector like jsonpath to identify the value to identify the user.';
+$string['course_pattern'] = 'SQL pattern to search a course with';
+$string['course_pattern_help'] = 'The SQL pattern will be used to search a course using "idnumber" field and request parameters "course" and "group" (not neccessarily moodle ids)';

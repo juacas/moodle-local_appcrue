@@ -129,4 +129,11 @@ if ($hassiteconfig) {
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
         true ));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/course_pattern',
+        get_string('course_pattern', 'local_appcrue'),
+        get_string('course_pattern_help', 'local_appcrue'),
+        '%-{course}-{group}-%',
+        PARAM_RAW_TRIMMED
+    ));
 }

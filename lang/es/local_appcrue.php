@@ -47,3 +47,5 @@ $string['match_user_by'] = 'Campo de coincidencia con el perfil del usuario';
 $string['match_user_by_help'] = 'El token de autorización devuelve una identificación que debe coincidir con un campo de usuario.';
 $string['idp_user_json_path'] = 'Selector del identificador';
 $string['idp_user_json_path_help'] = 'Selector tipo jsonpath para identificar el valor para identificar al usuario.';
+$string['course_pattern'] = 'Patrón SQL para buscar un curso';
+$string['course_pattern_help'] = 'El patrón SQL se utilizará para buscar un curso utilizando el campo "idnumber" y los parámetros de la petición autologin "course" y "group" (no necesariamente ids de moodle)';
