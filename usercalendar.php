@@ -149,6 +149,8 @@ if ($user != null) {
         $outputmessage->calendar[] = $dayitem;
     }
 }
-$outputmessage->debug = new stdClass();
-$outputmessage->debug->user = $user;
+if (debugging('', DEBUG_DEVELOPER)) {
+    $outputmessage->debug = new stdClass();
+    $outputmessage->debug->user = $user;
+}
 echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);

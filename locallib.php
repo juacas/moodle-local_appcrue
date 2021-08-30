@@ -64,7 +64,6 @@ function appcrue_get_user($token) {
             require_once($CFG->dirroot . '/lib/filelib.php');
             // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
             $idpurl = get_config('local_appcrue', 'idp_token_url');
-            $idpurl = 'https://appcrue-des.uva.es:449/appcrueservices/meID'; // TODO: Debug. Quitar.
             $idpurl = 'https://idpre.uva.es/api/adas/oauth2/tokendata'; // TODO: Debug. Quitar
             $curl = new \curl();
             $options = [
