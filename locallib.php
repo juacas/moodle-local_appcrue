@@ -76,7 +76,6 @@ function appcrue_get_user($token) {
             $result = $curl->get($idpurl, null, $options);
             $statuscode = $curl->get_info()['http_code'];
             $result = '{"USUARIO_MOODLE": ["e11965920d"]}'; // TODO: Debug. Quitar.
-            $result = '{"USUARIO_MOODLE": ["@juanpdecastro"]}'; // TODO: Debug. Quitar.
             $statuscode = 200;                              // TODO: Debug. Quitar.
 
             // Get matchvalue of the token from the idp.
