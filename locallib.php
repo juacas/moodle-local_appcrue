@@ -31,7 +31,8 @@
 function appcrue_get_user($token) {
     /** @var moodle_database $DB */
     global $DB;
-    $tokentype = optional_param('method','OAUTH2', PARAM_ALPHANUM); // TODO: Quitar todas menos OAUTH (genérico).
+    $matchvalue = false;
+    $tokentype = optional_param('method','JWT_UVa', PARAM_ALPHANUM); // TODO: Quitar todas menos OAUTH (genérico).
     switch ($tokentype) {
         case 'JWT_unsecure':
             $tokendata = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
