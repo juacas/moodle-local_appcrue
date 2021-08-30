@@ -99,6 +99,7 @@ function appcrue_get_user($token) {
         if (array_search($fieldname, $fields) !== false) {
             $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
         } else {
+            global $CFG;
             require_once($CFG->dirroot . '/user/profile/lib.php');
             $customfields = profile_get_custom_fields();
             $fieldname = substr($fieldname, 14); // Trim prefix 'profile_field'.
