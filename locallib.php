@@ -26,13 +26,13 @@
 /**
  * Checks the token and gets the user associated with it.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
- * @return stdClass|null
+ * @return list(stdClass|null, stdClass)
  */
 function appcrue_get_user($token) {
     /** @var moodle_database $DB */
     global $DB;
     $matchvalue = false;
-    $tokentype = optional_param('method','JWT_UVa', PARAM_ALPHANUMEXT); // TODO: Quitar todas menos OAUTH (genérico).
+    $tokentype = optional_param('method','OAUTH2', PARAM_ALPHANUMEXT); // TODO: Quitar todas menos OAUTH (genérico).
     switch ($tokentype) {
         case 'JWT_unsecure':
             $tokendata = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
@@ -74,8 +74,10 @@ function appcrue_get_user($token) {
             $curl->setHeader(["Authorization: Bearer $token"]);
             $result = $curl->get($idpurl, null, $options);
             $statuscode = $curl->get_info()['http_code'];
-            $result = '{"USUARIO_MOODLE": ["e11965920d"]}'; // TODO: Debug. Quitar.
-            $statuscode = 200;                              // TODO: Debug. Quitar.
+            // Debugging info for response.
+            $returnstatus = new stdClass();
+            $returnstatus->code = $statuscode;
+            $returnstatus->result = $result;
 
             // Get matchvalue of the token from the idp.
             if ($statuscode == 200) {
@@ -119,7 +121,7 @@ function appcrue_get_user($token) {
             }
         }
     }
-    return $user;
+    return [$user, $returnstatus];
 }
 /**
  * Simple path traversal. Support only dot separator. If it finds an array takes the first item.
@@ -133,6 +135,9 @@ function appcrue_get_json_node($text, $jsonpath) {
     $node = $json;
     foreach($steps as $step) {
         if ($step == '') continue;
+        if (!isset($node->$step)) {
+            return null;
+        }
         $node = $node->$step;
         if (is_array($node)) {
             $node = $node[0];
@@ -198,46 +203,4 @@ function appcrue_get_event_type($event) {
         return 'EXAMEN';
     }
     return 'HORARIO';
-}
-/**
- * Renew the idp token.
- * @deprecated
- * TODO: Este proceso no será necesario si usamos directametne el token válido.
- */
-function appcrue_get_new_idp_token() {
-    // Mockup pseudocode.
-    $idpgettokenurl = get_config('local_appcrue', 'idp_token_url');
-    $idpid = get_config('local_appcrue', 'idp_client_id');
-    $idpsecret = get_config('local_appcrue', 'idp_client_secret');
-    $matchvalue = base64_encode("$idpid:$idpsecret");
-    $password = '';
-    // Make a request to obtain a new token.
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $idpgettokenurl);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Timeout after 30 seconds.
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-    curl_setopt($ch, CURLOPT_USERPWD, "$matchvalue:$password");
-    $result = curl_exec($ch);
-    $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
-    // TODO: Maybe check status code. Probably it's enough with parsing the result.
-    curl_close($ch);
-    /* Expected return is:
-     { "token_type": "Bearer",
-     "access_token": "f57e1777-a199-416e-917b-f3ea8e93f5be",
-     "expires_in": 1627040493 } */
-    $token = json_decode($result);
-    set_config('local_appcrue', "idp_last_token", $result);
-    return $token;
-}
-/**
- * Gets last_known token to connect to IDP.
- */
-function appcrue_get_idp_token() {
-    $token = json_decode(get_config('local_appcrue', "idp_last_token"));
-    if ($token && $token->expires_in < time() ) {
-        return $token->access_token;
-    } else {
-        return appcrue_get_new_idp_token();
-    }
 }

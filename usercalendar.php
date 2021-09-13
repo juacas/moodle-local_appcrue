@@ -37,7 +37,7 @@ $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
 
 // Check token.
-$user = appcrue_get_user($token);
+list($user, $diag) = appcrue_get_user($token);
 if ($user != null) {
     // Get the calendar type we are using.
     $calendartype = \core_calendar\type_factory::get_calendar_instance();
@@ -149,8 +149,10 @@ if ($user != null) {
         $outputmessage->calendar[] = $dayitem;
     }
 }
-if (debugging('', DEBUG_DEVELOPER)) {
+if (debugging()) {
     $outputmessage->debug = new stdClass();
     $outputmessage->debug->user = $user;
+    $outputmessage->debug->token = $token;
+    $outputmessage->debug->diag = $diag;
 }
 echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
