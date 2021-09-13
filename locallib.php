@@ -33,71 +33,48 @@ function appcrue_get_user($token) {
     global $DB;
     $matchvalue = false;
     $tokentype = optional_param('method','OAUTH2', PARAM_ALPHANUMEXT); // TODO: Quitar todas menos OAUTH (genérico).
-    switch ($tokentype) {
-        case 'JWT_unsecure':
-            $tokendata = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
-            $matchvalue = 'e' . strtolower($tokendata->ID->document);
-            break;
-        case 'JWT_UVa':
-            // Validate signature with Midleware at UVa.
-            $checktokenurl = get_config('local_appcrue', 'idp_token_url');
-            // Currently something like 'https://appcrue-des.uva.es:449/appcrueservices/meID'.
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $checktokenurl);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Timeout after 30 seconds.
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $token"]);
-            $result = curl_exec($ch);
-            $statuscode = curl_getinfo($ch, CURLINFO_HTTP_CODE);   // Get status code.
-            // TODO: Maybe check status code. Probably it's enough with parsing the result.
-            curl_close($ch);
-            $response = json_decode($result);
-            if (isset($response->dni)) {
-                $matchvalue = strtolower('e'.json_decode($result)->dni);
-            } else {
-                $matchvalue = false;
-            }
-            break;
-        case 'OAUTH2': // TODO: dejar como Generic token information.
-            global $CFG;
-            require_once($CFG->dirroot . '/lib/filelib.php');
-            // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
-            $idpurl = get_config('local_appcrue', 'idp_token_url');
-            $idpurl = 'https://idpre.uva.es/api/adas/oauth2/tokendata'; // TODO: Debug. Quitar
-            $curl = new \curl();
-            $options = [
-                'CURLOPT_RETURNTRANSFER' => true,
-                'CURLOPT_CONNECTTIMEOUT' => 5,
-                'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
-            ];
-            $curl->setHeader(["Authorization: Bearer $token"]);
-            $result = $curl->get($idpurl, null, $options);
-            $statuscode = $curl->get_info()['http_code'];
-            // Debugging info for response.
-            $returnstatus = new stdClass();
-            $returnstatus->code = $statuscode;
-            $returnstatus->result = $result;
 
-            // Get matchvalue of the token from the idp.
-            if ($statuscode == 200) {
-                $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
-                $matchvalue = appcrue_get_json_node($result, $jsonpath);
-            } else {
-                debugging("Permission denied for the token: $token", DEBUG_NORMAL);
-                $matchvalue = false;
-            }
-            break;
+    global $CFG;
+    // Load curl class.
+    require_once($CFG->dirroot . '/lib/filelib.php');
+    // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
+    $idpurl = get_config('local_appcrue', 'idp_token_url');
+    $curl = new \curl();
+    $options = [
+        'CURLOPT_RETURNTRANSFER' => true,
+        'CURLOPT_CONNECTTIMEOUT' => 5,
+        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
+    ];
+    $curl->setHeader(["Authorization: Bearer $token"]);
+    $result = $curl->get($idpurl, null, $options);
+    $statuscode = $curl->get_info()['http_code'];
+    // Debugging info for response.
+    $returnstatus = new stdClass();
+    $returnstatus->code = $statuscode;
+    $returnstatus->result = $result;
+
+    // Get matchvalue of the token from the idp.
+    if ($statuscode == 200) {
+        $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
+        $matchvalue = appcrue_get_json_node($result, $jsonpath);
+    } else {
+        debugging("Permission denied for the token: $token", DEBUG_NORMAL);
+        $matchvalue = false;
     }
+
     // Get user.
     if ($matchvalue == false) {
         $user = null;
+        debugging("Path {$jsonpath} not found in: {$result}", DEBUG_NORMAL);
     } else {
         $fieldname = get_config('local_appcrue', 'match_user_by');
         // First check in standard fieldnames.
         $fields = get_user_fieldnames();
         if (array_search($fieldname, $fields) !== false) {
             $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
+            if ($user == false) {
+                debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
+            }
         } else {
             global $CFG;
             require_once($CFG->dirroot . '/user/profile/lib.php');
@@ -118,6 +95,7 @@ function appcrue_get_user($token) {
                 $user = $DB->get_record('user', array('id' => $userid->userid), '*');
             } else {
                 $user = false;
+                debugging("No match with: {$sql}", DEBUG_NORMAL);
             }
         }
     }
