@@ -65,9 +65,12 @@ if ($sitemap == false) {
     // Add courses.
     // This implementatios uses one query but no caching.
     // $courses = get_courses(null, null, "c.fullname, c.summary, c.id, c.category");
-    // Other way is core_course_category::get_courses() that uses caching.
-    $topcat = \core_course_category::top();
-    $courses = $topcat->get_courses(['summary' => true, 'recursive' => true]);
+    // Other way is core_course_category::get_courses() that uses caching. Da error si hay huérfanosen course_categories.
+    // $topcat = \core_course_category::top();
+    // $courses = $topcat->get_courses(['summary' => true, 'recursive' => true]);
+    /** @var moodle_database $DB */
+    global $DB;
+    $courses = $DB->get_records_select('course', 'TRUE', ['fullname', 'summary', 'id', 'category']);
     foreach ($courses as $course) {
         // Find navegable.
         if ($course->id != SITEID && isset($catindex[$course->category])) {
