@@ -38,7 +38,7 @@ $sitemap = false;//$cache->get($category);
 if ($sitemap == false) {
     // This method does not show all categories recursively.
     //$categories = \core_course_category::get_all();
-    $categories = $DB->get_record_select('course_categories', 'TRUE',
+    $categories = $DB->get_records_select('course_categories', 'TRUE',
                         ['id', 'name', 'description', 'parent', 'coursecount', 'visible']);
     $catindex = array();
     $navegableroot = new stdClass();
