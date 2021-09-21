@@ -48,12 +48,13 @@ if ($sitemap == false) {
     $errors = []; // List of problems detected.
     // Build index.
     foreach ($categories as $id => $cat) {
-        if ($cat->visible == '0' || array_search($id, $hiddencats)) {
+        if ($cat->visible == '0') {
             continue;
         }
         $navegable = new stdClass();
         $navegable->name = $cat->name;
         $navegable->description = format_text($cat->description, FORMAT_PLAIN);
+        $navegable->id = $cat->id;
         $catindex[$cat->id] = $navegable;
         if ($cat->id == $category) {
             $navegableroot = $navegable;
@@ -67,8 +68,12 @@ if ($sitemap == false) {
             $parentid = $category->parent;
 
             $parent = $catindex[$parentid] ?? null;
+            $ishidden = array_search($catid, $hiddencats) !== false;
+            if ($ishidden) {
+                continue;
+            }
             // Add child.
-            if ($parent) {
+            if ($parent ) {
                 $parent->navegable[] = $navegable;
             } else {
                 // Parent category missing. Do something.
