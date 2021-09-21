@@ -104,6 +104,6 @@ if ($sitemap == false) {
         $navegableroot->debug->errors = $errors;
     }
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
-    $cache->set($category, $sitemap);
+    $cache->set($category->id, $sitemap);
 }
 echo $sitemap;
