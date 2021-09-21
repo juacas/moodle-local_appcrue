@@ -56,3 +56,4 @@ $string['idp_user_json_path'] = 'Selector in the IDP response.';
 $string['idp_user_json_path_help'] = 'Selector like jsonpath to identify the value to identify the user.';
 $string['course_pattern'] = 'SQL pattern to search a course with';
 $string['course_pattern_help'] = 'The SQL pattern will be used to search a course using "idnumber" field and request parameters "course" and "group" (not neccessarily moodle ids)';
+$string['cachedef_sitemap'] = 'Stores json maps of categories and courses';

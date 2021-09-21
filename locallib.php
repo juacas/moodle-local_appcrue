@@ -57,6 +57,9 @@ function appcrue_get_user($token) {
     if ($statuscode == 200) {
         $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
         $matchvalue = appcrue_get_json_node($result, $jsonpath);
+        if ($matchvalue == false) {
+            debugging("Path {$jsonpath} not found in: {$result}", DEBUG_NORMAL);
+        }
     } else {
         debugging("Permission denied for the token: $token", DEBUG_NORMAL);
         $matchvalue = false;
@@ -65,7 +68,6 @@ function appcrue_get_user($token) {
     // Get user.
     if ($matchvalue == false) {
         $user = null;
-        debugging("Path {$jsonpath} not found in: {$result}", DEBUG_NORMAL);
     } else {
         $fieldname = get_config('local_appcrue', 'match_user_by');
         // First check in standard fieldnames.
