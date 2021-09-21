@@ -39,7 +39,7 @@ if ($sitemap == false) {
     $catindex = array();
     $navegableroot = new stdClass();
     $catindex[0] = $navegableroot;
-
+    $errors = []; // List of problems detected.
     // Build index.
     foreach ($categories as $id => $cat) {
         if ($cat->visible == '0' || $cat->coursecount == 0) {
@@ -57,9 +57,17 @@ if ($sitemap == false) {
     foreach ($catindex as $catid => $navegable) {
         if ($catid != 0) {
             // Get navegable parent.
-            $parent = $catindex[$categories[$catid]->parent];
+            $category = $categories[$catid];
+            $parentid = $category->parent;
+
+            $parent = $catindex[$parentid] ?? null;
             // Add child.
-            $parent->navegable[] = $navegable;
+            if ($parent) {
+                $parent->navegable[] = $navegable;
+            } else {
+                // Parent category missing. Do something.
+                $errors[] = "Missing parent {$parentid} for category {$category->name}.";
+            }
         }
     }
     // Add courses.
@@ -93,6 +101,7 @@ if ($sitemap == false) {
     if (debugging()) {
         $navegableroot->debug = new stdClass();
         $navegableroot->debug->token = $token;
+        $navegableroot->debug->errors = $errors;
     }
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
     $cache->set($category, $sitemap);
