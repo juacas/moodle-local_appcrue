@@ -22,12 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use tool_dataprivacy\data_registry;
-use tool_dataprivacy\output\data_registry_page;
-
 require_once(__DIR__ . '/../../config.php');
 require_once('locallib.php');
-require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/dataprivacy/lib.php');
 
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
@@ -36,11 +32,10 @@ $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
 
 $cache = cache::make('local_appcrue', 'sitemaps');
-$sitemap = $cache->get($category);
+$sitemap = false;//$cache->get($category);
 
 if ($sitemap == false) {
-
-    $categories = data_registry::get_site_categories();
+    $categories = \core_course_category::get_all();
     $catindex = array();
     $navegableroot = new stdClass();
     $catindex[0] = $navegableroot;
@@ -68,7 +63,11 @@ if ($sitemap == false) {
         }
     }
     // Add courses.
-    $courses = get_courses(null, null, "c.fullname, c.summary, c.id");
+    // This implementatios uses one query but no caching.
+    // $courses = get_courses(null, null, "c.fullname, c.summary, c.id, c.category");
+    // Other way is core_course_category::get_courses() that uses caching.
+    $topcat = \core_course_category::top();
+    $courses = $topcat->get_courses(['summary' => true, 'recursive' => true]);
     foreach ($courses as $course) {
         // Find navegable.
         if ($course->id != SITEID && isset($catindex[$course->category])) {
