@@ -24,7 +24,8 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once('locallib.php');
-
+/** @var moodle_database $DB */
+global $DB;
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
 
@@ -35,7 +36,10 @@ $cache = cache::make('local_appcrue', 'sitemaps');
 $sitemap = false;//$cache->get($category);
 
 if ($sitemap == false) {
-    $categories = \core_course_category::get_all();
+    // This method does not show all categories recursively.
+    //$categories = \core_course_category::get_all();
+    $categories = $DB->get_record_select('course_categories', 'TRUE',
+                        ['id', 'name', 'description', 'parent', 'coursecount', 'visible']);
     $catindex = array();
     $navegableroot = new stdClass();
     $catindex[0] = $navegableroot;
@@ -76,8 +80,7 @@ if ($sitemap == false) {
     // Other way is core_course_category::get_courses() that uses caching. Da error si hay huérfanosen course_categories.
     // $topcat = \core_course_category::top();
     // $courses = $topcat->get_courses(['summary' => true, 'recursive' => true]);
-    /** @var moodle_database $DB */
-    global $DB;
+
     $courses = $DB->get_records_select('course', 'TRUE', ['fullname', 'summary', 'id', 'category']);
     foreach ($courses as $course) {
         // Find navegable.
