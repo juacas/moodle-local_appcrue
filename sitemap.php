@@ -23,11 +23,13 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir.'/filelib.php');
 require_once('locallib.php');
 /** @var moodle_database $DB */
 global $DB;
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
+$hiddencats = optional_param_array('hidden', [], PARAM_INT);
 
 $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
@@ -46,12 +48,12 @@ if ($sitemap == false) {
     $errors = []; // List of problems detected.
     // Build index.
     foreach ($categories as $id => $cat) {
-        if ($cat->visible == '0' || $cat->coursecount == 0) {
+        if ($cat->visible == '0' || array_search($id, $hiddencats)) {
             continue;
         }
         $navegable = new stdClass();
         $navegable->name = $cat->name;
-        $navegable->description = $cat->description;
+        $navegable->description = format_text($cat->description, FORMAT_PLAIN);
         $catindex[$cat->id] = $navegable;
         if ($cat->id == $category) {
             $navegableroot = $navegable;
@@ -88,7 +90,9 @@ if ($sitemap == false) {
             $nav = $catindex[$course->category];
             $coursenav = new stdClass();
             $coursenav->name = $course->fullname;
-            $coursenav->description = $course->summary;
+            // $context = context_course::instance($course->id);
+            // $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
+            $coursenav->description = content_to_text($course->summary, false);
             if ($token) {
                 $url = new moodle_url('/local/appcrue/autologin.php',
                     ['token' => $token,
@@ -105,6 +109,7 @@ if ($sitemap == false) {
         $navegableroot->debug = new stdClass();
         $navegableroot->debug->token = $token;
         $navegableroot->debug->errors = $errors;
+        $navegableroot->updated = userdate(time());
     }
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
     $cache->set($category->id, $sitemap);
