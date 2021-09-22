@@ -61,7 +61,7 @@ function appcrue_get_user($token) {
             debugging("Path {$jsonpath} not found in: {$result}", DEBUG_NORMAL);
         }
     } else {
-        debugging("Permission denied for the token: $token", DEBUG_NORMAL);
+        //debugging("Permission denied for the token: $token", DEBUG_NORMAL);
         $matchvalue = false;
     }
 
