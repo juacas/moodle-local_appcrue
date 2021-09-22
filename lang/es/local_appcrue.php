@@ -49,3 +49,7 @@ $string['idp_user_json_path'] = 'Selector del identificador';
 $string['idp_user_json_path_help'] = 'Selector tipo jsonpath para identificar el valor para identificar al usuario.';
 $string['course_pattern'] = 'Patrón SQL para buscar un curso';
 $string['course_pattern_help'] = 'El patrón SQL se utilizará para buscar un curso utilizando el campo "idnumber" y los parámetros de la petición autologin "course" y "group" (no necesariamente ids de moodle)';
+$string['avatarheader'] = 'Servicio Avatar';
+$string['avatarheader_help'] = 'Permite a cualquier aplicación con un token válido obtener la imagen de ese usuario.';
+$string['enable_avatar'] = 'Activar el servicio de avatar';
+$string['enable_avatar_help'] = 'El servicio de avatar toma el token de un usuario, lo verifica y devuelve la imagen del usuario.';

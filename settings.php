@@ -136,4 +136,17 @@ if ($hassiteconfig) {
         '%-{course}-{group}-%',
         PARAM_RAW_TRIMMED
     ));
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_avatar_header',
+            get_string('avatarheader', 'local_appcrue'),
+            get_string('avatarheader_help', 'local_appcrue')
+        )
+    );
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_avatar',
+        get_string('enable_avatar', 'local_appcrue'),
+        get_string('enable_avatar_help', 'local_appcrue'),
+        true
+    ));
 }
