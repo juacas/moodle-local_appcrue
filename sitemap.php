@@ -29,6 +29,7 @@ require_once('locallib.php');
 global $DB;
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
+$includecourses = optional_param('courses', false, PARAM_BOOL);
 $hiddencats = optional_param_array('hidden', [], PARAM_INT);
 
 $PAGE->set_context(null);
@@ -55,6 +56,9 @@ if ($sitemap == false) {
         $navegable->name = $cat->name;
         $navegable->description = format_text($cat->description, FORMAT_PLAIN);
         $navegable->id = $cat->id;
+        // URL.
+        $url = new moodle_url('/course/index.php', ['categoryid' => $cat->id]);
+        $navegable->url = $url->out();
         $catindex[$cat->id] = $navegable;
         if ($cat->id == $category) {
             $navegableroot = $navegable;
@@ -87,26 +91,27 @@ if ($sitemap == false) {
     // Other way is core_course_category::get_courses() that uses caching. Da error si hay huérfanosen course_categories.
     // $topcat = \core_course_category::top();
     // $courses = $topcat->get_courses(['summary' => true, 'recursive' => true]);
-
-    $courses = $DB->get_records_select('course', 'TRUE', ['fullname', 'summary', 'id', 'category']);
-    foreach ($courses as $course) {
-        // Find navegable.
-        if ($course->id != SITEID && isset($catindex[$course->category])) {
-            $nav = $catindex[$course->category];
-            $coursenav = new stdClass();
-            $coursenav->name = $course->fullname;
-            // $context = context_course::instance($course->id);
-            // $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
-            $coursenav->description = content_to_text($course->summary, false);
-            if ($token) {
-                $url = new moodle_url('/local/appcrue/autologin.php',
-                    ['token' => $token,
-                    'urltogo' => "/course/view.php?id={$course->id}"]);
-            } else {
-                $url = new moodle_url('/course/view.php', ['id' => $course->id]);
+    if ($includecourses) {
+        $courses = $DB->get_records_select('course', 'TRUE', ['fullname', 'summary', 'id', 'category']);
+        foreach ($courses as $course) {
+            // Find navegable.
+            if ($course->id != SITEID && isset($catindex[$course->category])) {
+                $nav = $catindex[$course->category];
+                $coursenav = new stdClass();
+                $coursenav->name = $course->fullname;
+                // $context = context_course::instance($course->id);
+                // $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
+                $coursenav->description = content_to_text($course->summary, false);
+                if ($token) {
+                    $url = new moodle_url('/local/appcrue/autologin.php',
+                        ['token' => $token,
+                        'urltogo' => "/course/view.php?id={$course->id}"]);
+                } else {
+                    $url = new moodle_url('/course/view.php', ['id' => $course->id]);
+                }
+                $coursenav->url = $url->out();
+                $nav->navegable[] = $coursenav;
             }
-            $coursenav->url = $url->out();
-            $nav->navegable[] = $coursenav;
         }
     }
 
