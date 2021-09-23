@@ -25,6 +25,9 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot.'/calendar/lib.php');
 require_once('locallib.php');
 
+if (!get_config('local_appcrue', 'enable_usercalendar')) {
+    throw new moodle_exception('servicedonotexist', 'error');
+}
 $token = required_param('token', PARAM_RAW);
 $fromdate = optional_param('fromDate', '', PARAM_ALPHANUM);
 $todate = optional_param('toDate', '', PARAM_ALPHANUM);
@@ -137,13 +140,13 @@ if ($user != null) {
                     'view' => 'day',
                     'time' => $event->timestart
                 ];
-                if (isset($event->courseid)) {
+                if (isset($event->courseid) && $event->eventtype != 'user') {
                     $params['course'] = $event->courseid;
                 }
                 $url = new moodle_url("/calendar/view.php", $params);
                 $eventitem->url = $url->out(false);
             }
-
+            $eventitem->url = appcrue_create_deep_url($eventitem->url, $token);
             $dayitem->events[] = $eventitem;
         }
         $outputmessage->calendar[] = $dayitem;
@@ -151,7 +154,7 @@ if ($user != null) {
 }
 if (debugging()) {
     $outputmessage->debug = new stdClass();
-    $outputmessage->debug->user = $user;
+    $outputmessage->debug->user = $user->idnumber;
     $outputmessage->debug->token = $token;
     $outputmessage->debug->diag = $diag;
 }

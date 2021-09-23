@@ -73,18 +73,7 @@ if ($hassiteconfig) {
         $userfields
     ));
 
-    // $settings->add(new admin_setting_configtext(
-    //     'local_appcrue/idp_client_id',
-    //     get_string('idp_client_id', 'local_appcrue'),
-    //     get_string('idp_client_id_help', 'local_appcrue'),
-    //     '',
-    //     PARAM_RAW_TRIMMED));
-    // $settings->add(new admin_setting_configtext(
-    //     'local_appcrue/idp_client_secret',
-    //     get_string('idp_client_secret', 'local_appcrue'),
-    //     get_string('idp_client_secret_help', 'local_appcrue'),
-    //     '',
-    //     PARAM_RAW_TRIMMED));
+    // Calendar
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_calendar_header',
@@ -92,6 +81,12 @@ if ($hassiteconfig) {
             get_string('calendarheader_help', 'local_appcrue')
         )
     );
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_usercalendar',
+        get_string('enable_calendar', 'local_appcrue'),
+        get_string('enable_calendar_help', 'local_appcrue'),
+        true
+    ));
     $settings->add(new admin_setting_configcheckbox(
                         'local_appcrue/share_site_events',
                         get_string('share_site_events', 'local_appcrue'),
@@ -117,6 +112,7 @@ if ($hassiteconfig) {
         get_string('examen_event_type', 'local_appcrue'),
         get_string('examen_event_type_help', 'local_appcrue'),
         ['quiz', 'quest', 'assign', 'workshop'], $modulelist ));
+    // Autologin.
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_autologin_header',
@@ -136,6 +132,7 @@ if ($hassiteconfig) {
         '%-{course}-{group}-%',
         PARAM_RAW_TRIMMED
     ));
+    // Avatar service.
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_avatar_header',
@@ -147,6 +144,26 @@ if ($hassiteconfig) {
         'local_appcrue/enable_avatar',
         get_string('enable_avatar', 'local_appcrue'),
         get_string('enable_avatar_help', 'local_appcrue'),
+        true
+    ));
+    // SiteMap service.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_sitemap_header',
+            get_string('sitemapheader', 'local_appcrue'),
+            get_string('sitemapheader_help', 'local_appcrue')
+        )
+    );
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_sitemap',
+        get_string('enable_sitemap', 'local_appcrue'),
+        get_string('enable_sitemap_help', 'local_appcrue'),
+        true
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/cache_sitemap',
+        get_string('cache_sitemap', 'local_appcrue'),
+        get_string('cache_sitemap_help', 'local_appcrue'),
         true
     ));
 }

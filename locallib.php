@@ -104,6 +104,31 @@ function appcrue_get_user($token) {
     return [$user, $returnstatus];
 }
 /**
+ * Envelop the url with an token-based url.
+ */
+function appcrue_create_deep_url(string $url, $token) {
+     if ($token) {
+        $deepurl = new moodle_url('/local/appcrue/autologin.php',
+            ['token' => $token,
+            'urltogo' => $url]);
+        return $deepurl->out();
+    }
+    return $url;
+}
+/**
+ * Traverse all nodes and re-encode the urls.
+ */
+function appcrue_filter_urls($node, $token) {
+    if (isset($node->url)) {
+        $node->url = appcrue_create_deep_url($node->url, $token);
+    }
+    if (isset($node->navegable)) {
+        foreach ($node->navegable as $child) {
+            appcrue_filter_urls($child, $token);
+        }
+    }
+}
+/**
  * Simple path traversal. Support only dot separator. If it finds an array takes the first item.
  * @param string text the text to search in
  * @param string jsonpath a list of dot separated terms.

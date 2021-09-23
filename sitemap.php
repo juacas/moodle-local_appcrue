@@ -27,6 +27,10 @@ require_once($CFG->libdir.'/filelib.php');
 require_once('locallib.php');
 /** @var moodle_database $DB */
 global $DB;
+
+if (!get_config('local_appcrue', 'enable_sitemap')) {
+    throw new moodle_exception('servicedonotexist', 'error');
+}
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
 $includecourses = optional_param('courses', false, PARAM_BOOL);
@@ -36,8 +40,14 @@ $urlsonlyonends = optional_param('endurls', true, PARAM_BOOL);
 $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
 
-$cache = cache::make('local_appcrue', 'sitemaps');
-$sitemap = false;//$cache->get($category);
+if (get_config('local_appcrue', 'cache_sitemap')) {
+    $cache = cache::make('local_appcrue', 'sitemaps');
+    $key = "{$category}_{$includecourses}_{$urlsonlyonends}H" . join('_', $hiddencats);
+    $sitemap = $cache->get($key);
+} else {
+    $key = false; // Disable cache.
+    $sitemap = false; // Force calculation on map.
+}
 
 if ($sitemap == false) {
     // This method does not show all categories recursively.
@@ -106,13 +116,7 @@ if ($sitemap == false) {
                 // $context = context_course::instance($course->id);
                 // $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
                 $coursenav->description = content_to_text($course->summary, false);
-                if ($token) {
-                    $url = new moodle_url('/local/appcrue/autologin.php',
-                        ['token' => $token,
-                        'urltogo' => "/course/view.php?id={$course->id}"]);
-                } else {
-                    $url = new moodle_url('/course/view.php', ['id' => $course->id]);
-                }
+                $url = new moodle_url('/course/view.php', ['id' => $course->id]);
                 $coursenav->url = $url->out();
                 $nav->navegable[] = $coursenav;
                 if ($urlsonlyonends) {
@@ -129,6 +133,14 @@ if ($sitemap == false) {
         $navegableroot->updated = userdate(time());
     }
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
-    $cache->set($category->id, $sitemap);
+    if ($key) {
+        $cache->set($key, $sitemap);
+    }
+}
+// Change simple URLs by DeepURLs.
+if ($token) {
+    $navegableroot = json_decode($sitemap);
+    appcrue_filter_urls($navegableroot, $token);
+    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 }
 echo $sitemap;
