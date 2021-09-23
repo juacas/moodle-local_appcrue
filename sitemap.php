@@ -31,6 +31,7 @@ $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
 $includecourses = optional_param('courses', false, PARAM_BOOL);
 $hiddencats = optional_param_array('hidden', [], PARAM_INT);
+$urlsonlyonends = optional_param('endurls', true, PARAM_BOOL);
 
 $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
@@ -78,6 +79,9 @@ if ($sitemap == false) {
             }
             // Add child.
             if ($parent ) {
+                if ($urlsonlyonends) {
+                    unset($parent->url);
+                }
                 $parent->navegable[] = $navegable;
             } else {
                 // Parent category missing. Do something.
@@ -111,6 +115,9 @@ if ($sitemap == false) {
                 }
                 $coursenav->url = $url->out();
                 $nav->navegable[] = $coursenav;
+                if ($urlsonlyonends) {
+                    unset($nav->url);
+                }
             }
         }
     }
