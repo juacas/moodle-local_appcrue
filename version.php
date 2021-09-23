@@ -29,6 +29,6 @@ $plugin->version      = 2021092300;
 $plugin->requires     = 2018120300;   // Moodle 3.6
 $plugin->component    = 'local_appcrue';
 $plugin->maturity     = MATURITY_BETA;
-$plugin->release      = 'v0.0.4';
+$plugin->release      = 'v0.0.5';
 $plugin->dependencies = [
 ];

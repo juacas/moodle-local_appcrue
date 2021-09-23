@@ -154,7 +154,7 @@ if ($user != null) {
 }
 if (debugging()) {
     $outputmessage->debug = new stdClass();
-    $outputmessage->debug->user = $user->idnumber;
+    $outputmessage->debug->user = $user ? $user->idnumber : null;
     $outputmessage->debug->token = $token;
     $outputmessage->debug->diag = $diag;
 }
