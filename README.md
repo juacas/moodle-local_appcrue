@@ -3,6 +3,9 @@
 Enable Moodle to extract information for the AppCrue application.
 This local plugin provides the following services following the AppCRUE API:
 - usercalendar: reports calendar events for a user.
+- autologin: logs-in a user with an external token and redirects him to a deep link.
+- sitemap: generates a JSON representation of the categories and courses.
+- avatar: identifies a user witn an external token and returns his avatar picture in raw or base64 format.
 
 TODO Provide more detailed description here.
 
