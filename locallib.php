@@ -56,10 +56,12 @@ function appcrue_get_user($token) {
         $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
         $matchvalue = appcrue_get_json_node($result, $jsonpath);
         if ($matchvalue == false) {
-            debugging("Path {$jsonpath} not found in: {$result}", DEBUG_NORMAL);
+            $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
+            debugging($returnstatus->result);
         }
     } else if ($statuscode == 401) {
-        debugging("Permission denied for the token: $token", DEBUG_NORMAL);
+        $returnstatus->result = "Permission denied for the token: {$token}";
+        debugging($returnstatus->result);
         $matchvalue = false;
     } else {
         debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
