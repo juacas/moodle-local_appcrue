@@ -36,12 +36,7 @@ if ($hassiteconfig) {
             get_string('idpheader_help', 'local_appcrue')
         )
     );
-    // $settings->add(new admin_setting_configtext(
-    //     'local_appcrue/idp_url',
-    //     get_string('idp_url', 'local_appcrue'),
-    //     get_string('idp_url_help', 'local_appcrue'),
-    //     'https://idp.uva.es/OAUTH2/authserver.php',
-    //     PARAM_URL));
+
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',
         get_string('idp_token_url', 'local_appcrue'),
@@ -73,7 +68,7 @@ if ($hassiteconfig) {
         $userfields
     ));
 
-    // Calendar
+    // Calendar.
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_calendar_header',

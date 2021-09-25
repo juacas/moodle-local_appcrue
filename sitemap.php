@@ -50,8 +50,6 @@ if (get_config('local_appcrue', 'cache_sitemap')) {
 }
 
 if ($sitemap == false) {
-    // This method does not show all categories recursively.
-    //$categories = \core_course_category::get_all();
     $categories = $DB->get_records_select('course_categories', 'TRUE',
                         ['id', 'name', 'description', 'parent', 'coursecount', 'visible']);
     $catindex = array();
@@ -101,10 +99,6 @@ if ($sitemap == false) {
     }
     // Add courses.
     // This implementatios uses one query but no caching.
-    // $courses = get_courses(null, null, "c.fullname, c.summary, c.id, c.category");
-    // Other way is core_course_category::get_courses() that uses caching. Da error si hay huérfanosen course_categories.
-    // $topcat = \core_course_category::top();
-    // $courses = $topcat->get_courses(['summary' => true, 'recursive' => true]);
     if ($includecourses) {
         $courses = $DB->get_records_select('course', 'TRUE', ['fullname', 'summary', 'id', 'category']);
         foreach ($courses as $course) {
@@ -113,8 +107,6 @@ if ($sitemap == false) {
                 $nav = $catindex[$course->category];
                 $coursenav = new stdClass();
                 $coursenav->name = $course->fullname;
-                // $context = context_course::instance($course->id);
-                // $summary = file_rewrite_pluginfile_urls($course->summary, 'pluginfile.php', $context->id, 'course', 'summary', null);
                 $coursenav->description = content_to_text($course->summary, false);
                 $url = new moodle_url('/course/view.php', ['id' => $course->id]);
                 $coursenav->url = $url->out();

@@ -32,10 +32,8 @@ function appcrue_get_user($token) {
     /** @var moodle_database $DB */
     global $DB;
     $matchvalue = false;
-    $tokentype = optional_param('method','OAUTH2', PARAM_ALPHANUMEXT); // TODO: Quitar todas menos OAUTH (genérico).
-
-    global $CFG;
     // Load curl class.
+    global $CFG;
     require_once($CFG->dirroot . '/lib/filelib.php');
     // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
     $idpurl = get_config('local_appcrue', 'idp_token_url');
@@ -60,9 +58,11 @@ function appcrue_get_user($token) {
         if ($matchvalue == false) {
             debugging("Path {$jsonpath} not found in: {$result}", DEBUG_NORMAL);
         }
-    } else {
-        //debugging("Permission denied for the token: $token", DEBUG_NORMAL);
+    } else if ($statuscode == 401) {
+        debugging("Permission denied for the token: $token", DEBUG_NORMAL);
         $matchvalue = false;
+    } else {
+        debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
     }
 
     // Get user.
@@ -84,7 +84,7 @@ function appcrue_get_user($token) {
             $fieldname = substr($fieldname, 14); // Trim prefix 'profile_field'.
             $fieldid = null;
             // Find custom field id.
-            foreach($customfields as $field) {
+            foreach ($customfields as $field) {
                 if ($field->shortname == $fieldname) {
                     $fieldid = $field->id;
                     break;
@@ -107,7 +107,7 @@ function appcrue_get_user($token) {
  * Envelop the url with an token-based url.
  */
 function appcrue_create_deep_url(string $url, $token) {
-     if ($token) {
+    if ($token) {
         $deepurl = new moodle_url('/local/appcrue/autologin.php',
             ['token' => $token,
             'urltogo' => $url]);
@@ -134,18 +134,19 @@ function appcrue_filter_urls($node, $token) {
  * @param string jsonpath a list of dot separated terms.
  */
 function appcrue_get_json_node($text, $jsonpath) {
-    $steps = explode('.',$jsonpath);
+    $steps = explode('.', $jsonpath);
     $json = json_decode($text);
     // Traverse the steps.
     $node = $json;
-    foreach($steps as $step) {
-        if ($step == '') continue;
-        if (!isset($node->$step)) {
-            return null;
-        }
-        $node = $node->$step;
-        if (is_array($node)) {
-            $node = $node[0];
+    foreach ($steps as $step) {
+        if ($step != '') {
+            if (!isset($node->$step)) {
+                return null;
+            }
+            $node = $node->$step;
+            if (is_array($node)) {
+                $node = $node[0];
+            }
         }
     }
     return $node;
