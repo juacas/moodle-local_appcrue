@@ -42,6 +42,10 @@ header('Content-Type: text/json; charset=utf-8');
 // Check token.
 list($user, $diag) = appcrue_get_user($token);
 if ($user != null) {
+    // Set lang.
+    if ($lang) {
+        force_current_language($lang);
+    }
     // Get the calendar type we are using.
     $calendartype = \core_calendar\type_factory::get_calendar_instance();
     // Select events.
