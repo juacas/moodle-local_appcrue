@@ -48,10 +48,13 @@ $string['share_user_events_help'] = 'Devolver los eventos personales';
 $string['examen_event_type'] = '"Exam" activities.';
 $string['examen_event_type_help'] = 'Activities that may generate "Exam events" in the calendar';
 $string['privacy:metadata'] = 'The "AppCrue connection services" plugin does not store any personal data.';
+
 $string['autologinheader'] = 'Auto-login service';
 $string['autologinheader_help'] = 'Allows the users to jump into Moodle from the AppCrue.';
 $string['enable_autologin'] = 'Enable autologin';
 $string['enable_autologin_help'] = 'Autologin service takes a user\'s token, verifies itm log-in him and redirects to an internal url.';
+$string['pattern_lib'] = 'List of URL pattens to generate redirect urls.';
+$string['pattern_lib_help'] = 'List of URL pattens to generate redirect urls. Each line defines a pattern that can be requested for generating redirect urls. The allowed parameters are: course, group, param1, param2';
 $string['match_user_by'] = 'Field for matching user\'s profile';
 $string['match_user_by_help'] = 'The authorization token returns a identifcation that need to be matched to a user field.';
 $string['idp_user_json_path'] = 'Selector in the IDP response.';

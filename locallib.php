@@ -32,77 +32,81 @@ function appcrue_get_user($token) {
     /** @var moodle_database $DB */
     global $DB;
     $matchvalue = false;
-    // Load curl class.
-    global $CFG;
-    require_once($CFG->dirroot . '/lib/filelib.php');
-    // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
-    $idpurl = get_config('local_appcrue', 'idp_token_url');
-    $curl = new \curl();
-    $options = [
-        'CURLOPT_RETURNTRANSFER' => true,
-        'CURLOPT_CONNECTTIMEOUT' => 5,
-        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
-    ];
-    $curl->setHeader(["Authorization: Bearer $token"]);
-    $result = $curl->get($idpurl, null, $options);
-    $statuscode = $curl->get_info()['http_code'];
-    // Debugging info for response.
+    $user = false;
     $returnstatus = new stdClass();
-    $returnstatus->code = $statuscode;
-    $returnstatus->result = $result;
 
-    // Get matchvalue of the token from the idp.
-    if ($statuscode == 200) {
-        $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
-        $matchvalue = appcrue_get_json_node($result, $jsonpath);
-        if ($matchvalue == false) {
-            $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
-            debugging($returnstatus->result);
-        }
-    } else if ($statuscode == 401) {
-        $returnstatus->result = "Permission denied for the token: {$token}";
-        debugging($returnstatus->result);
-        $matchvalue = false;
-    } else {
-        debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
-    }
+    if ($token !== null) {
+        // Load curl class.
+        global $CFG;
+        require_once($CFG->dirroot . '/lib/filelib.php');
+        // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
+            $idpurl = get_config('local_appcrue', 'idp_token_url');
+            $curl = new \curl();
+            $options = [
+                'CURLOPT_RETURNTRANSFER' => true,
+                'CURLOPT_CONNECTTIMEOUT' => 5,
+                'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
+            ];
+            $curl->setHeader(["Authorization: Bearer $token"]);
+            $result = $curl->get($idpurl, null, $options);
+            $statuscode = $curl->get_info()['http_code'];
+            // Debugging info for response.
+            $returnstatus->code = $statuscode;
+            $returnstatus->result = $result;
 
-    // Get user.
-    if ($matchvalue == false) {
-        $user = null;
-    } else {
-        $fieldname = get_config('local_appcrue', 'match_user_by');
-        // First check in standard fieldnames.
-        $fields = get_user_fieldnames();
-        if (array_search($fieldname, $fields) !== false) {
-            $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
-            if ($user == false) {
-                debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
+            // Get matchvalue of the token from the idp.
+            if ($statuscode == 200) {
+                $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
+                $matchvalue = appcrue_get_json_node($result, $jsonpath);
+                if ($matchvalue == false) {
+                    $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
+                    debugging($returnstatus->result);
+                }
+            } else if ($statuscode == 401) {
+                $returnstatus->result = "Permission denied for the token: {$token}";
+                debugging($returnstatus->result);
+                $matchvalue = false;
+            } else {
+                debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
             }
-        } else {
-            global $CFG;
-            require_once($CFG->dirroot . '/user/profile/lib.php');
-            $customfields = profile_get_custom_fields();
-            $fieldname = substr($fieldname, 14); // Trim prefix 'profile_field'.
-            $fieldid = null;
-            // Find custom field id.
-            foreach ($customfields as $field) {
-                if ($field->shortname == $fieldname) {
-                    $fieldid = $field->id;
-                    break;
+
+            // Get user.
+            if ($matchvalue == false) {
+                $user = null;
+            } else {
+                $fieldname = get_config('local_appcrue', 'match_user_by');
+                // First check in standard fieldnames.
+                $fields = get_user_fieldnames();
+                if (array_search($fieldname, $fields) !== false) {
+                    $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
+                    if ($user == false) {
+                        debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
+                    }
+                } else {
+                    global $CFG;
+                    require_once($CFG->dirroot . '/user/profile/lib.php');
+                    $customfields = profile_get_custom_fields();
+                    $fieldname = substr($fieldname, 14); // Trim prefix 'profile_field'.
+                    $fieldid = null;
+                    // Find custom field id.
+                    foreach ($customfields as $field) {
+                        if ($field->shortname == $fieldname) {
+                            $fieldid = $field->id;
+                            break;
+                        }
+                    }
+                    // Query user.
+                    $sql = 'fieldid = ? AND ' . $DB->sql_compare_text('data') . ' = ?';
+                    $userid = $DB->get_record_select('user_info_data', $sql, [$fieldid, $matchvalue], 'userid');
+                    if ($userid) {
+                        $user = $DB->get_record('user', array('id' => $userid->userid), '*');
+                    } else {
+                        $user = false;
+                        debugging("No match with: {$sql}", DEBUG_NORMAL);
+                    }
                 }
             }
-            // Query user.
-            $sql = 'fieldid = ? AND ' . $DB->sql_compare_text('data') . ' = ?';
-            $userid = $DB->get_record_select('user_info_data', $sql, [$fieldid, $matchvalue], 'userid');
-            if ($userid) {
-                $user = $DB->get_record('user', array('id' => $userid->userid), '*');
-            } else {
-                $user = false;
-                debugging("No match with: {$sql}", DEBUG_NORMAL);
-            }
         }
-    }
     return [$user, $returnstatus];
 }
 /**
@@ -156,17 +160,46 @@ function appcrue_get_json_node($text, $jsonpath) {
 /**
  * Returns the target URL according to optional_param parameters in @see autologin.php.
  * - urltogo: if present, uses it as relative path.
- * - course, group: search a course with matching idnumber
- *   the pattern '%-{$course}-{$group}-%'. Resolves any metalinking and
- *   returns the parent course.
+ * - course, group: (not necessarily Moodle's identifiers) search a course with idnumber matching the course pattern i.e.'%-{$course}-{$group}-%'.
+ *   Resolves any metalinking and returns the parent course.
+ * - pattern: Selector from the patterns library.
+ * - param1, param2: general purpose ALPHANUM arguments for generating redirections.
  * @return \moodle_url
  */
 function appcrue_get_target_url() {
+    // Get parameters to apply the redirection rules.
+    $token = optional_param('token', null, PARAM_RAW);    // The key generated by the IDP for AppCrue.
     $urltogo = optional_param('urltogo', null, PARAM_URL);    // Relative URL to redirect.
     $course = optional_param('course', null, PARAM_INT); // Course internal ID SIGMA
     $group = optional_param('group', 1, PARAM_INT); // Grupo docente.
+    $pattern = optional_param('pattern', null, PARAM_ALPHA);
+    $param1 = optional_param('param1', null, PARAM_ALPHANUMEXT);
+    $param2 = optional_param('param2', null, PARAM_ALPHANUMEXT);
+    $param3 = optional_param('param3', null, PARAM_ALPHANUMEXT);
+
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
+    } else if ($pattern !== null) {
+        // Use pattern lib.
+        $patterns = get_config('local_appcrue', 'pattern_lib');
+        $patternlib = [];
+        $parts = explode("\n", $patterns);
+        $parts = array_map("trim", $parts);
+        foreach($parts as $currentPart)
+        {
+            list($key, $value) = explode("=", $currentPart, 2);
+            $patternlib[$key] = $value;
+        }
+        if (isset($patternlib[$pattern])) {
+            $selectedpattern = $patternlib[$pattern];
+            $url = str_replace(['{token}', '{course}', '{group}', '{param1}', '{param2}', '{param3}'],
+                                [$token, $course, $group, $param1, $param2, $param3],
+                                $selectedpattern
+                            );
+            return $url;
+        } else {
+            throw new moodle_exception('invalidrequest');
+        }
     } else if ($course !== null) {
         // Search a course that matches its idnumber with the pattern using course and group.
         /** @var \moodle_database $DB */

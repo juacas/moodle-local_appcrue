@@ -45,12 +45,25 @@ $string['share_course_events'] = 'Devolver los eventos de los cursos';
 $string['share_course_events_help'] = 'Devolver los eventos de los cursos';
 $string['share_user_events'] = 'Devolver los eventos personales';
 $string['share_user_events_help'] = 'Devolver los eventos personales';
+$string['examen_event_type'] = 'Tipo "Examen"';
+$string['examen_event_type_help'] = 'Actividades que se marcarán como "Examen" en el calendario';
+$string['privacy:metadata'] = 'El plugin "AppCrue connection services" no almacena ningún dato personal.';
+
+$string['autologinheader'] = 'Servicio Auto-login';
+$string['autologinheader_help'] = 'Permite a los usuarios saltar a Moodle desde el AppCrue. También implementa redirecciones predefinidas.';
+$string['enable_autologin'] = 'Habilita Autologin';
+$string['enable_autologin_help'] = 'El servicio Autologin toma el token de un usuario, lo verifica (opcionalmente) y lo redirige a una url interna. Si no se usa un token se puede redirigir a otras URLs sin afectar a la sesión.';
+$string['pattern_lib'] = 'List of URL pattens to generate redirect urls.';
+$string['pattern_lib_help'] = 'Lista de patrones de URL para generar urls de redirección. Cada línea define un patrón que puede ser solicitado para generar urls de redirección. Los parámetros permitidos son: curso, grupo, param1, param2';
 $string['match_user_by'] = 'Campo de coincidencia con el perfil del usuario';
 $string['match_user_by_help'] = 'El token de autorización devuelve una identificación que debe coincidir con un campo de usuario.';
 $string['idp_user_json_path'] = 'Selector del identificador';
 $string['idp_user_json_path_help'] = 'Selector tipo jsonpath para identificar el valor para identificar al usuario.';
 $string['course_pattern'] = 'Patrón SQL para buscar un curso';
 $string['course_pattern_help'] = 'El patrón SQL se utilizará para buscar un curso utilizando el campo "idnumber" y los parámetros de la petición autologin "course" y "group" (no necesariamente ids de moodle)';
+$string['pattern_lib'] = 'List of URL pattens to generate redirect urls.';
+$string['pattern_lib_help'] = 'List of URL pattens to generate redirect urls. Each line defines a pattern that can be requested for generating redirect urls. The allowed parameters are: course, group, param1, param2';
+
 $string['avatarheader'] = 'Servicio Avatar';
 $string['avatarheader_help'] = 'Permite a cualquier aplicación con un token válido obtener la imagen de ese usuario.';
 $string['enable_avatar'] = 'Activar el servicio de avatar';

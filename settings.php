@@ -127,6 +127,13 @@ if ($hassiteconfig) {
         '%-{course}-{group}-%',
         PARAM_RAW_TRIMMED
     ));
+    $settings->add(new admin_setting_configtextarea(
+        'local_appcrue/pattern_lib',
+        get_string('pattern_lib', 'local_appcrue'),
+        get_string('pattern_lib_help', 'local_appcrue'),
+        "course=/course/view.php?id={course}\nguia=https://docserver/grades/{param1}/{param2}/{course}/doc.pdf",
+        PARAM_RAW_TRIMMED
+    ));
     // Avatar service.
     $settings->add(
         new admin_setting_heading(

@@ -69,7 +69,7 @@ This local plugin provides the following services following the AppCRUE API:
 }
 
 ```
-- autologin: logs-in a user with an external token and redirects him to a deep link. It takes the params token, fallback, urltogo, course, group.
+- autologin: logs-in a user with an external token and redirects him to a deep link. Also can build redirection URLs from a library of configured url patterns and some parameters. It takes the params token, fallback, urltogo, course, group, pattern, param1, param2, param3.
 - sitemap: generates a JSON representation of the categories and courses. It takes params token, category, includecourses, hiddencats, urlsonlyonends.
 ```
 {
