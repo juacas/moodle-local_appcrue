@@ -206,8 +206,8 @@ function appcrue_get_target_url() {
         global $DB;
         $coursepattern = get_config('local_appcrue', 'course_pattern');
         // Compose the pattern.
-        $coursepattern = str_replace(['{course}', '{group}'],
-                                    [$course, $group],
+        $coursepattern = str_replace(['{course}', '{group}', '{param1}', '{param2}', '{param3}'],
+                                    [$course,$group, $param1, $param2, $param3],
                                     $coursepattern);
         // Pattern is scaped to avoid SQL injection risks.
         $courserecord = $DB->get_record_select(
