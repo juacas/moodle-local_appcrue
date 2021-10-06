@@ -51,6 +51,7 @@ if ($hassiteconfig) {
         PARAM_RAW_TRIMMED
     ));
     $fields = get_user_fieldnames();
+    require_once($CFG->dirroot . '/user/profile/lib.php');
     $customfields = profile_get_custom_fields();
     $userfields = [];
     // Make the keys string values and not indexes.
