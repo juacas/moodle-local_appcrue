@@ -108,6 +108,15 @@ if ($hassiteconfig) {
         get_string('examen_event_type', 'local_appcrue'),
         get_string('examen_event_type_help', 'local_appcrue'),
         ['quiz', 'quest', 'assign', 'workshop'], $modulelist ));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/event_imgdetail',
+        get_string('event_imgdetail', 'local_appcrue'),
+        get_string('event_imgdetail_help', 'local_appcrue'),
+        '',
+        PARAM_URL
+    ));
+
+
     // Autologin.
     $settings->add(
         new admin_setting_heading(

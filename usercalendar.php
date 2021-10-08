@@ -135,6 +135,7 @@ if ($user != null) {
             $eventitem->nameAuthor = appcrue_get_username($event->userid); // TODO: get author.
             $eventitem->type = appcrue_get_event_type($event);
             $eventitem->startsAt = $event->timestart;
+            $eventitem->imgDetail = get_config('local_appcrue', 'event_imgdetail');
             $eventitem->endsAt = $event->timestart + $event->timeduration;
             if ($event->instance != null) {
                 $eventitem->url = $instances[$event->instance]->url->out(true);

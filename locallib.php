@@ -229,8 +229,12 @@ function appcrue_get_target_url() {
 }
 function appcrue_get_username($userid) {
     global $DB;
-    $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
-    return fullname($user);
+    $user = $DB->get_record('user', array('id' => $userid), '*');
+    if ($user) {
+        return fullname($user);
+    } else {
+        return get_string('unknownuser');
+    }
 }
 /**
  * Classify the events into the AppCrue types of events: “EXAMEN”, “HORARIO”, “REVISION_DE_EXAMEN”, “TUTORIA”

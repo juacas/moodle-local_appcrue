@@ -47,6 +47,10 @@ $string['share_user_events'] = 'Devolver los eventos personales';
 $string['share_user_events_help'] = 'Devolver los eventos personales';
 $string['examen_event_type'] = 'Tipo "Examen"';
 $string['examen_event_type_help'] = 'Actividades que se marcarán como "Examen" en el calendario';
+$string['event_imgdetail'] = 'Imagen por defecto';
+$string['event_imgdetail_help'] = 'Imagen por defecto asociada al evento. Se utiliza para decorar la interfaz de usuario.';
+
+
 $string['privacy:metadata'] = 'El plugin "AppCrue connection services" no almacena ningún dato personal.';
 
 $string['autologinheader'] = 'Servicio Auto-login';
