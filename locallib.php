@@ -74,40 +74,52 @@ function appcrue_get_user($token) {
             if ($matchvalue == false) {
                 $user = null;
             } else {
+                // TODO: Refactor this block as function.
                 $fieldname = get_config('local_appcrue', 'match_user_by');
-                // First check in standard fieldnames.
-                $fields = get_user_fieldnames();
-                if (array_search($fieldname, $fields) !== false) {
-                    $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
-                    if ($user == false) {
-                        debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
-                    }
-                } else {
-                    global $CFG;
-                    require_once($CFG->dirroot . '/user/profile/lib.php');
-                    $customfields = profile_get_custom_fields();
-                    $fieldname = substr($fieldname, 14); // Trim prefix 'profile_field'.
-                    $fieldid = null;
-                    // Find custom field id.
-                    foreach ($customfields as $field) {
-                        if ($field->shortname == $fieldname) {
-                            $fieldid = $field->id;
-                            break;
-                        }
-                    }
-                    // Query user.
-                    $sql = 'fieldid = ? AND ' . $DB->sql_compare_text('data') . ' = ?';
-                    $userid = $DB->get_record_select('user_info_data', $sql, [$fieldid, $matchvalue], 'userid');
-                    if ($userid) {
-                        $user = $DB->get_record('user', array('id' => $userid->userid), '*');
-                    } else {
-                        $user = false;
-                        debugging("No match with: {$sql}", DEBUG_NORMAL);
-                    }
-                }
+                $user = appcrue_find_user($fieldname, $matchvalue);
             }
         }
     return [$user, $returnstatus];
+}
+/**
+ * Search user fields and get the user
+ * @param string $fieldname the name of the field to search into
+ * @param string $matchvalue the value to search for.
+ * @return stdClass|false user structure
+ */
+function appcrue_find_user($fieldname, $matchvalue) {
+    global $DB;
+    // First check in standard fieldnames.
+    $fields = get_user_fieldnames();
+    if (array_search($fieldname, $fields) !== false) {
+        $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
+        if ($user == false) {
+            debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
+        }
+    } else {
+        global $CFG;
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+        $customfields = profile_get_custom_fields();
+        $fieldname = substr($fieldname, 14); // Trim prefix 'profile_field'.
+        $fieldid = null;
+        // Find custom field id.
+        foreach ($customfields as $field) {
+            if ($field->shortname == $fieldname) {
+                $fieldid = $field->id;
+                break;
+            }
+        }
+        // Query user.
+        $sql = 'fieldid = ? AND ' . $DB->sql_compare_text('data') . ' = ?';
+        $userid = $DB->get_record_select('user_info_data', $sql, [$fieldid, $matchvalue], 'userid');
+        if ($userid) {
+            $user = $DB->get_record('user', array('id' => $userid->userid), '*');
+        } else {
+            $user = false;
+            debugging("No match with: {$sql}", DEBUG_NORMAL);
+        }
+    }
+    return $user;
 }
 /**
  * Envelop the url with an token-based url.
