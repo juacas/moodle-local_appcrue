@@ -101,20 +101,52 @@ class local_appcrue_external extends external_api {
      * @since Moodle 2.2
      */
     public static function send_instant_messages_returns() {
-        return new external_multiple_structure(
-            new external_single_structure(
-                array(
-                    'msgid' => new external_value(PARAM_INT, 'test this to know if it succeeds:  id of the created message if it succeeded, -1 when failed'),
-                    'clientmsgid' => new external_value(PARAM_ALPHANUMEXT, 'your own id for the message', VALUE_OPTIONAL),
-                    'errormessage' => new external_value(PARAM_TEXT, 'error message - if it failed', VALUE_OPTIONAL),
-                    'text' => new external_value(PARAM_RAW, 'The text of the message', VALUE_OPTIONAL),
-                    'timecreated' => new external_value(PARAM_INT, 'The timecreated timestamp for the message', VALUE_OPTIONAL),
-                    'conversationid' => new external_value(PARAM_INT, 'The conversation id for this message', VALUE_OPTIONAL),
-                    'useridfrom' => new external_value(PARAM_INT, 'The user id who sent the message', VALUE_OPTIONAL),
-                    'candeletemessagesforallusers' => new external_value(PARAM_BOOL,
-                        'If the user can delete messages in the conversation for all users', VALUE_DEFAULT, false),
-                )
+        return core_message_external::send_instant_messages_returns();
+    }
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
+    public static function send_instant_message_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
+                'text' => new external_value(PARAM_RAW, 'The text of the message'),
+                'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user', VALUE_DEFAULT, 'email')
             )
         );
+    }
+
+    /**
+     * Send private messages from the admin USER to other users
+     *
+     * @param array $messages An array of message to send.
+     * @return array
+     * @since Moodle 2.2
+     */
+    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = 'email')
+    {
+        self::validate_parameters(self::send_instant_message_parameters(), array('touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field));
+        $message = array();
+        $message['touserkey'] = $touserkey;
+        $message['text'] = $text;
+        $message['textformat'] = $textformat;
+
+        return local_appcrue_external::send_instant_messages([$message], $field);
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 2.2
+     */
+    public static function send_instant_message_returns()
+    {
+        return core_message_external::send_instant_messages_returns();
     }
 }
