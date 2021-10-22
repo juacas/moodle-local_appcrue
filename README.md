@@ -100,6 +100,9 @@ This local plugin provides the following services following the AppCRUE API:
 
 TODO Provide more detailed description here.
 
+## Web Service ##
+
+Activate the web service following the instructions at: https://[SERVER]/admin/settings.php?section=webservicesoverview
 ## What is AppCRUE? ##
 
 AppCRUE (https://tic.crue.org/app-crue/) is a mobile App develop by the CRUE (Conference of Rectors of Spanish Universities) and Santander Bank. It is used by 44 spanish universities and more than 150 000 students.

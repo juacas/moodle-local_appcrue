@@ -74,3 +74,5 @@ $string['enable_sitemap'] = 'Enable sitemap service';
 $string['enable_sitemap_help'] = 'Sitemap service generates a JSON representation of the categories and courses.';
 $string['cache_sitemap'] = 'Cache sitemaps';
 $string['cache_sitemap_help'] = 'Use Moodle cache system with SiteMaps.';
+
+$string['new_grade_message'] = '### New grade for {$a->subjectname}'. "\n" . 'Your grade is {$a->gradealpha} ({$a->grade}).' . "\n" . 'Your review will be next {$a->revdateformat}.' . "\n" . '{$a->comment}';

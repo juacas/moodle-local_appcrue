@@ -80,15 +80,15 @@ class local_appcrue_external extends external_api {
         }
         self::validate_parameters(self::send_instant_messages_parameters(), array('messages' => $messages, 'field' => $field));
 
-        // Send as Admin. TODO: Configure sender.
-        $USER = get_admin();
         // Remap all tousers of the messages.
         foreach($messages as $key=>$message) {
-            $receiver = $message['touserkey'];
-            $touser = appcrue_find_user($field, $receiver);
-            if ($touser) {
-                $messages[$key]['touserid'] = $touser->id;
-                unset($messages[$key]['touserkey']); // Clean the parameters.
+            if (isset($message['touserkey'])) {
+                $receiver = $message['touserkey'];
+                $touser = appcrue_find_user($field, $receiver);
+                if ($touser) {
+                    $messages[$key]['touserid'] = $touser->id;
+                    unset($messages[$key]['touserkey']); // Clean the parameters.
+                }
             }
         }
         return core_message_external::send_instant_messages($messages);
@@ -148,5 +148,86 @@ class local_appcrue_external extends external_api {
     public static function send_instant_message_returns()
     {
         return core_message_external::send_instant_messages_returns();
+    }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
+    public static function notify_grade_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_OPTIONAL),
+                'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_OPTIONAL),
+                'subject' => new external_value(PARAM_RAW, 'Internal subject code.'),
+                'subjectname' => new external_value(PARAM_RAW, 'Oficial subject name.'),
+                'course' => new external_value(PARAM_RAW, 'Course year.'),
+                'grade' => new external_value(PARAM_RAW, 'Numerical grade.'),
+                'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_OPTIONAL),
+                'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_OPTIONAL),
+                'comment' => new external_value(PARAM_RAW, 'Description of the grade publication', VALUE_OPTIONAL),
+            )
+        );
+    }
+
+    /**
+     * Send private messages from the admin USER to other users
+     *
+     * @param array $messages An array of message to send.
+     * @return array
+     * @since Moodle 2.2
+     */
+    public static function notify_grade($idusuario, $useremail = '', $subject, $subjectname, $course, $grade, $gradealpha, $revdate, $comment) {
+        $params = array(
+            'idusuario' => $idusuario,
+            'useremail' => $useremail,
+            'subjectname' => $subjectname,
+            'subject' => $subject,
+            'course' => $course,
+            'grade' => $grade,
+            'gradealpha' => $gradealpha,
+            'revdate' => $revdate,
+            'comment' => $comment
+        );
+        self::validate_parameters(self::notify_grade_parameters(), $params);
+        // TODO: Find a way to integrate final grades into gradebook.
+
+        // Compose message.
+        // Find user.
+        if ($idusuario) {
+            $touser = appcrue_find_user('idnumber', $idusuario);
+        }
+        if ($touser == false) {
+            $touser = appcrue_find_user('email', $useremail);
+        }
+        if ($touser == false) {
+            throw new moodle_exception('invalidarguments');
+        }
+        force_current_language($touser->lang);
+        $revdateformat = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
+        $params['revdateformat'] = $revdateformat;
+        $text = get_string('new_grade_message', 'local_appcrue', $params);
+        // Send the message.
+        $message = array();
+        $message['touserid'] = $touser->id;
+        $message['text'] = $text;
+        $message['textformat'] = FORMAT_MARKDOWN;
+
+        return core_message_external::send_instant_messages([$message]);
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 2.2
+     */
+    public static function notify_grade_returns()
+    {
+        // TODO: Customize return type.
+        return self::send_instant_message_returns();
     }
 }

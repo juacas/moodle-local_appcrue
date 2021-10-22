@@ -78,3 +78,5 @@ $string['enable_sitemap'] = 'Habilitar el servicio de mapa del sitio';
 $string['enable_sitemap_help'] = 'El servicio Sitemap genera una representación JSON de las categorías y los cursos.';
 $string['cache_sitemap'] = 'Cache sitemaps';
 $string['cache_sitemap_help'] = 'Utilizar el sistema de caché de Moodle con SiteMaps.';
+
+$string['new_grade_message'] = '### Nota para {$a->subjectname}' . "\n" . 'Tu nota es {$a->gradealpha} ({$a->grade}).' . "\n" . 'La revisión será el {$a->revdateformat}.' . "\n" . '{$a->comment}';
