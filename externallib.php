@@ -161,11 +161,14 @@ class local_appcrue_external extends external_api {
         return new external_function_parameters(
             array(
                 'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_OPTIONAL),
+                'nip' => new external_value(PARAM_RAW, 'Source system\'s user identification.', VALUE_OPTIONAL),
                 'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_OPTIONAL),
                 'subject' => new external_value(PARAM_RAW, 'Internal subject code.'),
+                'group' => new external_value(PARAM_INT, 'Enrollment group.', VALUE_OPTIONAL),
                 'subjectname' => new external_value(PARAM_RAW, 'Oficial subject name.'),
                 'course' => new external_value(PARAM_RAW, 'Course year.'),
                 'grade' => new external_value(PARAM_RAW, 'Numerical grade.'),
+                'call' => new external_value(PARAM_RAW, 'Grading call.', VALUE_OPTIONAL),
                 'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_OPTIONAL),
                 'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_OPTIONAL),
                 'comment' => new external_value(PARAM_RAW, 'Description of the grade publication', VALUE_OPTIONAL),
@@ -180,14 +183,17 @@ class local_appcrue_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function notify_grade($idusuario, $useremail = '', $subject, $subjectname, $course, $grade, $gradealpha, $revdate, $comment) {
+    public static function notify_grade($idusuario, $nip, $useremail = '', $subject, $group, $subjectname, $course, $grade, $call, $gradealpha, $revdate, $comment) {
         $params = array(
             'idusuario' => $idusuario,
+            'nip' => $nip,
             'useremail' => $useremail,
             'subjectname' => $subjectname,
             'subject' => $subject,
+            'group' => $group,
             'course' => $course,
             'grade' => $grade,
+            'call' => $call,
             'gradealpha' => $gradealpha,
             'revdate' => $revdate,
             'comment' => $comment
