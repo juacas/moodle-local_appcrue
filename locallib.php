@@ -26,7 +26,7 @@
 /**
  * Checks the token and gets the user associated with it.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
- * @return list(stdClass|null, stdClass)
+ * @return list(stdClass|null, stdClass) the user and the result of the check.
  */
 function appcrue_get_user($token) {
     /** @var moodle_database $DB */
@@ -34,52 +34,66 @@ function appcrue_get_user($token) {
     $matchvalue = false;
     $user = false;
     $returnstatus = new stdClass();
-
-    if ($token !== null) {
-        // Load curl class.
-        global $CFG;
-        require_once($CFG->dirroot . '/lib/filelib.php');
-        // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
-            $idpurl = get_config('local_appcrue', 'idp_token_url');
-            $curl = new \curl();
-            $options = [
-                'CURLOPT_RETURNTRANSFER' => true,
-                'CURLOPT_CONNECTTIMEOUT' => 5,
-                'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
-            ];
-            $curl->setHeader(["Authorization: Bearer $token"]);
-            $result = $curl->get($idpurl, null, $options);
-            $statuscode = $curl->get_info()['http_code'];
-            // Debugging info for response.
-            $returnstatus->code = $statuscode;
-            $returnstatus->result = $result;
-
-            // Get matchvalue of the token from the idp.
-            if ($statuscode == 200) {
-                $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
-                $matchvalue = appcrue_get_json_node($result, $jsonpath);
-                if ($matchvalue == false) {
-                    $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
-                    debugging($returnstatus->result);
-                }
-            } else if ($statuscode == 401) {
-                $returnstatus->result = "Permission denied for the token: {$token}";
-                debugging($returnstatus->result);
-                $matchvalue = false;
-            } else {
-                debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
-            }
-
-            // Get user.
-            if ($matchvalue == false) {
-                $user = null;
-            } else {
-                // TODO: Refactor this block as function.
-                $fieldname = get_config('local_appcrue', 'match_user_by');
-                $user = appcrue_find_user($fieldname, $matchvalue);
-            }
+    list($matchvalue, $tokenstatus) = appcrue_validate_token($token);
+    $returnstatus->code = $tokenstatus->code;
+    // Get user.
+    if ($returnstatus->code == 401) {
+        $user = null;
+        $returnstatus->status = 'error';
+    } else {
+        $returnstatus->status = 'validated';
+        // TODO: Refactor this block as function.
+        $fieldname = get_config('local_appcrue', 'match_user_by');
+        $user = appcrue_find_user($fieldname, $matchvalue);
+        if (!$user) {
+            $returnstatus->code = 404; // 404 Not found.
+        } else {
+            $returnstatus->code = 200; // 200 OK.
         }
+    }
     return [$user, $returnstatus];
+}
+/**
+ * Validate token and return the matchvalue.
+ * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
+ */
+function appcrue_validate_token($token) {
+    $matchvalue = false;
+    $returnstatus = new stdClass();
+    global $CFG;
+    // Load curl class.
+    require_once($CFG->dirroot . '/lib/filelib.php');
+    // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
+    $idpurl = get_config('local_appcrue', 'idp_token_url');
+    $curl = new \curl();
+    $options = [
+        'CURLOPT_RETURNTRANSFER' => true,
+        'CURLOPT_CONNECTTIMEOUT' => 5,
+        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
+    ];
+    $curl->setHeader(["Authorization: Bearer $token"]);
+    $result = $curl->get($idpurl, null, $options);
+    $statuscode = $curl->get_info()['http_code'];
+    // Debugging info for response.
+    $returnstatus->code = $statuscode;
+    $returnstatus->result = $result;
+
+    // Extract a matchvalue of the token from the idp.
+    if ($statuscode == 200) {
+        $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
+        $matchvalue = appcrue_get_json_node($result, $jsonpath);
+        if ($matchvalue == false) {
+            $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
+            debugging($returnstatus->result, DEBUG_NORMAL);
+        }
+    } else if ($statuscode == 401) {
+        $returnstatus->result = "Permission denied for the token: {$token}";
+        debugging($returnstatus->result, DEBUG_NORMAL);
+        $matchvalue = false;
+    } else {
+        debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
+    }
+    return [$matchvalue, $returnstatus];
 }
 /**
  * Search user fields and get the user
