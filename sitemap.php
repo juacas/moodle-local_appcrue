@@ -29,7 +29,7 @@ require_once('locallib.php');
 global $DB;
 
 if (!get_config('local_appcrue', 'enable_sitemap')) {
-    @header('HTTP/1.1 405 Method Not Allowed');
+    header('HTTP/1.1 405 Method Not Allowed');
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }

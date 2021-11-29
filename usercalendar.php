@@ -37,7 +37,7 @@ try {
     $token = required_param('token', PARAM_RAW);
     $lang = required_param('lang', PARAM_ALPHA);
 } catch (moodle_exception $e) {
-    @header('HTTP/1.0 400 Bad Request');
+    header('HTTP/1.0 400 Bad Request');
     die();
 }
 
@@ -164,10 +164,16 @@ if ($user != null) {
         $outputmessage->calendar[] = $dayitem;
     }
 }
+
 if (debugging()) {
     $outputmessage->debug = new stdClass();
     $outputmessage->debug->user = $user ? $user->idnumber : null;
     $outputmessage->debug->token = $token;
     $outputmessage->debug->diag = $diag;
+}
+if ($diag->code == 401) {
+    header('HTTP/1.0 401 Unauthorized');
+} else if ($diag->code == 404) {
+    header('HTTP/1.0 404 not found');
 }
 echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
