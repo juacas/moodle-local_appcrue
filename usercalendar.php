@@ -26,13 +26,20 @@ require_once($CFG->dirroot.'/calendar/lib.php');
 require_once('locallib.php');
 
 if (!get_config('local_appcrue', 'enable_usercalendar')) {
-    throw new moodle_exception('servicedonotexist', 'error');
+    @header('HTTP/1.1 405 Method Not Allowed');
+    die();
+    // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }
-$token = required_param('token', PARAM_RAW);
-$fromdate = optional_param('fromDate', '', PARAM_ALPHANUM);
-$todate = optional_param('toDate', '', PARAM_ALPHANUM);
-$category = optional_param('category', '', PARAM_ALPHA);
-$lang = required_param('lang', PARAM_ALPHA);
+try {
+    $fromdate = optional_param('fromDate', '', PARAM_ALPHANUM);
+    $todate = optional_param('toDate', '', PARAM_ALPHANUM);
+    $category = optional_param('category', '', PARAM_ALPHA);
+    $token = required_param('token', PARAM_RAW);
+    $lang = required_param('lang', PARAM_ALPHA);
+} catch (moodle_exception $e) {
+    @header('HTTP/1.0 400 Bad Request');
+    die();
+}
 
 $outputmessage = new stdClass;
 $outputmessage->calendar = array();

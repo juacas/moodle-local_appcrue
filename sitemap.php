@@ -29,7 +29,9 @@ require_once('locallib.php');
 global $DB;
 
 if (!get_config('local_appcrue', 'enable_sitemap')) {
-    throw new moodle_exception('servicedonotexist', 'error');
+    @header('HTTP/1.1 405 Method Not Allowed');
+    die();
+    // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
