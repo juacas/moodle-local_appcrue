@@ -70,7 +70,21 @@ This local plugin provides the following services following the AppCRUE API:
 
 ```
 - autologin: logs-in a user with an external token and redirects him to a deep link. Also can build redirection URLs from a library of configured url patterns and some parameters. It takes the params token, fallback, urltogo, course, group, pattern, param1, param2, param3.
+  - token: auth token.
+  - pattern: If specified parameters are used to generate the url replacing placeholders in a registered pattern.
+  - fallback: Response when if token is absent or invalid. Values "ignore", "error", "logout".
+  - urltogo: deep link relative to Moodle site to go after token validation.
+  - course: parameter to create urls using patterns in local_appcrue/pattern_lib or finding courses with local_appcrue/course_pattern setting..
+  - group: parameter to create urls using patterns in local_appcrue/pattern_lib or finding courses with local_appcrue/course_pattern setting.
+  - param1: general purpose parameter to create urls using patterns in local_appcrue/pattern_lib or finding courses with local_appcrue/course_pattern setting.
+  - param2: general purpose parameter to create urls using patterns in local_appcrue/pattern_lib or finding courses with local_appcrue/course_pattern setting..
+  - param3: general purpose parameter to create urls using patterns in local_appcrue/pattern_lib or finding courses with local_appcrue/course_pattern setting..
+
 - sitemap: generates a JSON representation of the categories and courses. It takes params token, category, includecourses, hiddencats, urlsonlyonends.
+  - token: auth token.
+  - includecourses: whether to stop in category level or not
+  - hiddencats: omit a list of categories from the sitemap in PHP array form parameter. Example: hiddencats[0]=2&hiddencats[1]=34.
+  - urlsonlyonends: only last element of each branch has a URL to access it. Otherwise every node has an URL.
 ```
 {
     "navegable": [
