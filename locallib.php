@@ -138,11 +138,12 @@ function appcrue_find_user($fieldname, $matchvalue) {
 /**
  * Envelop the url with an token-based url.
  */
-function appcrue_create_deep_url(string $url, $token) {
+function appcrue_create_deep_url(string $url, $token, $fallback = 'continue') {
     if ($token) {
         $deepurl = new moodle_url('/local/appcrue/autologin.php',
             ['token' => $token,
-            'urltogo' => $url]);
+            'urltogo' => $url,
+            'fallback' => $fallback]);
         return $deepurl->out();
     }
     return $url;
