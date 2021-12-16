@@ -243,7 +243,7 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $pattern, $pa
         }
     }
     // Default target.
-    return new moodle_url("/my");
+    return new moodle_url("/my/");
 }
 function appcrue_get_username($userid) {
     global $DB;
