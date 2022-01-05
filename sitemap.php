@@ -135,6 +135,6 @@ if ($sitemap == false) {
 if ($token) {
     $navegableroot = json_decode($sitemap);
     appcrue_filter_urls($navegableroot, $token);
-    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 echo $sitemap;

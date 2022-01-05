@@ -144,7 +144,7 @@ function appcrue_create_deep_url(string $url, $token, $fallback = 'continue') {
             ['token' => $token,
             'urltogo' => $url,
             'fallback' => $fallback]);
-        return $deepurl->out();
+        return $deepurl->out(false);
     }
     return $url;
 }
