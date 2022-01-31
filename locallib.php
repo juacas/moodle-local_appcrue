@@ -88,7 +88,7 @@ function appcrue_validate_token($token) {
         }
     } else if ($statuscode == 401) {
         $returnstatus->result = "Permission denied for the token: {$token}";
-        debugging($returnstatus->result, DEBUG_NORMAL);
+        // Do not break the output: debugging($returnstatus->result, DEBUG_NORMAL);.
         $matchvalue = false;
     } else {
         debugging("IDP problem: $statuscode", DEBUG_MINIMAL);

@@ -54,6 +54,12 @@ if ($user == null && $fallback == 'logout') {
     require_logout();
 } else if ($user == null && $fallback == 'continue') {
     // Do nothing with session.
+    // Pero si no hay sesión entrar como guest para ver la ficha de asignatura.
+    if (!isset($USER->id) || $USER->id == 0) {
+        $user = core_user::get_user_by_username('guest');
+        complete_user_login($user);
+        \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
+    }
 } else if ($user != null) {
     // Token validated, now require an active user: not guest, not suspended.
     core_user::require_active_user($user, true, true);
