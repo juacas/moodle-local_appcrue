@@ -131,10 +131,11 @@ if ($sitemap == false) {
         $cache->set($key, $sitemap);
     }
 }
+// TODO: substitute current token with bearer mark if caching at server is a problem.
 // Change simple URLs by DeepURLs.
 if ($token) {
     $navegableroot = json_decode($sitemap);
-    appcrue_filter_urls($navegableroot, $token);
+    appcrue_filter_urls($navegableroot, $token, 'bearer');
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 echo $sitemap;

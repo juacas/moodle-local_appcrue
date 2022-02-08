@@ -36,6 +36,7 @@ function appcrue_get_user($token) {
     $returnstatus = new stdClass();
     list($matchvalue, $tokenstatus) = appcrue_validate_token($token);
     $returnstatus->code = $tokenstatus->code;
+    $returnstatus->result = $tokenstatus->result;
     // Get user.
     if ($returnstatus->code == 401) {
         $user = null;
@@ -52,6 +53,24 @@ function appcrue_get_user($token) {
         }
     }
     return [$user, $returnstatus];
+}
+/**
+ * Get token from the request.
+ */
+function appcrue_get_token_param($required = false) : string {
+    $token = optional_param('token', '', PARAM_TEXT);
+     // Try to extract a Bearer token.
+    $headers = getallheaders();
+    if (isset($headers['Authorization'])) {
+        $auth = $headers['Authorization'];
+        if (preg_match('/^Bearer\s+(.*)$/', $auth, $matches)) {
+            $token = $matches[1];
+        }
+    }
+    if ($required && empty($token)) {
+        throw new moodle_exception('missingtoken', 'local_appcrue');
+    }
+    return $token;
 }
 /**
  * Validate token and return the matchvalue.
@@ -88,7 +107,7 @@ function appcrue_validate_token($token) {
         }
     } else if ($statuscode == 401) {
         $returnstatus->result = "Permission denied for the token: {$token}";
-        debugging($returnstatus->result, DEBUG_NORMAL);
+        //debugging($returnstatus->result, DEBUG_DEVELOPER);
         $matchvalue = false;
     } else {
         debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
@@ -136,28 +155,40 @@ function appcrue_find_user($fieldname, $matchvalue) {
     return $user;
 }
 /**
- * Envelop the url with an token-based url.
+ * Envelops the url with an token-based url.
+ * If token is not provided, the url is labelled depending on $tokenmark:
+ * @param string $url the url to be enveloped.
+ * @param string $token the token to be used.
+ * @param string $tokenmark the mark to be used in the url if $token is nos provided. Can be 'bearer' or 'token'.
+ * @param string $fallback the behaviour desired if token validation fails.
+ * @return string the enveloped url.
  */
-function appcrue_create_deep_url(string $url, $token, $fallback = 'continue') {
+function appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fallback = 'continue') {
+    $params = [];
+    $params['urltogo'] = $url;
+    $params['fallback'] = $fallback;
+
     if ($token) {
-        $deepurl = new moodle_url('/local/appcrue/autologin.php',
-            ['token' => $token,
-            'urltogo' => $url,
-            'fallback' => $fallback]);
-        return $deepurl->out(false);
+        $params['token'] = $token; 
+    } else if ($tokenmark == 'bearer') {
+        $params['<bearer>'] = '';
+    } else if ($tokenmark == 'token') {
+        $params['token'] = '<token>';
     }
-    return $url;
+       
+    $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
+    return $deepurl->out(false);
 }
 /**
  * Traverse all nodes and re-encode the urls.
  */
-function appcrue_filter_urls($node, $token) {
+function appcrue_filter_urls($node, $token, $tokenmark) {
     if (isset($node->url)) {
-        $node->url = appcrue_create_deep_url($node->url, $token);
+        $node->url = appcrue_create_deep_url($node->url, $token, $tokenmark);
     }
     if (isset($node->navegable)) {
         foreach ($node->navegable as $child) {
-            appcrue_filter_urls($child, $token);
+            appcrue_filter_urls($child, $token, $tokenmark);
         }
     }
 }
@@ -187,13 +218,13 @@ function appcrue_get_json_node($text, $jsonpath) {
 /**
  * Returns the target URL according to optional_param parameters in @see autologin.php.
  * - urltogo: if present, uses it as relative path.
- * - course, group: (not necessarily Moodle's identifiers) search a course with idnumber matching the course pattern i.e.'%-{$course}-{$group}-%'.
+ * - course, group, year: (not necessarily Moodle's identifiers) search a course with idnumber matching the course pattern i.e.'%-{$course}-{$group}-%'.
  *   Resolves any metalinking and returns the parent course.
  * - pattern: Selector from the patterns library.
  * - param1, param2: general purpose ALPHANUM arguments for generating redirections.
  * @return \moodle_url
  */
-function appcrue_get_target_url($token, $urltogo, $course, $group, $pattern, $param1, $param2, $param3) {
+function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
 
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
@@ -210,8 +241,8 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $pattern, $pa
         }
         if (isset($patternlib[$pattern])) {
             $selectedpattern = $patternlib[$pattern];
-            $url = str_replace(['{token}', '{course}', '{group}', '{param1}', '{param2}', '{param3}'],
-                                [$token, $course, $group, $param1, $param2, $param3],
+            $url = str_replace(['{token}', '{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
+                                [$token, $course, $group, $year, $param1, $param2, $param3],
                                 $selectedpattern
                             );
             return $url;
@@ -219,13 +250,13 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $pattern, $pa
             throw new moodle_exception('invalidrequest');
         }
     } else if ($course !== null) {
-        // Search a course that matches its idnumber with the pattern using course, group, param1, param2, param3.
+        // Search a course that matches its idnumber with the pattern using course, group, year, param1, param2, param3.
         /** @var \moodle_database $DB */
         global $DB;
         $coursepattern = get_config('local_appcrue', 'course_pattern');
         // Compose the pattern.
-        $coursepattern = str_replace(['{course}', '{group}', '{param1}', '{param2}', '{param3}'],
-                                    [$course,$group, $param1, $param2, $param3],
+        $coursepattern = str_replace(['{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
+                                    [$course, $group, $year, $param1, $param2, $param3],
                                     $coursepattern);
         // Pattern is scaped to avoid SQL injection risks.
         $courserecord = $DB->get_record_select(
