@@ -198,7 +198,7 @@ class local_appcrue_external extends external_api {
             'revdate' => $revdate,
             'comment' => $comment
         );
-        self::validate_parameters(self::notify_grade_parameters(), $params);
+        $result = self::validate_parameters(self::notify_grade_parameters(), $params);
         // TODO: Find a way to integrate final grades into gradebook.
 
         // Compose message.
@@ -210,7 +210,10 @@ class local_appcrue_external extends external_api {
             $touser = appcrue_find_user('email', $useremail);
         }
         if ($touser == false) {
-            throw new moodle_exception('invalidarguments');
+            //throw new moodle_exception('invalidarguments');
+            return [
+                (object)['msgid' => -1]
+            ];
         }
         force_current_language($touser->lang);
         $revdateformat = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));

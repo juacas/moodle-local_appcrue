@@ -57,6 +57,8 @@ $string['autologinheader'] = 'Servicio Auto-login';
 $string['autologinheader_help'] = 'Permite a los usuarios saltar a Moodle desde el AppCrue. También implementa redirecciones predefinidas.';
 $string['enable_autologin'] = 'Habilita Autologin';
 $string['enable_autologin_help'] = 'El servicio Autologin toma el token de un usuario, lo verifica (opcionalmente) y lo redirige a una url interna. Si no se usa un token se puede redirigir a otras URLs sin afectar a la sesión.';
+$string['allow_continue'] = 'Permitir fallback continue';
+$string['allow_continue_help'] = 'Permitir fallback=continue que si el token es invalido, no genera error, loguea como invitado y redirige a la URL de continuación.';
 $string['pattern_lib'] = 'List of URL pattens to generate redirect urls.';
 $string['pattern_lib_help'] = 'Lista de patrones de URL para generar urls de redirección. Cada línea define un patrón que puede ser solicitado para generar urls de redirección. Los parámetros permitidos son: curso, grupo, param1, param2';
 $string['match_user_by'] = 'Campo de coincidencia con el perfil del usuario';

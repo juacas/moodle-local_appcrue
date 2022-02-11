@@ -130,6 +130,12 @@ if ($hassiteconfig) {
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
         true ));
+    $settings->add(new admin_setting_configcheckbox(
+            'local_appcrue/allow_continue',
+            get_string('allow_continue', 'local_appcrue'),
+            get_string('allow_continue_help', 'local_appcrue'),
+            true
+        ));
     $settings->add(new admin_setting_configtext(
         'local_appcrue/course_pattern',
         get_string('course_pattern', 'local_appcrue'),
