@@ -64,7 +64,7 @@ if ($user == null && $fallback == 'logout') {
         complete_user_login($user);
         \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
     }
-} else if ($user != null ) {
+} else if ($user != null) {
     // Token validated, now require an active user: not guest, not suspended.
     core_user::require_active_user($user, true, true);
     complete_user_login($user);
