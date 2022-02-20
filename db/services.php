@@ -42,7 +42,7 @@ $functions = array(
             'methodname'  => 'notify_grade',          //external function name
             'classpath'   => 'local/appcrue/externallib.php',  //file containing the class/external function - not required if using namespaced auto-loading classes.
             // defaults to the service's externalib.php
-            'description' => 'Notify a oficial grade with revision infro and sends instant message to one user identified by any user field.',    //human readable description of the web service function
+            'description' => 'Notify a oficial grade with revision info and sends instant message to one user identified by any user field.',    //human readable description of the web service function
             'type'        => 'write',                  //database rights of the web service function (read, write)
             'ajax' => true,        // is the service available to 'internal' ajax calls.
             'capabilities' => 'moodle/site:sendmessage', // comma separated list of capabilities used by the function.

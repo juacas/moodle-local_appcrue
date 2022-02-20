@@ -116,7 +116,7 @@ class local_appcrue_external extends external_api {
                 'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
                 'text' => new external_value(PARAM_RAW, 'The text of the message'),
                 'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user', VALUE_DEFAULT, 'email')
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user', VALUE_DEFAULT, 'idnumber')
             )
         );
     }
@@ -160,18 +160,18 @@ class local_appcrue_external extends external_api {
     {
         return new external_function_parameters(
             array(
-                'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_OPTIONAL),
-                'nip' => new external_value(PARAM_RAW, 'Source system\'s user identification.', VALUE_OPTIONAL),
-                'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_OPTIONAL),
+                'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_DEFAULT, null),
+                'nip' => new external_value(PARAM_RAW, 'Source system\'s user identification.', VALUE_DEFAULT, null),
+                'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_DEFAULT, null),
                 'subject' => new external_value(PARAM_RAW, 'Internal subject code.'),
-                'group' => new external_value(PARAM_INT, 'Enrollment group.', VALUE_OPTIONAL),
+                'group' => new external_value(PARAM_INT, 'Enrollment group.', VALUE_DEFAULT, null),
                 'subjectname' => new external_value(PARAM_RAW, 'Oficial subject name.'),
                 'course' => new external_value(PARAM_RAW, 'Course year.'),
                 'grade' => new external_value(PARAM_RAW, 'Numerical grade.'),
-                'call' => new external_value(PARAM_RAW, 'Grading call.', VALUE_OPTIONAL),
-                'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_OPTIONAL),
-                'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_OPTIONAL),
-                'comment' => new external_value(PARAM_RAW, 'Description of the grade publication', VALUE_OPTIONAL),
+                'call' => new external_value(PARAM_RAW, 'Grading call.', VALUE_DEFAULT, null),
+                'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_DEFAULT, null),
+                'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_DEFAULT, null),
+                'comment' => new external_value(PARAM_RAW, 'Description of the grade publication'),
             )
         );
     }
