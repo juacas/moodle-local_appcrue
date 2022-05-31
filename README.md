@@ -110,10 +110,10 @@ This local plugin provides the following services following the AppCRUE API:
     ]
 }
 ```
-- avatar: identifies a user witn an external token and returns his avatar picture in raw or base64 format.
+- avatar: identifies a user with an external token and returns his avatar picture in raw or base64 format.
 
 TODO Provide more detailed description here.
-
+- notifygrades web service: receives a webhook from an external academic management system and composes a localized message with the grade and other details and sends it via messaging API (may be routed to AppCRUE as well).
 ## Web Service ##
 
 Activate the web service following the instructions at: https://[SERVER]/admin/settings.php?section=webservicesoverview
