@@ -39,6 +39,7 @@ function appcrue_get_user($token) {
     $returnstatus->result = $tokenstatus->result;
     // Get user.
     if ($returnstatus->code == 401) {
+        debugging("Token not valid: " . $returnstatus->result, DEBUG_MINIMAL);
         $user = null;
         $returnstatus->status = 'error';
     } else {

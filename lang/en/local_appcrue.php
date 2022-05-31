@@ -78,4 +78,6 @@ $string['enable_sitemap_help'] = 'Sitemap service generates a JSON representatio
 $string['cache_sitemap'] = 'Cache sitemaps';
 $string['cache_sitemap_help'] = 'Use Moodle cache system with SiteMaps.';
 
-$string['new_grade_message'] = '### New grade for {$a->subjectname}'. "\n" . 'Your grade is {$a->gradealpha} ({$a->grade}).' . "\n" . 'Your review will be next {$a->revdateformat}.' . "\n" . '{$a->comment}';
+$string['new_grade_message'] = '### New grade for {$a->subjectname}'. "\n" . 'Your grade is {$a->gradealpha} ({$a->grade}).' . "\n" . '{$a->revdateformat}.' . "\n" . '{$a->comment}';
+$string['notify_grade_revdate_null'] = 'Review date is not specified.';
+$string['notify_grade_revdate'] = 'The review will be next {$a->revdateformat}';

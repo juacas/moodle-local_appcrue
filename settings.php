@@ -150,6 +150,44 @@ if ($hassiteconfig) {
         "course=/course/view.php?id={course}\nguia=https://docserver/grades/{param1}/{param2}/{course}/doc.pdf",
         PARAM_RAW_TRIMMED
     ));
+    // Redirect to other plattform depending on a value in a user field.
+/*
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_externalredirect_header',
+            get_string('externalredirectheader', 'local_appcrue'),
+            get_string('externalredirectheader_help', 'local_appcrue')
+        )
+    );
+    
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_redirect',
+        get_string('enable_externalredirect', 'local_appcrue'),
+        get_string('enable_externalredirect_help', 'local_appcrue'),
+        false
+    ));
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/externalredirect_match_user_by',
+        get_string('match_user_by', 'local_appcrue'),
+        get_string('match_user_by_help', 'local_appcrue'),
+        'id',
+        $userfields
+    ));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/externalredirect_pattern',
+        get_string('externalredirect_pattern', 'local_appcrue'),
+        get_string('externalredirect_pattern_help', 'local_appcrue'),
+        '',
+        PARAM_RAW_TRIMMED
+    ));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/externalredirect_url',
+        get_string('externalredirect_url', 'local_appcrue'),
+        get_string('externalredirect_url_help', 'local_appcrue'),
+        '',
+        PARAM_URL
+    ));
+*/
     // Avatar service.
     $settings->add(
         new admin_setting_heading(

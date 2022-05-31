@@ -210,14 +210,20 @@ class local_appcrue_external extends external_api {
             $touser = appcrue_find_user('email', $useremail);
         }
         if ($touser == false) {
-            //throw new moodle_exception('invalidarguments');
             return [
-                (object)['msgid' => -1]
+                (object)['msgid' => -1,
+                    'errormessage' => 'No se encontró el usuario.',
+                ]
             ];
         }
         force_current_language($touser->lang);
-        $revdateformat = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
-        $params['revdateformat'] = $revdateformat;
+        // If revdate is null format proper string.
+        if ($revdate == null) {
+            $params['revdateformat'] = get_string('notify_grade_revdate_null', 'local_appcrue');
+        } else {
+            $params['revdateformat'] = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
+            $params['revdateformat'] = get_string('notify_grade_revdate', 'local_appcrue', $params);
+        }
         $text = get_string('new_grade_message', 'local_appcrue', $params);
         // Send the message.
         $message = array();
