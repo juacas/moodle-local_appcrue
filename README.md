@@ -114,6 +114,8 @@ This local plugin provides the following services following the AppCRUE API:
 
 TODO Provide more detailed description here.
 - notifygrades web service: receives a webhook from an external academic management system and composes a localized message with the grade and other details and sends it via messaging API (may be routed to AppCRUE as well).
+- send_instant_message web service: send a private message for a user via messaging API.
+
 ## Web Service ##
 
 Activate the web service following the instructions at: https://[SERVER]/admin/settings.php?section=webservicesoverview
