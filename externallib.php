@@ -60,7 +60,7 @@ class local_appcrue_external extends external_api {
                         )
                     )
                 ),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user'),
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null),
             )
         );
     }
@@ -69,17 +69,21 @@ class local_appcrue_external extends external_api {
      * Send private messages from the admin USER to other users
      *
      * @param array $messages An array of message to send.
+     * @param string $field User field for finding the user. Defaults to setting 'local_appcrue/matchuserby'.
      * @return array
      * @since Moodle 2.2
      */
-    public static function send_instant_messages($messages = array(), $field = 'email') {
+    public static function send_instant_messages($messages = array(), $field = null) {
         global $CFG, $USER;
         // Check if messaging is enabled.
         if (empty($CFG->messaging)) {
             throw new moodle_exception('disabled', 'message');
         }
         self::validate_parameters(self::send_instant_messages_parameters(), array('messages' => $messages, 'field' => $field));
-
+        
+        if (!$field) {
+            $field = get_config('local_appcrue', 'match_user_by');
+        }
         // Remap all tousers of the messages.
         foreach($messages as $key=>$message) {
             if (isset($message['touserkey'])) {
@@ -116,7 +120,7 @@ class local_appcrue_external extends external_api {
                 'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
                 'text' => new external_value(PARAM_RAW, 'The text of the message'),
                 'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user', VALUE_DEFAULT, 'idnumber')
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null)
             )
         );
     }
@@ -124,18 +128,23 @@ class local_appcrue_external extends external_api {
     /**
      * Send private messages from the admin USER to other users
      *
-     * @param array $messages An array of message to send.
+     * @param string $touserkey Match value for finding the user to send the private message to.
+     * @param string $text The text of the message.
+     * @param int $textformat The format of the message.
+     * @param string $field User field for finding the user. Default is setting local_appcrue/match_user_by.
      * @return array
      * @since Moodle 2.2
      */
-    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = 'email')
+    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = null)
     {
         self::validate_parameters(self::send_instant_message_parameters(), array('touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field));
         $message = array();
         $message['touserkey'] = $touserkey;
         $message['text'] = $text;
         $message['textformat'] = $textformat;
-
+        if (!$field) {
+            $field = get_config('local_appcrue', 'match_user_by');
+        }
         return local_appcrue_external::send_instant_messages([$message], $field);
     }
 
