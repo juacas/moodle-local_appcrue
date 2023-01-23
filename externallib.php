@@ -188,7 +188,18 @@ class local_appcrue_external extends external_api {
     /**
      * Send private messages from the admin USER to other users
      *
-     * @param array $messages An array of message to send.
+     * @param  int $idusuario Oficial university id for a student.
+     * @param  string $nip Source system's user identification.
+     * @param  string $useremail Email of the student.
+     * @param  string $subject Title of the message.
+     * @param  int $group Enrollment group.
+     * @param  string $subjectname Oficial subject name.
+     * @param  string $course Course year.
+     * @param  string $grade Numerical grade.
+     * @param  string $call Grading call.
+     * @param  string $gradealpha Grade text equivalence.
+     * @param  int $revdate Date of the revision in epoch format.
+     * @param  string $comment Description of the grade publication. 
      * @return array
      * @since Moodle 2.2
      */
@@ -213,7 +224,8 @@ class local_appcrue_external extends external_api {
         // Compose message.
         // Find user.
         if ($idusuario) {
-            $touser = appcrue_find_user('idnumber', $idusuario);
+            $fieldname = get_config('local_appcrue', 'match_user_by');
+            $touser = appcrue_find_user($fieldname, $idusuario);
         }
         if ($touser == false) {
             $touser = appcrue_find_user('email', $useremail);
