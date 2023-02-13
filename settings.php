@@ -150,7 +150,7 @@ if ($hassiteconfig) {
         "course=/course/view.php?id={course}\nguia=https://docserver/grades/{param1}/{param2}/{course}/doc.pdf",
         PARAM_RAW_TRIMMED
     ));
-    // Redirect to other plattform depending on a value in a user field.
+    // TODO: Redirect to other plattform depending on a value in a user field.
 /*
     $settings->add(
         new admin_setting_heading(
@@ -221,5 +221,12 @@ if ($hassiteconfig) {
         get_string('cache_sitemap', 'local_appcrue'),
         get_string('cache_sitemap_help', 'local_appcrue'),
         true
+    ));
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/cache_sitemap_ttl',
+        get_string('cache_sitemap_ttl', 'local_appcrue'),
+        get_string('cache_sitemap_ttl_help', 'local_appcrue'),
+        60*60,
+        3600
     ));
 }

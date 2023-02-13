@@ -42,14 +42,25 @@ $urlsonlyonends = optional_param('endurls', true, PARAM_BOOL);
 $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
 
+$key = false; // Disable cache.
+$sitemap = false; // Force calculation on map.
+
 if (get_config('local_appcrue', 'cache_sitemap')) {
     $cache = cache::make('local_appcrue', 'sitemaps');
-    $key = "{$category}_{$includecourses}_{$urlsonlyonends}H" . join('_', $hiddencats);
-    $sitemap = $cache->get($key);
-} else {
-    $key = false; // Disable cache.
-    $sitemap = false; // Force calculation on map.
-}
+    $key = "local_appcrue{$category}_{$includecourses}_{$urlsonlyonends}H" . join('_', $hiddencats);
+    $timecache = $cache->get($key . '_created');
+    if ($timecache) {
+        $timecache = (int) $timecache;
+        $timetolive = $timecache + (int) get_config('local_appcrue', 'cache_sitemap_ttl');
+        if ($timetolive > time()) {
+            $sitemap = $cache->get($key);
+        } else {
+            // Expired.
+            $cache->delete($key);
+            $cache->delete($key . '_created');
+        }
+    }  
+} 
 
 if ($sitemap == false) {
     $categories = $DB->get_records_select('course_categories', 'TRUE',
@@ -65,7 +76,7 @@ if ($sitemap == false) {
         }
         $navegable = new stdClass();
         $navegable->name = $cat->name;
-        $navegable->description = format_text($cat->description, FORMAT_PLAIN);
+        $navegable->description = format_text($cat->description, FORMAT_HTML, ['nocache' => true]);
         $navegable->id = $cat->id;
         // URL.
         $url = new moodle_url('/course/index.php', ['categoryid' => $cat->id]);
@@ -129,6 +140,7 @@ if ($sitemap == false) {
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
     if ($key) {
         $cache->set($key, $sitemap);
+        $cache->set($key . '_created', time());
     }
 }
 // TODO: substitute current token with bearer mark if caching at server is a problem.

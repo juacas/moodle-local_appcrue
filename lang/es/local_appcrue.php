@@ -80,6 +80,8 @@ $string['enable_sitemap'] = 'Habilitar el servicio de mapa del sitio';
 $string['enable_sitemap_help'] = 'El servicio Sitemap genera una representación JSON de las categorías y los cursos.';
 $string['cache_sitemap'] = 'Cache sitemaps';
 $string['cache_sitemap_help'] = 'Utilizar el sistema de caché de Moodle con SiteMaps.';
+$string['cache_sitemap_ttl'] = 'Cache sitemaps TTL';
+$string['cache_sitemap_ttl_help'] = 'Tiempo de vida de los SiteMaps en caché.';
 
 $string['new_grade_message'] = '### Nota para {$a->subjectname}' . "\n" . 'Tu nota es {$a->gradealpha} ({$a->grade}).' . "\n" . '{$a->revdateformat}.' . "\n" . '{$a->comment}';
 $string['notify_grade_revdate_null'] = 'No se ha especificado la fecha de revisión.';
