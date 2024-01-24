@@ -238,7 +238,10 @@ class local_appcrue_external extends external_api {
         }
         // Find out course from $subject code.
         $course = appcrue_find_course($subject, $group, $course);
-        // force_current_language($userto->lang);
+        if ($course == false) {
+           debugging("Course not found for subject $subject, group $group, course $course", DEBUG_NONE);
+        }
+        // Force_current_language($userto->lang) post_message supposed to do this.
         // If revdate is null format proper string.
         if ($revdate == null) {
             $params['revdateformat'] = get_string('notify_grade_revdate_null', 'local_appcrue');
