@@ -34,7 +34,7 @@ try {
     $fromdate = optional_param('fromDate', '', PARAM_ALPHANUM);
     $todate = optional_param('toDate', '', PARAM_ALPHANUM);
     $category = optional_param('category', '', PARAM_ALPHA);
-    $token = required_param('token', PARAM_RAW);
+    $token = appcrue_get_token_param();
     $lang = required_param('lang', PARAM_ALPHA);
 } catch (moodle_exception $e) {
     header('HTTP/1.0 400 Bad Request');
@@ -158,6 +158,7 @@ if ($user != null) {
                 $url = new moodle_url("/calendar/view.php", $params);
                 $eventitem->url = $url->out(false);
             }
+            // Convert the url to a redirected url with token.
             $eventitem->url = appcrue_create_deep_url($eventitem->url, $token);
             $dayitem->events[] = $eventitem;
         }

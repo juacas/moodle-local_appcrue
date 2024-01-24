@@ -130,6 +130,12 @@ if ($hassiteconfig) {
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
         true ));
+    $settings->add(new admin_setting_configcheckbox(
+            'local_appcrue/allow_continue',
+            get_string('allow_continue', 'local_appcrue'),
+            get_string('allow_continue_help', 'local_appcrue'),
+            true
+        ));
     $settings->add(new admin_setting_configtext(
         'local_appcrue/course_pattern',
         get_string('course_pattern', 'local_appcrue'),
@@ -144,6 +150,44 @@ if ($hassiteconfig) {
         "course=/course/view.php?id={course}\nguia=https://docserver/grades/{param1}/{param2}/{course}/doc.pdf",
         PARAM_RAW_TRIMMED
     ));
+    // TODO: Redirect to other plattform depending on a value in a user field.
+/*
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_externalredirect_header',
+            get_string('externalredirectheader', 'local_appcrue'),
+            get_string('externalredirectheader_help', 'local_appcrue')
+        )
+    );
+    
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_redirect',
+        get_string('enable_externalredirect', 'local_appcrue'),
+        get_string('enable_externalredirect_help', 'local_appcrue'),
+        false
+    ));
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/externalredirect_match_user_by',
+        get_string('match_user_by', 'local_appcrue'),
+        get_string('match_user_by_help', 'local_appcrue'),
+        'id',
+        $userfields
+    ));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/externalredirect_pattern',
+        get_string('externalredirect_pattern', 'local_appcrue'),
+        get_string('externalredirect_pattern_help', 'local_appcrue'),
+        '',
+        PARAM_RAW_TRIMMED
+    ));
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/externalredirect_url',
+        get_string('externalredirect_url', 'local_appcrue'),
+        get_string('externalredirect_url_help', 'local_appcrue'),
+        '',
+        PARAM_URL
+    ));
+*/
     // Avatar service.
     $settings->add(
         new admin_setting_heading(
@@ -177,5 +221,12 @@ if ($hassiteconfig) {
         get_string('cache_sitemap', 'local_appcrue'),
         get_string('cache_sitemap_help', 'local_appcrue'),
         true
+    ));
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/cache_sitemap_ttl',
+        get_string('cache_sitemap_ttl', 'local_appcrue'),
+        get_string('cache_sitemap_ttl_help', 'local_appcrue'),
+        60*60,
+        3600
     ));
 }

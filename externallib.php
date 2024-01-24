@@ -60,7 +60,7 @@ class local_appcrue_external extends external_api {
                         )
                     )
                 ),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user'),
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null),
             )
         );
     }
@@ -69,17 +69,21 @@ class local_appcrue_external extends external_api {
      * Send private messages from the admin USER to other users
      *
      * @param array $messages An array of message to send.
+     * @param string $field User field for finding the user. Defaults to setting 'local_appcrue/matchuserby'.
      * @return array
      * @since Moodle 2.2
      */
-    public static function send_instant_messages($messages = array(), $field = 'email') {
+    public static function send_instant_messages($messages = array(), $field = null) {
         global $CFG, $USER;
         // Check if messaging is enabled.
         if (empty($CFG->messaging)) {
             throw new moodle_exception('disabled', 'message');
         }
         self::validate_parameters(self::send_instant_messages_parameters(), array('messages' => $messages, 'field' => $field));
-
+        
+        if (!$field) {
+            $field = get_config('local_appcrue', 'match_user_by');
+        }
         // Remap all tousers of the messages.
         foreach($messages as $key=>$message) {
             if (isset($message['touserkey'])) {
@@ -116,7 +120,7 @@ class local_appcrue_external extends external_api {
                 'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
                 'text' => new external_value(PARAM_RAW, 'The text of the message'),
                 'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user', VALUE_DEFAULT, 'email')
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null)
             )
         );
     }
@@ -124,18 +128,23 @@ class local_appcrue_external extends external_api {
     /**
      * Send private messages from the admin USER to other users
      *
-     * @param array $messages An array of message to send.
+     * @param string $touserkey Match value for finding the user to send the private message to.
+     * @param string $text The text of the message.
+     * @param int $textformat The format of the message.
+     * @param string $field User field for finding the user. Default is setting local_appcrue/match_user_by.
      * @return array
      * @since Moodle 2.2
      */
-    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = 'email')
+    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = null)
     {
         self::validate_parameters(self::send_instant_message_parameters(), array('touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field));
         $message = array();
         $message['touserkey'] = $touserkey;
         $message['text'] = $text;
         $message['textformat'] = $textformat;
-
+        if (!$field) {
+            $field = get_config('local_appcrue', 'match_user_by');
+        }
         return local_appcrue_external::send_instant_messages([$message], $field);
     }
 
@@ -160,18 +169,18 @@ class local_appcrue_external extends external_api {
     {
         return new external_function_parameters(
             array(
-                'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_OPTIONAL),
-                'nip' => new external_value(PARAM_RAW, 'Source system\'s user identification.', VALUE_OPTIONAL),
-                'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_OPTIONAL),
+                'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_DEFAULT, null),
+                'nip' => new external_value(PARAM_RAW, 'Source system\'s user identification.', VALUE_DEFAULT, null),
+                'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_DEFAULT, null),
                 'subject' => new external_value(PARAM_RAW, 'Internal subject code.'),
-                'group' => new external_value(PARAM_INT, 'Enrollment group.', VALUE_OPTIONAL),
+                'group' => new external_value(PARAM_INT, 'Enrollment group.', VALUE_DEFAULT, null),
                 'subjectname' => new external_value(PARAM_RAW, 'Oficial subject name.'),
                 'course' => new external_value(PARAM_RAW, 'Course year.'),
                 'grade' => new external_value(PARAM_RAW, 'Numerical grade.'),
-                'call' => new external_value(PARAM_RAW, 'Grading call.', VALUE_OPTIONAL),
-                'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_OPTIONAL),
-                'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_OPTIONAL),
-                'comment' => new external_value(PARAM_RAW, 'Description of the grade publication', VALUE_OPTIONAL),
+                'call' => new external_value(PARAM_RAW, 'Grading call.', VALUE_DEFAULT, null),
+                'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_DEFAULT, null),
+                'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_DEFAULT, null),
+                'comment' => new external_value(PARAM_RAW, 'Description of the grade publication'),
             )
         );
     }
@@ -179,7 +188,18 @@ class local_appcrue_external extends external_api {
     /**
      * Send private messages from the admin USER to other users
      *
-     * @param array $messages An array of message to send.
+     * @param  int $idusuario Oficial university id for a student.
+     * @param  string $nip Source system's user identification.
+     * @param  string $useremail Email of the student.
+     * @param  string $subject Title of the message.
+     * @param  int $group Enrollment group.
+     * @param  string $subjectname Oficial subject name.
+     * @param  string $course Course year.
+     * @param  string $grade Numerical grade.
+     * @param  string $call Grading call.
+     * @param  string $gradealpha Grade text equivalence.
+     * @param  int $revdate Date of the revision in epoch format.
+     * @param  string $comment Description of the grade publication. 
      * @return array
      * @since Moodle 2.2
      */
@@ -198,23 +218,33 @@ class local_appcrue_external extends external_api {
             'revdate' => $revdate,
             'comment' => $comment
         );
-        self::validate_parameters(self::notify_grade_parameters(), $params);
+        $result = self::validate_parameters(self::notify_grade_parameters(), $params);
         // TODO: Find a way to integrate final grades into gradebook.
 
         // Compose message.
         // Find user.
         if ($idusuario) {
-            $touser = appcrue_find_user('idnumber', $idusuario);
+            $fieldname = get_config('local_appcrue', 'match_user_by');
+            $touser = appcrue_find_user($fieldname, $idusuario);
         }
         if ($touser == false) {
             $touser = appcrue_find_user('email', $useremail);
         }
         if ($touser == false) {
-            throw new moodle_exception('invalidarguments');
+            return [
+                (object)['msgid' => -1,
+                    'errormessage' => 'No se encontró el usuario.',
+                ]
+            ];
         }
         force_current_language($touser->lang);
-        $revdateformat = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
-        $params['revdateformat'] = $revdateformat;
+        // If revdate is null format proper string.
+        if ($revdate == null) {
+            $params['revdateformat'] = get_string('notify_grade_revdate_null', 'local_appcrue');
+        } else {
+            $params['revdateformat'] = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
+            $params['revdateformat'] = get_string('notify_grade_revdate', 'local_appcrue', $params);
+        }
         $text = get_string('new_grade_message', 'local_appcrue', $params);
         // Send the message.
         $message = array();
