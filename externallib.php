@@ -183,7 +183,7 @@ class local_appcrue_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function notify_grade($idusuario, $nip, $useremail = '', $subject, $group, $subjectname, $course, $grade, $call, $gradealpha, $revdate, $comment) {
+    public static function notify_grade($idusuario, $nip, $useremail, $subject, $group, $subjectname, $course, $grade, $call, $gradealpha, $revdate, $comment) {
         $params = array(
             'idusuario' => $idusuario,
             'nip' => $nip,
