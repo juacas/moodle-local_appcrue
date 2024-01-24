@@ -220,24 +220,25 @@ class local_appcrue_external extends external_api {
         );
         $result = self::validate_parameters(self::notify_grade_parameters(), $params);
         // TODO: Find a way to integrate final grades into gradebook.
-
         // Compose message.
         // Find user.
         if ($idusuario) {
             $fieldname = get_config('local_appcrue', 'match_user_by');
-            $touser = appcrue_find_user($fieldname, $idusuario);
+            $userto = appcrue_find_user($fieldname, $idusuario);
         }
-        if ($touser == false) {
-            $touser = appcrue_find_user('email', $useremail);
+        if ($userto == false) {
+            $userto = appcrue_find_user('email', $useremail);
         }
-        if ($touser == false) {
+        if ($userto == false) {
             return [
                 (object)['msgid' => -1,
                     'errormessage' => 'No se encontró el usuario.',
                 ]
             ];
         }
-        force_current_language($touser->lang);
+        // Find out course from $subject code.
+        $course = appcrue_find_course($subject, $group, $course);
+        // force_current_language($userto->lang);
         // If revdate is null format proper string.
         if ($revdate == null) {
             $params['revdateformat'] = get_string('notify_grade_revdate_null', 'local_appcrue');
@@ -245,16 +246,15 @@ class local_appcrue_external extends external_api {
             $params['revdateformat'] = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
             $params['revdateformat'] = get_string('notify_grade_revdate', 'local_appcrue', $params);
         }
-        $text = get_string('new_grade_message', 'local_appcrue', $params);
-        // Send the message.
-        $message = array();
-        $message['touserid'] = $touser->id;
-        $message['text'] = $text;
-        $message['textformat'] = FORMAT_MARKDOWN;
+        $message = get_string('new_grade_message', 'local_appcrue', $params);
+        $format = FORMAT_MARKDOWN;
 
-        return core_message_external::send_instant_messages([$message]);
+        // Find a teacher as sender.
+        $userfrom = appcrue_find_sender($course);
+        
+        return appcrue_post_message($course, $userfrom, $userto, $message, $format);
     }
-
+   
     /**
      * Returns description of method result value
      *

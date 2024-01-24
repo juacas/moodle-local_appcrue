@@ -229,4 +229,21 @@ if ($hassiteconfig) {
         60*60,
         3600
     ));
+     // Notify grade Service.
+     $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_notifygrade_header',
+            get_string('notify_grade_header', 'local_appcrue'),
+            get_string('notify_grade_header_help', 'local_appcrue')
+        )
+    );
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/notify_grade_sender',
+        get_string('notify_grade_sender', 'local_appcrue'),
+        get_string('notify_grade_sender_help', 'local_appcrue'),
+        'id',
+        ['anyteacher' => get_string('notify_grade_anyteacher', 'local_appcrue'),
+         'webserviceuser' => get_string('notify_grade_webserviceuser', 'local_appcrue'),
+         ]
+    ));
 }

@@ -251,19 +251,8 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
             throw new moodle_exception('invalidrequest');
         }
     } else if ($course !== null) {
-        // Search a course that matches its idnumber with the pattern using course, group, year, param1, param2, param3.
-        /** @var \moodle_database $DB */
-        global $DB;
-        $coursepattern = get_config('local_appcrue', 'course_pattern');
-        // Compose the pattern.
-        $coursepattern = str_replace(['{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
-                                    [$course, $group, $year, $param1, $param2, $param3],
-                                    $coursepattern);
-        // Pattern is scaped to avoid SQL injection risks.
-        $courserecord = $DB->get_record_select(
-                            'course',
-                            "idnumber LIKE :coursepattern",
-                            ['coursepattern' => $coursepattern]);
+        // Get courserecord.
+        $courserecord = appcrue_find_course($course, $group, $year, $param1, $param2, $param3);
         if ($courserecord) {
             // Check if it is metalinked to any parent "META" course.
             $metaid = $DB->get_record('enrol', array('customint1' => $courserecord->id, 'enrol' => 'meta'), 'courseid');
@@ -277,6 +266,49 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
     // Default target.
     return new moodle_url("/my/");
 }
+// Search a course that matches its idnumber with the pattern using course, group, year, param1, param2, param3.
+function appcrue_find_course($course, $group, $year, $param1 = '', $param2 = '', $param3 = '') {
+    /** @var \moodle_database $DB */
+    global $DB;
+    $coursepattern = get_config('local_appcrue', 'course_pattern');
+    // Compose the pattern.
+    $coursepattern = str_replace(['{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
+                                [$course, $group, $year, $param1, $param2, $param3],
+                                $coursepattern);
+    // Pattern is scaped to avoid SQL injection risks.
+    $courserecord = $DB->get_record_select(
+                        'course',
+                        "idnumber LIKE :coursepattern",
+                            ['coursepattern' => $coursepattern]);
+    return $courserecord;
+}
+/**
+ * Get a user to be the sender of messages.
+ * @param stdClass $course
+ * @return stdClass
+ */
+function appcrue_find_sender($course) {
+    // Find a Teacher in the course.
+    $select = get_config('local_appcrue', 'notify_grade_sender');
+    $teacher = null;
+    if ($select == 'anyteacher') {
+        $context = context_course::instance($course->id);
+        $teachers = get_users_by_capability($context, 'moodle/grade:manage');
+        if (count($teachers) > 0) {
+            $teacher = array_shift($teachers);
+        }
+    } 
+    if (!$teacher) {
+        global $USER;
+        $teacher = $USER;
+    }
+    return $teacher;
+}
+/**
+ * Get the username of the user.
+ * @param int $userid
+ * @return string
+ */
 function appcrue_get_username($userid) {
     global $DB;
     $user = $DB->get_record('user', array('id' => $userid), '*');
@@ -299,3 +331,97 @@ function appcrue_get_event_type($event) {
     }
     return 'HORARIO';
 }
+
+ /**
+     * Send a message from one user to another user.
+     * Based on post_message in message/lib.php to allow set sender and courseid.
+     * @param stdClass $course The course object.
+     * @param stdClass $userfrom The user sending the message.
+     * @param stdClass $userto The user receiving the message.
+     * @param string $message The message content.
+     * @param int $format The format of the message (FORMAT_HTML or FORMAT_MARKDOWN).
+     * @return array An array containing the result log message.
+     */
+    function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
+        global $PAGE, $USER, $DB;
+
+        $eventdata = new \core\message\message();
+        $eventdata->courseid = $course->id;
+        $eventdata->component = 'moodle';
+        $eventdata->name = 'instantmessage';
+        $eventdata->userfrom = $userfrom;
+        $eventdata->userto = $userto;
+
+        $eventdata->subject = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
+
+        if ($format == FORMAT_HTML) {
+            $eventdata->fullmessagehtml = $message;
+            $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
+        } else {
+            $eventdata->fullmessage = $message;
+            $eventdata->fullmessagehtml = '';
+        }
+
+        $eventdata->fullmessageformat = $format;
+        $eventdata->smallmessage = $message;
+        $eventdata->timecreated = time();
+        $eventdata->notification = 0;
+
+        $userpicture = new user_picture($userfrom);
+        $userpicture->size = 1;
+        $userpicture->includetoken = $userto->id;
+        $eventdata->customdata = [
+            'notificationiconurl' => $userpicture->get_url($PAGE)->out(false),
+            'actionbuttons' => [
+                'send' => get_string_manager()->get_string('send', 'message', null, $eventdata->userto->lang),
+            ],
+            'placeholders' => [
+                'send' => get_string_manager()->get_string('writeamessage', 'message', null, $eventdata->userto->lang),
+            ],
+        ];
+
+        $success = message_send($eventdata);
+
+        $resultmsg = [];
+        if (isset($message['clientmsgid'])) {
+            $resultmsg['clientmsgid'] = $message['clientmsgid'];
+        }
+        $messageids = [];
+        if ($success) {
+            $resultmsg['msgid'] = $success;
+            $resultmsg['timecreated'] = time();
+            $resultmsg['candeletemessagesforallusers'] = 0;
+            $messageids[] = $success;
+        } else {
+            $resultmsg['msgid'] = -1;
+            if (!isset($errormessage)) {
+                $errormessage = get_string('messageundeliveredbynotificationsettings', 'error');
+            }
+            $resultmsg['errormessage'] = $errormessage;
+        }
+
+        $resultmessages = [$resultmsg];
+
+        if (!empty($messageids)) {
+            $messagerecords = $DB->get_records_list(
+                'messages',
+                'id',
+                $messageids,
+                '',
+                'id, conversationid, smallmessage, fullmessageformat, fullmessagetrust'
+            );
+            $resultmessages = array_map(function ($resultmessage) use ($messagerecords, $userfrom, $userto) {
+                $id = $resultmessage['msgid'];
+                $resultmessage['conversationid'] = isset($messagerecords[$id]) ? $messagerecords[$id]->conversationid : null;
+                $resultmessage['useridfrom'] = $userfrom->id;
+                $resultmessage['text'] = message_format_message_text((object) [
+                    'smallmessage' => $messagerecords[$id]->smallmessage,
+                    'fullmessageformat' => external_validate_format($messagerecords[$id]->fullmessageformat),
+                    'fullmessagetrust' => $messagerecords[$id]->fullmessagetrust,
+                ]);
+                return $resultmessage;
+            }, $resultmessages);
+        }
+
+        return $resultmessages;
+    }
