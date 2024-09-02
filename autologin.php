@@ -47,7 +47,7 @@ try{
 
 // Check token and get user record.
 // Check token.
-list($user, $diag) = appcrue_get_user($token);
+list($user, $diag) = $token ? appcrue_get_user($token): [null, null];
 if ($user == null && $fallback == 'error') {
     // Better act as service do not throw new moodle_exception('invalidaccessparameter', 'error', '', '', $token).
     header('HTTP/1.0 401 Unauthorized ' . $diag->result);
