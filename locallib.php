@@ -226,7 +226,7 @@ function appcrue_get_json_node($text, $jsonpath) {
  * @return \moodle_url
  */
 function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
-
+    global $DB;
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
     } else if ($pattern !== null) {
