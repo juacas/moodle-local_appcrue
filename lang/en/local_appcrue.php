@@ -34,6 +34,8 @@ $string['idp_client_id'] = 'Clientid for the IDP';
 $string['idp_client_id_help'] = 'Client id for the IDP to invoke the usertoken service.';
 $string['idp_client_secret'] = 'Client secret for the IDP';
 $string['idp_client_secret_help'] = 'Client secret for the IDP to invoke the usertoken service.';
+$string['api_key'] = 'API key';
+$string['api_key_help'] = 'API key to access the AppCrue services. It is used to identify the app that is invoking the service.';
 
 $string['cachedef_sitemaps'] = 'Stores json maps of categories and courses';
 $string['calendarheader'] = 'User calendar';

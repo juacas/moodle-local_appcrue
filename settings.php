@@ -36,7 +36,19 @@ if ($hassiteconfig) {
             get_string('idpheader_help', 'local_appcrue')
         )
     );
+    // API KEY for directa access without token.
+    // Generate a deafult as an example.
+    $defaultkey = bin2hex(random_bytes(16));
 
+    // API Key configuration.
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/api_key',
+        get_string('api_key', 'local_appcrue'),
+        get_string('api_key_help', 'local_appcrue'),
+        $defaultkey,
+        PARAM_ALPHANUMEXT
+    ));
+    // IdP configuration.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',
         get_string('idp_token_url', 'local_appcrue'),

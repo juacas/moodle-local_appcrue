@@ -24,6 +24,45 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 /**
+ * Get the user from the request.
+ * Supports the following parameters in the request:
+ * - token: the token to be used to identify the user.
+ * - api_key: the API key to be used to identify the user.
+ * - user: the user id string to be used to identify the user using the configured profile field.
+ * Returns an array with the user and a diagnostic object.
+ * @return list(stdClass|null, stdClass) the user and the diagnostic object.
+ */
+function appcrue_get_user_from_request(): array {
+    $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
+    $iduser = optional_param('user', '', PARAM_RAW);
+    $token = appcrue_get_token_param();
+    $user = null;
+    // Reporting object.
+    $diag = new stdClass();
+    $diag->code = 200;
+    $diag->message = 'OK';
+    // If there is an apikey, we use it to get the user.
+    if ($apikey != '') {
+        /**
+         * API Key mode.
+         */
+        if ($apikey == get_config('local_appcrue', 'api_key')) {
+            $fieldname = get_config('local_appcrue', 'match_user_by');
+            $user = appcrue_find_user($fieldname, $iduser);
+        } else {
+            $diag->code = 404;
+            $diag->message = 'User not found';
+            $user = null;
+        }
+    } else {
+        /**
+         * User token mode.
+         */
+        list($user, $diag) = appcrue_get_user($token);
+    }
+    return [$user, $diag];
+}
+/**
  * Checks the token and gets the user associated with it.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
  * @return list(stdClass|null, stdClass) the user and the result of the check.
@@ -39,7 +78,7 @@ function appcrue_get_user($token) {
     $returnstatus->result = $tokenstatus->result;
     // Get user.
     if ($returnstatus->code == 401) {
-        debugging("Token not valid: " . $returnstatus->result, DEBUG_NORMAL);
+        //debugging("Token not valid: " . $returnstatus->result, DEBUG_NORMAL);
         $user = null;
         $returnstatus->status = 'error';
     } else {
@@ -78,6 +117,9 @@ function appcrue_get_token_param($required = false) : string {
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
 function appcrue_validate_token($token) {
+    if (empty($token)) {
+        return [false, (object)['code' => 401, 'result' => 'Token is empty']];
+    }        
     $matchvalue = false;
     $returnstatus = new stdClass();
     global $CFG;
