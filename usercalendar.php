@@ -127,7 +127,7 @@ try {
                 }
                 $eventitem = new stdClass;
                 $eventitem->id = $event->id;
-                $eventitem->title = $event->name;
+                $eventitem->title = format_text($event->name, FORMAT_HTML);
 
                 // Format the description text.
                 $description = format_text($me->description, $me->format, ['context' => $me->context]);
