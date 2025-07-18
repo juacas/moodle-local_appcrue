@@ -22,10 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once($CFG->libdir.'/filelib.php');
+require_once('../../config.php');
+require_once($CFG->libdir . '/filelib.php');
 require_once('locallib.php');
-/** @var moodle_database $DB */
+
+/**
+ * Access to DB.
+ * @var moodle_database $DB
+ */
 global $DB;
 
 if (!get_config('local_appcrue', 'enable_sitemap')) {
@@ -59,13 +63,16 @@ if (get_config('local_appcrue', 'cache_sitemap')) {
             $cache->delete($key);
             $cache->delete($key . '_created');
         }
-    }  
-} 
+    }
+}
 
 if ($sitemap == false) {
-    $categories = $DB->get_records_select('course_categories', 'TRUE',
-                        ['id', 'name', 'description', 'parent', 'coursecount', 'visible']);
-    $catindex = array();
+    $categories = $DB->get_records_select(
+        'course_categories',
+        'TRUE',
+        ['id', 'name', 'description', 'parent', 'coursecount', 'visible']
+    );
+    $catindex = [];
     $navegableroot = new stdClass();
     $catindex[0] = $navegableroot;
     $errors = []; // List of problems detected.
@@ -99,7 +106,7 @@ if ($sitemap == false) {
                 continue;
             }
             // Add child.
-            if ($parent ) {
+            if ($parent) {
                 if ($urlsonlyonends) {
                     unset($parent->url);
                 }

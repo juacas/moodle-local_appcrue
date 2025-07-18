@@ -54,7 +54,8 @@ if ($hassiteconfig) {
         get_string('idp_token_url', 'local_appcrue'),
         get_string('idp_token_url_help', 'local_appcrue'),
         'https://idp.uva.es/api/adas/oauth2/tokendata',
-        PARAM_URL));
+        PARAM_URL
+    ));
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_user_json_path',
         get_string('idp_user_json_path', 'local_appcrue'),
@@ -96,30 +97,39 @@ if ($hassiteconfig) {
         true
     ));
     $settings->add(new admin_setting_configcheckbox(
-                        'local_appcrue/share_site_events',
-                        get_string('share_site_events', 'local_appcrue'),
-                        get_string('share_site_events_help', 'local_appcrue'), true));
+        'local_appcrue/share_site_events',
+        get_string('share_site_events', 'local_appcrue'),
+        get_string('share_site_events_help', 'local_appcrue'),
+        true
+    ));
     $settings->add(new admin_setting_configcheckbox(
-                        'local_appcrue/share_course_events',
-                        get_string('share_course_events', 'local_appcrue'),
-                        get_string('share_course_events_help', 'local_appcrue'), true));
-    $settings->add(new admin_setting_configcheckbox('local_appcrue/share_personal_events',
-                        get_string('share_user_events', 'local_appcrue'),
-                        get_string('share_user_events_help', 'local_appcrue'), true));
+        'local_appcrue/share_course_events',
+        get_string('share_course_events', 'local_appcrue'),
+        get_string('share_course_events_help', 'local_appcrue'),
+        true
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/share_personal_events',
+        get_string('share_user_events', 'local_appcrue'),
+        get_string('share_user_events_help', 'local_appcrue'),
+        true
+    ));
     global $DB;
     $modules = $DB->get_records("modules");
     $modulelist = [];
     foreach ($modules as $mod) {
         $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
     }
-    uasort($modulelist, function($a, $b) {
+    uasort($modulelist, function ($a, $b) {
         return strcmp($a, $b);
     });
     $settings->add(new admin_setting_configmultiselect(
         'local_appcrue/examen_event_type',
         get_string('examen_event_type', 'local_appcrue'),
         get_string('examen_event_type_help', 'local_appcrue'),
-        ['quiz', 'quest', 'assign', 'workshop'], $modulelist ));
+        ['quiz', 'quest', 'assign', 'workshop'],
+        $modulelist
+    ));
     $settings->add(new admin_setting_configtext(
         'local_appcrue/event_imgdetail',
         get_string('event_imgdetail', 'local_appcrue'),
@@ -141,13 +151,14 @@ if ($hassiteconfig) {
         'local_appcrue/enable_autologin',
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
-        true ));
+        true
+    ));
     $settings->add(new admin_setting_configcheckbox(
-            'local_appcrue/allow_continue',
-            get_string('allow_continue', 'local_appcrue'),
-            get_string('allow_continue_help', 'local_appcrue'),
-            true
-        ));
+        'local_appcrue/allow_continue',
+        get_string('allow_continue', 'local_appcrue'),
+        get_string('allow_continue_help', 'local_appcrue'),
+        true
+    ));
     $settings->add(new admin_setting_configtext(
         'local_appcrue/course_pattern',
         get_string('course_pattern', 'local_appcrue'),
@@ -163,7 +174,7 @@ if ($hassiteconfig) {
         PARAM_RAW_TRIMMED
     ));
     // TODO: Redirect to other plattform depending on a value in a user field.
-/*
+    /*
     $settings->add(
         new admin_setting_heading(
             'local_appcrue_externalredirect_header',
@@ -171,7 +182,7 @@ if ($hassiteconfig) {
             get_string('externalredirectheader_help', 'local_appcrue')
         )
     );
-    
+
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/enable_redirect',
         get_string('enable_externalredirect', 'local_appcrue'),
@@ -199,7 +210,7 @@ if ($hassiteconfig) {
         '',
         PARAM_URL
     ));
-*/
+    */
     // Avatar service.
     $settings->add(
         new admin_setting_heading(
@@ -238,17 +249,17 @@ if ($hassiteconfig) {
         'local_appcrue/cache_sitemap_ttl',
         get_string('cache_sitemap_ttl', 'local_appcrue'),
         get_string('cache_sitemap_ttl_help', 'local_appcrue'),
-        60*60,
+        60 * 60,
         3600
     ));
      // Notify grade Service.
      $settings->add(
-        new admin_setting_heading(
-            'local_appcrue_notifygrade_header',
-            get_string('notify_grade_header', 'local_appcrue'),
-            get_string('notify_grade_header_help', 'local_appcrue')
-        )
-    );
+         new admin_setting_heading(
+             'local_appcrue_notifygrade_header',
+             get_string('notify_grade_header', 'local_appcrue'),
+             get_string('notify_grade_header_help', 'local_appcrue')
+         )
+     );
     $settings->add(new admin_setting_configselect(
         'local_appcrue/notify_grade_sender',
         get_string('notify_grade_sender', 'local_appcrue'),

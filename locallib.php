@@ -58,7 +58,7 @@ function appcrue_get_user_from_request(): array {
         /**
          * User token mode.
          */
-        list($user, $diag) = appcrue_get_user($token);
+        [$user, $diag] = appcrue_get_user($token);
     }
     return [$user, $diag];
 }
@@ -73,12 +73,12 @@ function appcrue_get_user($token) {
     $matchvalue = false;
     $user = false;
     $returnstatus = new stdClass();
-    list($matchvalue, $tokenstatus) = appcrue_validate_token($token);
+    [$matchvalue, $tokenstatus] = appcrue_validate_token($token);
     $returnstatus->code = $tokenstatus->code;
     $returnstatus->result = $tokenstatus->result;
     // Get user.
     if ($returnstatus->code == 401) {
-        //debugging("Token not valid: " . $returnstatus->result, DEBUG_NORMAL);
+        // debugging("Token not valid: " . $returnstatus->result, DEBUG_NORMAL);
         $user = null;
         $returnstatus->status = 'error';
     } else {
@@ -97,7 +97,7 @@ function appcrue_get_user($token) {
 /**
  * Get token from the request.
  */
-function appcrue_get_token_param($required = false) : string {
+function appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
      // Try to extract a Bearer token.
     $headers = getallheaders();
@@ -119,7 +119,7 @@ function appcrue_get_token_param($required = false) : string {
 function appcrue_validate_token($token) {
     if (empty($token)) {
         return [false, (object)['code' => 401, 'result' => 'Token is empty']];
-    }        
+    }
     $matchvalue = false;
     $returnstatus = new stdClass();
     global $CFG;
@@ -131,7 +131,7 @@ function appcrue_validate_token($token) {
     $options = [
         'CURLOPT_RETURNTRANSFER' => true,
         'CURLOPT_CONNECTTIMEOUT' => 5,
-        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY
+        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
     ];
     $curl->setHeader(["Authorization: Bearer $token"]);
     $result = $curl->get($idpurl, null, $options);
@@ -168,7 +168,7 @@ function appcrue_find_user($fieldname, $matchvalue) {
     // First check in standard fieldnames.
     $fields = get_user_fieldnames();
     if (array_search($fieldname, $fields) !== false) {
-        $user = $DB->get_record('user', array($fieldname => $matchvalue), '*');
+        $user = $DB->get_record('user', [$fieldname => $matchvalue], '*');
         if ($user == false) {
             debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
         }
@@ -189,7 +189,7 @@ function appcrue_find_user($fieldname, $matchvalue) {
         $sql = 'fieldid = ? AND ' . $DB->sql_compare_text('data') . ' = ?';
         $userid = $DB->get_record_select('user_info_data', $sql, [$fieldid, $matchvalue], 'userid');
         if ($userid) {
-            $user = $DB->get_record('user', array('id' => $userid->userid), '*');
+            $user = $DB->get_record('user', ['id' => $userid->userid], '*');
         } else {
             $user = false;
             debugging("No match with: {$sql}", DEBUG_NORMAL);
@@ -212,13 +212,13 @@ function appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fa
     $params['fallback'] = $fallback;
 
     if ($token) {
-        $params['token'] = $token; 
+        $params['token'] = $token;
     } else if ($tokenmark == 'bearer') {
         $params['<bearer>'] = '';
     } else if ($tokenmark == 'token') {
         $params['token'] = '<token>';
     }
-       
+
     $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
     return $deepurl->out(false);
 }
@@ -277,18 +277,18 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
         $patternlib = [];
         $parts = explode("\n", $patterns);
         $parts = array_map("trim", $parts);
-        foreach($parts as $currentPart)
-        {
-            list($key, $value) = explode("=", $currentPart, 2);
+        foreach ($parts as $currentpart) {
+            [$key, $value] = explode("=", $currentpart, 2);
             $patternlib[$key] = $value;
         }
         if (isset($patternlib[$pattern])) {
             $selectedpattern = $patternlib[$pattern];
-            $url = str_replace(['{token}', '{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
-                                [$token, $course, $group, $year, $param1, $param2, $param3],
-                                $selectedpattern
-                            );
-            return $url;
+            $url = str_replace(
+                ['{token}', '{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
+                [$token, $course, $group, $year, $param1, $param2, $param3],
+                $selectedpattern
+            );
+            return new moodle_url($url);
         } else {
             throw new moodle_exception('invalidrequest');
         }
@@ -297,7 +297,7 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
         $courserecord = appcrue_find_course($course, $group, $year, $param1, $param2, $param3);
         if ($courserecord) {
             // Check if it is metalinked to any parent "META" course.
-            $metaid = $DB->get_record('enrol', array('customint1' => $courserecord->id, 'enrol' => 'meta'), 'courseid');
+            $metaid = $DB->get_record('enrol', ['customint1' => $courserecord->id, 'enrol' => 'meta'], 'courseid');
             if ($metaid) {
                 return new moodle_url("/course/view.php", ["id" => $metaid->courseid]);
             } else {
@@ -308,20 +308,33 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
     // Default target.
     return new moodle_url("/my/");
 }
-// Search a course that matches its idnumber with the pattern using course, group, year, param1, param2, param3.
+/**
+ * Search a course that matches its idnumber againts a string pattern using course, group, year, param1, param2, param3.
+ * Pattern can have placeholders {course}, {group}, etc.
+ * @param string $course course part
+ * @param string $group group part
+ * @param string $year year part
+ * @param string $param1 free to use part
+ * @param string $param2 free to use part
+ * @param string $param3 free to use part
+ * @return bool|stdClass
+ */
 function appcrue_find_course($course, $group, $year, $param1 = '', $param2 = '', $param3 = '') {
     /** @var \moodle_database $DB */
     global $DB;
     $coursepattern = get_config('local_appcrue', 'course_pattern');
     // Compose the pattern.
-    $coursepattern = str_replace(['{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
-                                [$course, $group, $year, $param1, $param2, $param3],
-                                $coursepattern);
+    $coursepattern = str_replace(
+        ['{course}', '{group}', '{year}', '{param1}', '{param2}', '{param3}'],
+        [$course, $group, $year, $param1, $param2, $param3],
+        $coursepattern
+    );
     // Pattern is scaped to avoid SQL injection risks.
     $courserecord = $DB->get_record_select(
-                        'course',
-                        "idnumber LIKE :coursepattern",
-                            ['coursepattern' => $coursepattern]);
+        'course',
+        "idnumber LIKE :coursepattern",
+        ['coursepattern' => $coursepattern]
+    );
     return $courserecord;
 }
 /**
@@ -339,7 +352,7 @@ function appcrue_find_sender($course) {
         if (count($teachers) > 0) {
             $teacher = array_shift($teachers);
         }
-    } 
+    }
     if (!$teacher) {
         global $USER;
         $teacher = $USER;
@@ -353,7 +366,7 @@ function appcrue_find_sender($course) {
  */
 function appcrue_get_username($userid) {
     global $DB;
-    $user = $DB->get_record('user', array('id' => $userid), '*');
+    $user = $DB->get_record('user', ['id' => $userid], '*');
     if ($user) {
         return fullname($user);
     } else {
@@ -374,96 +387,96 @@ function appcrue_get_event_type($event) {
     return 'HORARIO';
 }
 
- /**
-     * Send a message from one user to another user.
-     * Based on post_message in message/lib.php to allow set sender and courseid.
-     * @param stdClass $course The course object.
-     * @param stdClass $userfrom The user sending the message.
-     * @param stdClass $userto The user receiving the message.
-     * @param string $message The message content.
-     * @param int $format The format of the message (FORMAT_HTML or FORMAT_MARKDOWN).
-     * @return array An array containing the result log message.
-     */
-    function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
-        global $PAGE, $USER, $DB;
+/**
+ * Send a message from one user to another user.
+ * Based on post_message in message/lib.php to allow set sender and courseid.
+ * @param stdClass $course The course object.
+ * @param stdClass $userfrom The user sending the message.
+ * @param stdClass $userto The user receiving the message.
+ * @param string $message The message content.
+ * @param int $format The format of the message (FORMAT_HTML or FORMAT_MARKDOWN).
+ * @return array An array containing the result log message.
+ */
+function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
+    global $PAGE, $USER, $DB;
 
-        $eventdata = new \core\message\message();
-        $eventdata->courseid = $course->id;
-        $eventdata->component = 'moodle';
-        $eventdata->name = 'instantmessage';
-        $eventdata->userfrom = $userfrom;
-        $eventdata->userto = $userto;
+    $eventdata = new \core\message\message();
+    $eventdata->courseid = $course->id;
+    $eventdata->component = 'moodle';
+    $eventdata->name = 'instantmessage';
+    $eventdata->userfrom = $userfrom;
+    $eventdata->userto = $userto;
 
-        $eventdata->subject = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
+    $eventdata->subject = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
 
-        if ($format == FORMAT_HTML) {
-            $eventdata->fullmessagehtml = $message;
-            $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
-        } else {
-            $eventdata->fullmessage = $message;
-            $eventdata->fullmessagehtml = '';
-        }
-
-        $eventdata->fullmessageformat = $format;
-        $eventdata->smallmessage = $message;
-        $eventdata->timecreated = time();
-        $eventdata->notification = 0;
-
-        $userpicture = new user_picture($userfrom);
-        $userpicture->size = 1;
-        $userpicture->includetoken = $userto->id;
-        $eventdata->customdata = [
-            'notificationiconurl' => $userpicture->get_url($PAGE)->out(false),
-            'actionbuttons' => [
-                'send' => get_string_manager()->get_string('send', 'message', null, $eventdata->userto->lang),
-            ],
-            'placeholders' => [
-                'send' => get_string_manager()->get_string('writeamessage', 'message', null, $eventdata->userto->lang),
-            ],
-        ];
-
-        $success = message_send($eventdata);
-
-        $resultmsg = [];
-        if (isset($message['clientmsgid'])) {
-            $resultmsg['clientmsgid'] = $message['clientmsgid'];
-        }
-        $messageids = [];
-        if ($success) {
-            $resultmsg['msgid'] = $success;
-            $resultmsg['timecreated'] = time();
-            $resultmsg['candeletemessagesforallusers'] = 0;
-            $messageids[] = $success;
-        } else {
-            $resultmsg['msgid'] = -1;
-            if (!isset($errormessage)) {
-                $errormessage = get_string('messageundeliveredbynotificationsettings', 'error');
-            }
-            $resultmsg['errormessage'] = $errormessage;
-        }
-
-        $resultmessages = [$resultmsg];
-
-        if (!empty($messageids)) {
-            $messagerecords = $DB->get_records_list(
-                'messages',
-                'id',
-                $messageids,
-                '',
-                'id, conversationid, smallmessage, fullmessageformat, fullmessagetrust'
-            );
-            $resultmessages = array_map(function ($resultmessage) use ($messagerecords, $userfrom, $userto) {
-                $id = $resultmessage['msgid'];
-                $resultmessage['conversationid'] = isset($messagerecords[$id]) ? $messagerecords[$id]->conversationid : null;
-                $resultmessage['useridfrom'] = $userfrom->id;
-                $resultmessage['text'] = message_format_message_text((object) [
-                    'smallmessage' => $messagerecords[$id]->smallmessage,
-                    'fullmessageformat' => external_validate_format($messagerecords[$id]->fullmessageformat),
-                    'fullmessagetrust' => $messagerecords[$id]->fullmessagetrust,
-                ]);
-                return $resultmessage;
-            }, $resultmessages);
-        }
-
-        return $resultmessages;
+    if ($format == FORMAT_HTML) {
+        $eventdata->fullmessagehtml = $message;
+        $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
+    } else {
+        $eventdata->fullmessage = $message;
+        $eventdata->fullmessagehtml = '';
     }
+
+    $eventdata->fullmessageformat = $format;
+    $eventdata->smallmessage = $message;
+    $eventdata->timecreated = time();
+    $eventdata->notification = 0;
+
+    $userpicture = new user_picture($userfrom);
+    $userpicture->size = 1;
+    $userpicture->includetoken = $userto->id;
+    $eventdata->customdata = [
+        'notificationiconurl' => $userpicture->get_url($PAGE)->out(false),
+        'actionbuttons' => [
+            'send' => get_string_manager()->get_string('send', 'message', null, $eventdata->userto->lang),
+        ],
+        'placeholders' => [
+            'send' => get_string_manager()->get_string('writeamessage', 'message', null, $eventdata->userto->lang),
+        ],
+    ];
+
+    $success = message_send($eventdata);
+
+    $resultmsg = [];
+    if (isset($message['clientmsgid'])) {
+        $resultmsg['clientmsgid'] = $message['clientmsgid'];
+    }
+    $messageids = [];
+    if ($success) {
+        $resultmsg['msgid'] = $success;
+        $resultmsg['timecreated'] = time();
+        $resultmsg['candeletemessagesforallusers'] = 0;
+        $messageids[] = $success;
+    } else {
+        $resultmsg['msgid'] = -1;
+        if (!isset($errormessage)) {
+            $errormessage = get_string('messageundeliveredbynotificationsettings', 'error');
+        }
+        $resultmsg['errormessage'] = $errormessage;
+    }
+
+    $resultmessages = [$resultmsg];
+
+    if (!empty($messageids)) {
+        $messagerecords = $DB->get_records_list(
+            'messages',
+            'id',
+            $messageids,
+            '',
+            'id, conversationid, smallmessage, fullmessageformat, fullmessagetrust'
+        );
+        $resultmessages = array_map(function ($resultmessage) use ($messagerecords, $userfrom, $userto) {
+            $id = $resultmessage['msgid'];
+            $resultmessage['conversationid'] = isset($messagerecords[$id]) ? $messagerecords[$id]->conversationid : null;
+            $resultmessage['useridfrom'] = $userfrom->id;
+            $resultmessage['text'] = message_format_message_text((object) [
+                'smallmessage' => $messagerecords[$id]->smallmessage,
+                'fullmessageformat' => external_validate_format($messagerecords[$id]->fullmessageformat),
+                'fullmessagetrust' => $messagerecords[$id]->fullmessagetrust,
+            ]);
+            return $resultmessage;
+        }, $resultmessages);
+    }
+
+    return $resultmessages;
+}

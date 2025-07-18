@@ -36,7 +36,7 @@ if (!get_config('local_appcrue', 'enable_avatar')) {
 try {
     $mode = optional_param('mode', 'base64', PARAM_ALPHA);
     // Check token and get user record.
-    list($user, $resultstatus) = appcrue_get_user_from_request();
+    [$user, $resultstatus] = appcrue_get_user_from_request();
     if ($resultstatus->code == 401) {
         header('HTTP/1.0 401 unauthorized');
     } else if ($resultstatus->code == 404) {
@@ -44,7 +44,7 @@ try {
     } else {
         $userpicture = new user_picture($user);
         $userpicture->size = 1;
-        // TODO: Get the file directly without making a HTTP request.
+        // TODO: Get the file directly without making an HTTP request.
         $url = $userpicture->get_url($PAGE);
         $curl = new curl();
         $result = $curl->get($url);

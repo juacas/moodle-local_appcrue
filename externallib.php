@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * External message API
  *
@@ -49,19 +48,29 @@ class local_appcrue_external extends external_api {
      */
     public static function send_instant_messages_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'messages' => new external_multiple_structure(
                     new external_single_structure(
-                        array(
+                        [
                             'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
                             'text' => new external_value(PARAM_RAW, 'The text of the message'),
                             'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
-                            'clientmsgid' => new external_value(PARAM_ALPHANUMEXT, 'your own client id for the message. If this id is provided, the fail message id will be returned to you', VALUE_OPTIONAL),
-                        )
+                            'clientmsgid' => new external_value(
+                                PARAM_ALPHANUMEXT,
+                                'your own client id for the message. If this id is provided, the fail message id will be returned to you',
+                                VALUE_DEFAULT,
+                                null
+                            ),
+                        ]
                     )
                 ),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null),
-            )
+                'field' => new external_value(
+                    PARAM_RAW,
+                    'User field for finding the user. Defaults to setting local_appcrue/match_user_by',
+                    VALUE_DEFAULT,
+                    null
+                ),
+            ]
         );
     }
 
@@ -73,19 +82,19 @@ class local_appcrue_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function send_instant_messages($messages = array(), $field = null) {
+    public static function send_instant_messages($messages = [], $field = null) {
         global $CFG, $USER;
         // Check if messaging is enabled.
         if (empty($CFG->messaging)) {
             throw new moodle_exception('disabled', 'message');
         }
-        self::validate_parameters(self::send_instant_messages_parameters(), array('messages' => $messages, 'field' => $field));
-        
+        self::validate_parameters(self::send_instant_messages_parameters(), ['messages' => $messages, 'field' => $field]);
+
         if (!$field) {
             $field = get_config('local_appcrue', 'match_user_by');
         }
         // Remap all tousers of the messages.
-        foreach($messages as $key=>$message) {
+        foreach ($messages as $key => $message) {
             if (isset($message['touserkey'])) {
                 $receiver = $message['touserkey'];
                 $touser = appcrue_find_user($field, $receiver);
@@ -113,15 +122,14 @@ class local_appcrue_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-    public static function send_instant_message_parameters()
-    {
+    public static function send_instant_message_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
                 'text' => new external_value(PARAM_RAW, 'The text of the message'),
                 'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null)
-            )
+                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null),
+            ]
         );
     }
 
@@ -135,17 +143,16 @@ class local_appcrue_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = null)
-    {
-        self::validate_parameters(self::send_instant_message_parameters(), array('touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field));
-        $message = array();
+    public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = null) {
+        self::validate_parameters(self::send_instant_message_parameters(), ['touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field]);
+        $message = [];
         $message['touserkey'] = $touserkey;
         $message['text'] = $text;
         $message['textformat'] = $textformat;
         if (!$field) {
             $field = get_config('local_appcrue', 'match_user_by');
         }
-        return local_appcrue_external::send_instant_messages([$message], $field);
+        return self::send_instant_messages([$message], $field);
     }
 
     /**
@@ -154,8 +161,7 @@ class local_appcrue_external extends external_api {
      * @return external_description
      * @since Moodle 2.2
      */
-    public static function send_instant_message_returns()
-    {
+    public static function send_instant_message_returns() {
         return core_message_external::send_instant_messages_returns();
     }
 
@@ -165,10 +171,9 @@ class local_appcrue_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-    public static function notify_grade_parameters()
-    {
+    public static function notify_grade_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'idusuario' => new external_value(PARAM_RAW, 'Oficial university id for a student.', VALUE_DEFAULT, null),
                 'nip' => new external_value(PARAM_RAW, 'Source system\'s user identification.', VALUE_DEFAULT, null),
                 'useremail' => new external_value(PARAM_EMAIL, 'Email of the student.', VALUE_DEFAULT, null),
@@ -181,7 +186,7 @@ class local_appcrue_external extends external_api {
                 'gradealpha' => new external_value(PARAM_RAW, 'Grade text equivalence.', VALUE_DEFAULT, null),
                 'revdate' => new external_value(PARAM_INT, 'Date of the revision in epoch format.', VALUE_DEFAULT, null),
                 'comment' => new external_value(PARAM_RAW, 'Description of the grade publication'),
-            )
+            ]
         );
     }
 
@@ -199,12 +204,12 @@ class local_appcrue_external extends external_api {
      * @param  string $call Grading call.
      * @param  string $gradealpha Grade text equivalence.
      * @param  int $revdate Date of the revision in epoch format.
-     * @param  string $comment Description of the grade publication. 
+     * @param  string $comment Description of the grade publication.
      * @return array
      * @since Moodle 2.2
      */
     public static function notify_grade($idusuario, $nip, $useremail, $subject, $group, $subjectname, $course, $grade, $call, $gradealpha, $revdate, $comment) {
-        $params = array(
+        $params = [
             'idusuario' => $idusuario,
             'nip' => $nip,
             'useremail' => $useremail,
@@ -216,8 +221,8 @@ class local_appcrue_external extends external_api {
             'call' => $call,
             'gradealpha' => $gradealpha,
             'revdate' => $revdate,
-            'comment' => $comment
-        );
+            'comment' => $comment,
+        ];
         $result = self::validate_parameters(self::notify_grade_parameters(), $params);
         // TODO: Find a way to integrate final grades into gradebook.
         // Compose message.
@@ -233,13 +238,13 @@ class local_appcrue_external extends external_api {
             return [
                 (object)['msgid' => -1,
                     'errormessage' => 'No se encontró el usuario.',
-                ]
+                ],
             ];
         }
         // Find out course from $subject code.
         $course = appcrue_find_course($subject, $group, $course);
         if ($course == false) {
-           debugging("Course not found for subject $subject, group $group, course $course", DEBUG_NONE);
+            debugging("Course not found for subject $subject, group $group, course $course", DEBUG_NONE);
         }
         // Force_current_language($userto->lang) post_message supposed to do this.
         // If revdate is null format proper string.
@@ -254,18 +259,17 @@ class local_appcrue_external extends external_api {
 
         // Find a teacher as sender.
         $userfrom = appcrue_find_sender($course);
-        
+
         return appcrue_post_message($course, $userfrom, $userto, $message, $format);
     }
-   
+
     /**
      * Returns description of method result value
      *
      * @return external_description
      * @since Moodle 2.2
      */
-    public static function notify_grade_returns()
-    {
+    public static function notify_grade_returns() {
         // TODO: Customize return type.
         return self::send_instant_message_returns();
     }

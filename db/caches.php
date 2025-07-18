@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,11 +13,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Cache definitions.
+ *
+ * @package    local_appcrue
+ * @copyright  2025 Juan Pblo de Castro
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 defined('MOODLE_INTERNAL') || die();
 
 $definitions = [
     'sitemaps' => [
-        'mode' => cache_store::MODE_APPLICATION,
+        'mode' => core_cache\store::MODE_APPLICATION,
         'simplekeys' => true,
         'invalidationevents' => [
             '\core\event\course_category_created',
@@ -25,7 +33,7 @@ $definitions = [
             '\core\event\course_category_updated',
             '\core\event\course_created',
             '\core\event\course_deleted',
-            '\core\event\course_updated'
-        ]
-    ]
+            '\core\event\course_updated',
+        ],
+    ],
 ];
