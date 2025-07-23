@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * AppCrue services plugin version information.
+ * AppCrue services plugin
  *
  * @package local_appcrue
  * @category admin
@@ -23,6 +23,18 @@
  * @copyright 2021 onwards juanpablo.decastro@uva.es
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+/**
+ * Error constants for the services.
+ */
+class appcrue_error_constants {
+    const INVALID_API_KEY = 1;
+    const MISSING_WS_TOKEN = 2;
+    const USER_NOT_ENROLLED = 3;
+    const JSON_DECODE_ERROR = 4;
+    const INVALID_PARAMETER = 5;
+}
+
 /**
  * Get the user from the request.
  * Supports the following parameters in the request:
@@ -30,11 +42,11 @@
  * - api_key: the API key to be used to identify the user.
  * - user: the user id string to be used to identify the user using the configured profile field.
  * Returns an array with the user and a diagnostic object.
- * @return list(stdClass|null, stdClass) the user and the diagnostic object.
+ * @return [stdClass|null, stdClass, ?string] the user and the diagnostic object.
  */
 function appcrue_get_user_from_request(): array {
     $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
-    $iduser = optional_param('user', '', PARAM_RAW);
+    $iduser = optional_param('studentemail', '', PARAM_RAW);
     $token = appcrue_get_token_param();
     $user = null;
     // Reporting object.
@@ -43,33 +55,34 @@ function appcrue_get_user_from_request(): array {
     $diag->message = 'OK';
     // If there is an apikey, we use it to get the user.
     if ($apikey != '') {
-        /**
-         * API Key mode.
-         */
+        // API Key mode.
         if ($apikey == get_config('local_appcrue', 'api_key')) {
-            $fieldname = get_config('local_appcrue', 'match_user_by');
+            $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
             $user = appcrue_find_user($fieldname, $iduser);
+            if ($user) {
+                $diag->code = 200;
+                $diag->message = 'User found';
+            } else {
+                $diag->code = 404;
+                $diag->message = 'User not found';
+            }
         } else {
-            $diag->code = 404;
-            $diag->message = 'User not found';
+            $diag->code = 401;
+            $diag->message = 'Invalid API Key';
             $user = null;
         }
     } else {
-        /**
-         * User token mode.
-         */
-        [$user, $diag] = appcrue_get_user($token);
+        // User token mode.
+        [$user, $diag] = appcrue_get_user_by_token($token);
     }
-    return [$user, $diag];
+    return [$user, $diag, $token];
 }
 /**
  * Checks the token and gets the user associated with it.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
  * @return list(stdClass|null, stdClass) the user and the result of the check.
  */
-function appcrue_get_user($token) {
-    /** @var moodle_database $DB */
-    global $DB;
+function appcrue_get_user_by_token($token) {
     $matchvalue = false;
     $user = false;
     $returnstatus = new stdClass();
@@ -78,12 +91,11 @@ function appcrue_get_user($token) {
     $returnstatus->result = $tokenstatus->result;
     // Get user.
     if ($returnstatus->code == 401) {
-        // debugging("Token not valid: " . $returnstatus->result, DEBUG_NORMAL);
         $user = null;
         $returnstatus->status = 'error';
     } else {
         $returnstatus->status = 'validated';
-        // TODO: Refactor this block as function.
+        // JPC: Refactor this block as function.
         $fieldname = get_config('local_appcrue', 'match_user_by');
         $user = appcrue_find_user($fieldname, $matchvalue);
         if (!$user) {
@@ -192,7 +204,7 @@ function appcrue_find_user($fieldname, $matchvalue) {
             $user = $DB->get_record('user', ['id' => $userid->userid], '*');
         } else {
             $user = false;
-            debugging("No match with: {$sql}", DEBUG_NORMAL);
+            debugging("No match with: fieldid:{$fieldid} and data {$matchvalue}", DEBUG_NORMAL);
         }
     }
     return $user;
@@ -261,7 +273,8 @@ function appcrue_get_json_node($text, $jsonpath) {
 /**
  * Returns the target URL according to optional_param parameters in @see autologin.php.
  * - urltogo: if present, uses it as relative path.
- * - course, group, year: (not necessarily Moodle's identifiers) search a course with idnumber matching the course pattern i.e.'%-{$course}-{$group}-%'.
+ * - course, group, year: (not necessarily Moodle's identifiers) search a course with idnumber
+ *   matching the course pattern i.e.'%-{$course}-{$group}-%'.
  *   Resolves any metalinking and returns the parent course.
  * - pattern: Selector from the patterns library.
  * - param1, param2: general purpose ALPHANUM arguments for generating redirections.
@@ -360,14 +373,46 @@ function appcrue_find_sender($course) {
     return $teacher;
 }
 /**
+ * Config user context:
+ * - Impersonates the user.
+ * - Set the preferred language of the user.
+ * @param stdClass $user
+ * @param bool $impersonate if true a session is created for the user.
+ * @param string $lang the language to be forced.
+ * @return stdClass previous user.
+ */
+function appcrue_config_user($user, $impersonate = true, string $lang = ''): stdClass {
+    global $USER;
+    // Save the current user.
+    $previoususer = $USER;
+    // Set the user context.
+    if ($impersonate) {
+        \core\session\manager::set_user($user);
+    }
+    if ($lang != '') {
+        // Set the language for the user.
+        force_current_language($lang);
+    } else if ($USER->id != $user->id) {
+        // Set the language for the user.
+        force_current_language($user->lang);
+    }
+    return $previoususer;
+}
+/**
  * Get the username of the user.
  * @param int $userid
  * @return string
  */
 function appcrue_get_username($userid) {
     global $DB;
+    // Cache the known users to save queries.
+    static $knownusers;
+    if (isset($knownusers[$userid])) {
+        return $knownusers[$userid];
+    }
     $user = $DB->get_record('user', ['id' => $userid], '*');
     if ($user) {
+        $knownusers[$userid] = fullname($user);
         return fullname($user);
     } else {
         return get_string('unknownuser');
@@ -479,4 +524,54 @@ function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
     }
 
     return $resultmessages;
+}
+
+
+
+/**
+ * Format error JSON response.
+ *
+ * @param Exception $exception The exception to handle
+ * @param bool $debug Whether to include debug information
+ */
+function appcrue_send_error_response($exception, $debug = false) {
+    $errorcode = $exception->getCode();
+
+    // Determine appropriate HTTP status code
+    $httpcode = 500;
+    $errorcodesmap = [
+        appcrue_error_constants::INVALID_API_KEY => 401,
+        appcrue_error_constants::MISSING_WS_TOKEN => 503,
+        appcrue_error_constants::USER_NOT_ENROLLED => 403,
+        appcrue_error_constants::JSON_DECODE_ERROR => 400,
+        appcrue_error_constants::INVALID_PARAMETER => 400,
+    ];
+
+    if (isset($errorcodesmap[$errorcode])) {
+        $httpcode = $errorcodesmap[$errorcode];
+    }
+
+    http_response_code($httpcode);
+
+    // Prepare response structure.
+    $response = [
+        'success' => false,
+        'error' => [
+            'code' => $errorcode,
+            'message' => $exception->getMessage(),
+            'timestamp' => time(),
+        ],
+    ];
+
+    // Add debug info if enabled.
+    if ($debug) {
+        $response['error']['debug'] = [
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTraceAsString(),
+        ];
+    }
+
+    echo json_encode($response);
+    exit;
 }

@@ -46,7 +46,7 @@ try {
 }
 
 // Check token and get user record.
-[$user, $diag] = $token ? appcrue_get_user($token) : [null, null];
+[$user, $diag] = $token ? appcrue_get_user_by_token($token) : [null, null];
 if ($user == null && $fallback == 'error') {
     header('HTTP/1.0 401 Unauthorized ' . $diag->result);
     die();
