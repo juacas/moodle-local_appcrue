@@ -409,7 +409,7 @@ function appcrue_config_user($user, $impersonate = true, string $lang = ''): std
  * @param int $userid
  * @return string
  */
-function appcrue_get_username($userid) {
+function appcrue_get_userfullname($userid) {
     global $DB;
     // Cache the known users to save queries.
     static $knownusers;

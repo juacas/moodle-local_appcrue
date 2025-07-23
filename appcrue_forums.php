@@ -48,9 +48,8 @@ try {
     // Process the request parameters.
     $timestart = optional_param('timestart', 0, PARAM_INT);
     $timeend = optional_param('timeend', 0, PARAM_INT);
-    $events = local_appcrue\calendar_service::get_events($user, $timestart, $timeend);
-    $outputmessage = local_appcrue\calendar_service::format_events_for_lmsappcrue($events, $user);
-    echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    $posts = local_appcrue\forums_service::get_items($user, $timestart, $timeend);
+    echo json_encode($posts, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
     appcrue_send_error_response($e, debugging());
 }

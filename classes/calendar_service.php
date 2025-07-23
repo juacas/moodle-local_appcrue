@@ -182,7 +182,7 @@ class calendar_service {
                 $eventitem->description = $description;
 
                 // TODO: get author.
-                $eventitem->nameAuthor = appcrue_get_username($event->userid);
+                $eventitem->nameAuthor = appcrue_get_userfullname($event->userid);
                 $eventitem->type = appcrue_get_event_type($event);
                 $eventitem->startsAt = $event->timestart;
                 $eventitem->imgDetail = get_config('local_appcrue', 'calendar_event_imgdetail');
@@ -221,7 +221,7 @@ class calendar_service {
             // Asegura que el evento tenga URL.
             $eventurl = self::get_event_url($event, $token, $cminfo);
             // Obtener el autor si existe.
-            $nameauthor = appcrue_get_username($event->userid);
+            $nameauthor = appcrue_get_userfullname($event->userid);
             // Format the description text. It applies filters and formats.
             $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $calendarevt->context]);
             // Then convert it to plain text, since it's the only format allowed for the event description property.
