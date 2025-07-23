@@ -28,7 +28,7 @@ require_once('locallib.php');
 
 
 if (!get_config('local_appcrue', 'enable_usercalendar')) {
-    @header('HTTP/1.1 405 Method Not Allowed');
+    @header('HTTP/1.1 404 Not Found');
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }

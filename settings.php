@@ -202,34 +202,34 @@ if ($hassiteconfig) {
     );
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/enable_usercalendar',
-        get_string('enable_calendar', 'local_appcrue'),
-        get_string('enable_calendar_help', 'local_appcrue'),
+        get_string('calendar:enable_calendar', 'local_appcrue'),
+        get_string('calendar:enable_calendar_help', 'local_appcrue'),
         true
     ));
     // Enable LMS AppCRUE calendar endpoint.
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/lmsappcrue_enable_calendar',
-        get_string('lmsappcrue:enable_calendar', 'local_appcrue'),
-        get_string('lmsappcrue:enable_calendar_help', 'local_appcrue'),
+        get_string('lmsappcrue:calendar:enable_calendar', 'local_appcrue'),
+        get_string('lmsappcrue:calendar:enable_calendar_help', 'local_appcrue'),
         true
     ));
 
     $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/share_site_events',
-        get_string('share_site_events', 'local_appcrue'),
-        get_string('share_site_events_help', 'local_appcrue'),
+        'local_appcrue/calendar_share_site_events',
+        get_string('calendar:share_site_events', 'local_appcrue'),
+        get_string('calendar:share_site_events_help', 'local_appcrue'),
         true
     ));
     $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/share_course_events',
-        get_string('share_course_events', 'local_appcrue'),
-        get_string('share_course_events_help', 'local_appcrue'),
+        'local_appcrue/calendar_share_course_events',
+        get_string('calendar:share_course_events', 'local_appcrue'),
+        get_string('calendar:share_course_events_help', 'local_appcrue'),
         true
     ));
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/share_personal_events',
-        get_string('share_user_events', 'local_appcrue'),
-        get_string('share_user_events_help', 'local_appcrue'),
+        get_string('calendar:share_user_events', 'local_appcrue'),
+        get_string('calendar:share_user_events_help', 'local_appcrue'),
         true
     ));
     global $DB;
@@ -242,16 +242,16 @@ if ($hassiteconfig) {
         return strcmp($a, $b);
     });
     $settings->add(new admin_setting_configmultiselect(
-        'local_appcrue/examen_event_type',
-        get_string('examen_event_type', 'local_appcrue'),
-        get_string('examen_event_type_help', 'local_appcrue'),
+        'local_appcrue/calendar_examen_event_type',
+        get_string('calendar:examen_event_type', 'local_appcrue'),
+        get_string('calendar:examen_event_type_help', 'local_appcrue'),
         ['quiz', 'quest', 'assign', 'workshop'],
         $modulelist
     ));
     $settings->add(new admin_setting_configtext(
-        'local_appcrue/event_imgdetail',
-        get_string('event_imgdetail', 'local_appcrue'),
-        get_string('event_imgdetail_help', 'local_appcrue'),
+        'local_appcrue/calendar_event_imgdetail',
+        get_string('calendar:event_imgdetail', 'local_appcrue'),
+        get_string('calendar:event_imgdetail_help', 'local_appcrue'),
         '',
         PARAM_URL
     ));

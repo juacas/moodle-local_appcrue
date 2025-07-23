@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// phpcs:disable moodle.Files.RequireLogin.Missing
-
 /**
  * Proxy service for calendar events with enhanced error handling.
  *
  * @package   local_appcrue
- * @author    Juan Pablo de Castro
- * @copyright 2025 juanpablo.decastro@uva.es
+ * @author    Alberto Otero Mato
+ * @copyright 2025 alberto.otero@altia.es
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
+
 require_once('../../config.php');
 require_once('locallib.php');
-
 
 if (!get_config('local_appcrue', 'lmsappcrue_enable_calendar')) {
     @header('HTTP/1.1 404 Not Found');

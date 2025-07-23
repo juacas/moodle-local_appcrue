@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/calendar/lib.php');
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class calendar_service {   
+class calendar_service {
     /**
      * Get events from Moodle API according to the group, site and user restrictions of the user.
      * @param \stdClass $user the user object
@@ -44,15 +44,25 @@ class calendar_service {
      * @return array the list of events
      * @throws \Exception if the time range is invalid
      */
-    public static function get_events(\stdClass $user, int $timestart, int $timeend, int $limitnum = 0): array {
+    public static function get_events(stdClass $user, int $timestart, int $timeend, int $limitnum = 0): array {
         global $DB;
-
         // Validate time range if both are provided.
         if ($timestart > 0 && $timeend > 0 && $timestart > $timeend) {
             throw new \Exception("Invalid time range Start: {$timestart} > End: {$timeend}", 404);
         }
+        // Limit time spans.
+        if ($timestart == 0 && $timeend == 0) {
+            $timestart = time() - 30 * DAYSECS;
+            $timeend = $timestart + 60 * DAYSECS;
+        }
+        if ($timestart <= 0 && $timeend > 0) {
+            $timestart = $timeend - 60 * DAYSECS;
+        } else if ($timestart > 0 && $timeend <= 0) {
+            $timeend = $timestart + 60 * DAYSECS;
+        }
+
         // Get groups and courses for the user, according to the plugin config.
-        if (get_config('local_appcrue', 'share_course_events')) {
+        if (get_config('local_appcrue', 'calendar_share_course_events')) {
             // All courses.
             $courses = enrol_get_users_courses($user->id, true, 'id, visible, shortname');
             // All groups.
@@ -67,8 +77,8 @@ class calendar_service {
             $groups = [];
         }
         // Site events.
-        if (get_config('local_appcrue', 'share_site_events')) {
-            $courses[SITEID] = new \stdClass();
+        if (get_config('local_appcrue', 'calendar_share_site_events')) {
+            $courses[SITEID] = new stdClass();
             $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
         }
         // Personal events.
@@ -162,7 +172,7 @@ class calendar_service {
                 $eventitem = new stdClass();
                 $eventitem->id = $event->id;
                 $eventitem->title = format_text($event->name, FORMAT_HTML);
-                
+
                 $calendarevt = new calendar_event($event); // To use moodle calendar event services.
                 // Format the description text.
                 $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $calendarevt->context]);
@@ -175,7 +185,7 @@ class calendar_service {
                 $eventitem->nameAuthor = appcrue_get_username($event->userid);
                 $eventitem->type = appcrue_get_event_type($event);
                 $eventitem->startsAt = $event->timestart;
-                $eventitem->imgDetail = get_config('local_appcrue', 'event_imgdetail');
+                $eventitem->imgDetail = get_config('local_appcrue', 'calendar_event_imgdetail');
                 $eventitem->endsAt = $event->timestart + $event->timeduration;
                 $eventitem->url = self::get_event_url($event, $token, $cminfo);
                 $dayitem->events[] = $eventitem;
@@ -194,7 +204,7 @@ class calendar_service {
     public static function format_events_for_lmsappcrue(array $eventlist, stdClass $user, ?string $token = ''): array {
         global $DB;
         $events = [];
-        
+
         foreach ($eventlist as $event) {
             // Get the course module info the fastest way.
             $fastmodinfo = $event->courseid ? get_fast_modinfo($event->courseid, $user->id) : null;
@@ -206,16 +216,16 @@ class calendar_service {
             if ($cminfo && !$cminfo->uservisible) {
                 continue;
             }
-            
+
             $course = $cminfo ? $cminfo->get_course() : null;
-            // Asegura que el evento tenga URL
+            // Asegura que el evento tenga URL.
             $eventurl = self::get_event_url($event, $token, $cminfo);
-            // Obtener el autor si existe
+            // Obtener el autor si existe.
             $nameauthor = appcrue_get_username($event->userid);
             // Format the description text. It applies filters and formats.
             $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $calendarevt->context]);
-             // Then convert it to plain text, since it's the only format allowed for the event description property.
-                // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
+            // Then convert it to plain text, since it's the only format allowed for the event description property.
+            // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
             $description = html_to_text($description, 0);
             $name = format_text($event->name, FORMAT_HTML);
 
@@ -237,5 +247,4 @@ class calendar_service {
             'events' => $events,
         ];
     }
-
 }

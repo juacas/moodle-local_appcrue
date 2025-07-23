@@ -24,8 +24,10 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:disable moodle.Commenting.MissingDocblock.Constant
+
 /**
- * Error constants for the services.
+ * Error codes for the AppCrue services.
  */
 class appcrue_error_constants {
     const INVALID_API_KEY = 1;
@@ -34,7 +36,7 @@ class appcrue_error_constants {
     const JSON_DECODE_ERROR = 4;
     const INVALID_PARAMETER = 5;
 }
-
+// phpcs:enable moodle.Commenting.MissingDocblock.Constant
 /**
  * Get the user from the request.
  * Supports the following parameters in the request:
@@ -53,8 +55,11 @@ function appcrue_get_user_from_request(): array {
     $diag = new stdClass();
     $diag->code = 200;
     $diag->message = 'OK';
-    // If there is an apikey, we use it to get the user.
-    if ($apikey != '') {
+    if ($token) {
+         // User token mode.
+        [$user, $diag] = appcrue_get_user_by_token($token);
+    } else if ($apikey != '') {
+        // If there is an apikey, we use it to get the user.
         // API Key mode.
         if ($apikey == get_config('local_appcrue', 'api_key')) {
             $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
@@ -65,15 +70,16 @@ function appcrue_get_user_from_request(): array {
             } else {
                 $diag->code = 404;
                 $diag->message = 'User not found';
+                throw new Exception('User not found', appcrue_error_constants::USER_NOT_ENROLLED);
             }
         } else {
             $diag->code = 401;
             $diag->message = 'Invalid API Key';
             $user = null;
+            throw new Exception('Invalid API Key', appcrue_error_constants::INVALID_API_KEY);
         }
     } else {
-        // User token mode.
-        [$user, $diag] = appcrue_get_user_by_token($token);
+        throw new Exception('Missing token or API key', appcrue_error_constants::MISSING_WS_TOKEN);
     }
     return [$user, $diag, $token];
 }
@@ -182,7 +188,7 @@ function appcrue_find_user($fieldname, $matchvalue) {
     if (array_search($fieldname, $fields) !== false) {
         $user = $DB->get_record('user', [$fieldname => $matchvalue], '*');
         if ($user == false) {
-            debugging("No match with: {$fieldname} => {$matchvalue}", DEBUG_NORMAL);
+            throw new Exception("No match with: {$fieldname} => {$matchvalue}", appcrue_error_constants::USER_NOT_ENROLLED);
         }
     } else {
         global $CFG;
@@ -425,7 +431,7 @@ function appcrue_get_username($userid) {
  * @return "EXAMEN"|"HORARIO"
  */
 function appcrue_get_event_type($event) {
-    $examentype = get_config('local_appcrue', 'examen_event_type');
+    $examentype = get_config('local_appcrue', 'calendar_examen_event_type');
     if ($event->modulename != null && strpos($examentype, $event->modulename) !== false) {
         return 'EXAMEN';
     }
@@ -537,11 +543,12 @@ function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
 function appcrue_send_error_response($exception, $debug = false) {
     $errorcode = $exception->getCode();
 
-    // Determine appropriate HTTP status code
+    // Determine appropriate HTTP status code.
     $httpcode = 500;
     $errorcodesmap = [
         appcrue_error_constants::INVALID_API_KEY => 401,
-        appcrue_error_constants::MISSING_WS_TOKEN => 503,
+        // Bad request for missing token.
+        appcrue_error_constants::MISSING_WS_TOKEN => 400,
         appcrue_error_constants::USER_NOT_ENROLLED => 403,
         appcrue_error_constants::JSON_DECODE_ERROR => 400,
         appcrue_error_constants::INVALID_PARAMETER => 400,
