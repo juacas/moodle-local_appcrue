@@ -32,7 +32,7 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
  */
 class forums_service extends appcrue_service {
     /**
-     * timestart for filtering forums.
+     * timestart for filtering forums. No post older than this.
      * @var int|null
      */
     public ?int $timestart = null;
@@ -46,19 +46,7 @@ class forums_service extends appcrue_service {
         $timewindow = time() - get_config('local_appcrue', 'lmsappcrue_forums_timewindow') ?? 0;
         $this->timestart = max($timestart, $timewindow);
     }
-    /**
-     * get_items
-     * This method is used to get the forums data for the user.
-     */
-    public function get_items() {
-        global $USER;
-        // Get the user from the request.
-        [$user, $diag] = appcrue_get_user_from_request();
-        // Config user context. Calendar API does not need impersonation.
-        appcrue_config_user($user, true);
-        // Get forums data for the user.
-        return self::get_forums($user, $this->timestart);
-    }
+
     /**
      * Build a tree of posts from a flat array.
      * @param array $postmap Array of posts indexed by post ID.
@@ -80,19 +68,15 @@ class forums_service extends appcrue_service {
     }
     /**
      * Get forums data for the user.
-     * @param mixed $user
-     * @param int|null $timeafter Optional timestamp to filter forums. Only get forums modified after this time.
      * @return array JSON structure with forum data.
      */
-    public static function get_forums($user, $timeafter = null) {
-        global $DB, $CFG, $USER;
+    public function get_items() {
         // TODO: Show only tracking forums??
         $tracking = false;
-        // JPC: ¿¿¿¿ LIMITAR POR TIEMPO??
 
         $forumoutput = [];
         // Get forums accessible to the user.
-        $forums = self::get_readable_forums($user->id);
+        $forums = self::get_readable_forums($this->user->id);
 
         foreach ($forums as $forum) {
             $courseid = $forum->course;
@@ -141,8 +125,8 @@ class forums_service extends appcrue_service {
 
             foreach ($discussions as $discussion) {
                 // Skip discussions last modified before the specified time.
-                if ($timeafter && $discussion->modified < $timeafter) {
-                    continue; 
+                if ($this->timestart && $discussion->modified < $this->timestart) {
+                    continue;
                 }
                 $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
                 $postmap = [];
@@ -161,6 +145,15 @@ class forums_service extends appcrue_service {
                         $post->messageformat,
                         ['context' => $context, 'para' => false, 'trusted' => true]
                     );
+                    // Get a permalink to post.
+                    $permalink = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->id]);
+                    $permalink->set_anchor('p' . $post->id);
+                    // Deep link.
+                    $permalink = appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
+                    // Get Reply to link.
+                    $replylink = new \moodle_url('/mod/forum/post.php', ['reply' => $post->id]);
+                    $replylink = appcrue_create_deep_url($replylink->out(), $this->token, $this->tokenmark);
+
                     $postmap[$post->id] = [
                         'id'           => (string)$post->id,
                         'parent_id'    => (string)$post->parent,
@@ -168,6 +161,8 @@ class forums_service extends appcrue_service {
                         'createdAt'    => $post->created,
                         'message'      => $message,
                         'replies'      => [],
+                        'permalink'    => $permalink,
+                        'replylink'    => $replylink,
                     ];
                 }
 
@@ -258,7 +253,7 @@ class forums_service extends appcrue_service {
                     groups_get_activity_groupmode($cm, $course) == SEPARATEGROUPS
                     && !has_capability('moodle/site:accessallgroups', $context)
                 ) {
-                    $groups =$modinfo->get_groups($cm->groupingid);
+                    $groups = $modinfo->get_groups($cm->groupingid);
                     if (empty($groups)) {
                         // No groups, so no access.
                         continue;

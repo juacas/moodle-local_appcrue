@@ -41,15 +41,26 @@ class appcrue_service {
     /**
      * @var \stdClass User object
      */
-    public $user;
+    public $user = null;
     /**
      * @var string Diagnostic information
      */
-    public $diag;
+    public $diag = null;
+    /**
+     * Token passed in request. Optional. If present it may be used in autologin deep linking.
+     */
+    public $token = null;
+    /**
+     * Token mark to use in the deep URLs: "token" tells the app to use the token in the URL as a query parameter.
+     * "bearer" tells the app to use the token in the Authorization header. null means no deep URLs are used.
+     */
+    public $tokenmark = null;
     /**
      * constructor.
      */
     public function __construct() {
+        $this->tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
+
         $this->identify_from_request();
         // Configure the service based on the request parameters.
         $this->configure_from_request();
@@ -73,11 +84,12 @@ class appcrue_service {
      */
     public function identify_from_request() {
         // Read parameters from the request and configure the service.
-        [$user, $diag] = appcrue_get_user_from_request();
+        [$user, $diag, $token] = appcrue_get_user_from_request();
         // Config user context. Calendar API does not need impersonation.
         appcrue_config_user($user, true);
         $this->user = $user;
         $this->diag = $diag;
+        $this->token = $token;
     }
     /**
      * Get the endpoint implementation from the slash parameters.

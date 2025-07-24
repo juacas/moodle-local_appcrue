@@ -24,16 +24,15 @@ use grade_grade;
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class grades_service {
+class grades_service extends appcrue_service {
     /**
      * Get grades for a user.
-     * @param \stdClass $user User object.
      * @return array Array of grade items for the user.
      */
-    public static function get_items($user) {
+    public function get_items() {
         global $CFG;
         require_once($CFG->libdir . '/gradelib.php');
-        $courses = enrol_get_users_courses($user->id, true);
+        $courses = enrol_get_users_courses($this->user->id, true);
         $grades = [];
 
         foreach ($courses as $course) {
@@ -52,7 +51,7 @@ class grades_service {
                 // Get final grade for this user.
                 $grade = new grade_grade([
                     'itemid' => $item->id,
-                    'userid' => $user->id,
+                    'userid' => $this->user->id,
                 ]);
 
                 if (is_null($grade->finalgrade)) {
@@ -74,7 +73,7 @@ class grades_service {
                     'gradeisoverridden' => $grade->overridden ? 'TRUE' : 'FALSE',
                     'gradedategraded' => $grade->timemodified ?? 0,
                     'feedback' => html_entity_decode(strip_tags($grade->feedback ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'userid' => $user->id,
+                    'userid' => $this->user->id,
                 ];
             }
         }

@@ -41,15 +41,9 @@ header('X-Content-Type-Options: nosniff');
 // Disable context in formatting.
 $PAGE->set_context(null);
 try {
-    [$user, $diag] = appcrue_get_user_from_request();
-    // Config user context. Calendar API does not need impersonation.
-    appcrue_config_user($user, true);
-    // Process the request parameters.
-    $timestart = optional_param('timestart', 0, PARAM_INT);
-    $timeend = optional_param('timeend', 0, PARAM_INT);
-    $events = local_appcrue\calendar_service::get_events($user, $timestart, $timeend);
-    $outputmessage = local_appcrue\calendar_service::format_events_for_lmsappcrue($events, $user);
-    echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    $fileservice = new local_appcrue\files_service();
+    $files = $fileservice->get_items();
+    echo json_encode($files, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
     appcrue_send_error_response($e, debugging());
 }

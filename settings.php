@@ -259,7 +259,7 @@ if ($hassiteconfig) {
         get_string('calendar:share_user_events_help', 'local_appcrue'),
         true
     ));
-    
+
     $settings->add(new admin_setting_configtext(
         'local_appcrue/calendar_event_imgdetail',
         get_string('calendar:event_imgdetail', 'local_appcrue'),
@@ -267,7 +267,14 @@ if ($hassiteconfig) {
         '',
         PARAM_URL
     ));
-
+    // LMS AppCRUE grades endpoint.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_grades_header',
+            get_string('lmsappcrue:grades', 'local_appcrue'),
+            get_string('lmsappcrue:grades_help', 'local_appcrue')
+        )
+    );
 
     // Enable LMS AppCRUE grades endpoint.
     $settings->add(new admin_setting_configcheckbox(
@@ -298,5 +305,47 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:forums_timewindow_help', 'local_appcrue'),
         WEEKSECS * 4 * 6, // Default 6 months.
         WEEKSECS * 4
+    ));
+
+    // LMS AppCRUE files section.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_files_header',
+            get_string('lmsappcrue:files', 'local_appcrue'),
+            get_string('lmsappcrue:files_help', 'local_appcrue')
+        )
+    );
+    // Enable LMS AppCRUE files endpoint.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_files',
+        get_string('lmsappcrue:enable_files', 'local_appcrue'),
+        get_string('lmsappcrue:enable_files_help', 'local_appcrue'),
+        true
+    ));
+
+    // Enable LMS AppCRUE notifications endpoint.
+    $settings->add(new admin_setting_heading(
+        'local_appcrue_lms_notifications_header',
+        get_string('lmsappcrue:notifications', 'local_appcrue'),
+        get_string('lmsappcrue:notifications_help', 'local_appcrue')
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_notifications',
+        get_string('lmsappcrue:enable_notifications', 'local_appcrue'),
+        get_string('lmsappcrue:enable_notifications_help', 'local_appcrue'),
+        true
+    ));
+
+    // LMS AppCRUE assignments endpoint.
+    $settings->add(new admin_setting_heading(
+        'local_appcrue_lms_assignments_header',
+        get_string('lmsappcrue:assignments', 'local_appcrue'),
+        get_string('lmsappcrue:assignments_help', 'local_appcrue')
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_assignments',
+        get_string('lmsappcrue:enable_assignments', 'local_appcrue'),
+        get_string('lmsappcrue:enable_assignments_help', 'local_appcrue'),
+        true
     ));
 }

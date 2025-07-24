@@ -222,17 +222,18 @@ function appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fa
     }
     $params['urltogo'] = $url;
     $params['fallback'] = $fallback;
-
+    $tokenmarksufix = '';
     if ($token) {
         $params['token'] = $token;
-    } else if ($tokenmark == 'bearer') {
-        $params['<bearer>'] = '';
+    }
+    if ($tokenmark == 'bearer') {
+        $tokenmarksufix = '&<bearer>';
     } else if ($tokenmark == 'token') {
-        $params['token'] = '<token>';
+        $tokenmarksufix = '&token=<token>';
     }
 
     $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
-    return $deepurl->out(false);
+    return $deepurl->out(false) . $tokenmarksufix;
 }
 /**
  * Traverse all nodes and re-encode the urls.

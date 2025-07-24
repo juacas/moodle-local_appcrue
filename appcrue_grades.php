@@ -41,13 +41,8 @@ header('X-Content-Type-Options: nosniff');
 // Disable context in formatting.
 $PAGE->set_context(null);
 try {
-    [$user, $diag] = appcrue_get_user_from_request();
-    // Config user context. Calendar API does not need impersonation.
-    appcrue_config_user($user, true);
-    // Process the request parameters.
-    $timestart = optional_param('timestart', 0, PARAM_INT);
-    $timeend = optional_param('timeend', 0, PARAM_INT);
-    $grades = local_appcrue\grades_service::get_items($user);
+    $gradeservice = new local_appcrue\grades_service();
+    $grades = $gradeservice->get_items();
     echo json_encode($grades, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
     appcrue_send_error_response($e, debugging());
