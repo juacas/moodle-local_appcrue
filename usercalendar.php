@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
+
 /**
  * Send the calendar events to the app.
  *
@@ -25,7 +27,6 @@
 require_once('../../config.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 require_once('locallib.php');
-
 
 if (!get_config('local_appcrue', 'enable_usercalendar')) {
     @header('HTTP/1.1 404 Not Found');
@@ -72,7 +73,7 @@ try {
         $limitnum = 0;
 
         $events = local_appcrue\calendar_service::get_events($user, $timestart, $timeend, $limitnum);
-        $outputmessage = local_appcrue\calendar_service::format_events_for_usercalendar($events, $user,$category, $token);
+        $outputmessage = local_appcrue\calendar_service::format_events_for_usercalendar($events, $user, $category, $token);
     }
 
     if (debugging()) {

@@ -28,8 +28,7 @@
 require_once('../../config.php');
 require_once('locallib.php');
 
-
-if (!get_config('local_appcrue', 'lmsappcrue_enable_forums')) {
+if (!get_config('local_appcrue', 'lmsappcrue_enable_grades')) {
     @header('HTTP/1.1 404 Not Found');
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
@@ -45,10 +44,11 @@ try {
     [$user, $diag] = appcrue_get_user_from_request();
     // Config user context. Calendar API does not need impersonation.
     appcrue_config_user($user, true);
-
-    $service = new local_appcrue\forums_service();
-    $posts = $service->get_items();
-    echo json_encode($posts, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    // Process the request parameters.
+    $timestart = optional_param('timestart', 0, PARAM_INT);
+    $timeend = optional_param('timeend', 0, PARAM_INT);
+    $grades = local_appcrue\grades_service::get_items($user);
+    echo json_encode($grades, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
-    appcrue_send_error_response($e, debug: debugging());
+    appcrue_send_error_response($e, debugging());
 }

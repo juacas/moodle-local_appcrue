@@ -14,19 +14,58 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace local_appcrue;
-use context_module;
-defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/mod/forum/lib.php');
 /**
- * Class forums_service
+ * Forums service implementation for the AppCrue.
  *
  * @package    local_appcrue
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class forums_service {
-    private static function build_post_tree(array &$postmap, string $parentid = "0"): array {
+
+namespace local_appcrue;
+use context_module;
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot . '/mod/forum/lib.php');
+
+/**
+ * Class forums_service
+ */
+class forums_service extends appcrue_service {
+    /**
+     * timestart for filtering forums.
+     * @var int|null
+     */
+    public ?int $timestart = null;
+    /**
+     * configure_from_request
+     * This method is used to get the forums data for the user.
+     */
+    public function configure_from_request() {
+         // Process the request parameters.
+        $timestart = optional_param('timestart', null, PARAM_INT);
+        $timewindow = time() - get_config('local_appcrue', 'lmsappcrue_forums_timewindow') ?? 0;
+        $this->timestart = max($timestart, $timewindow);
+    }
+    /**
+     * get_items
+     * This method is used to get the forums data for the user.
+     */
+    public function get_items() {
+        global $USER;
+        // Get the user from the request.
+        [$user, $diag] = appcrue_get_user_from_request();
+        // Config user context. Calendar API does not need impersonation.
+        appcrue_config_user($user, true);
+        // Get forums data for the user.
+        return self::get_forums($user, $this->timestart);
+    }
+    /**
+     * Build a tree of posts from a flat array.
+     * @param array $postmap Array of posts indexed by post ID.
+     * @param string $parentid Parent ID to start building the tree from.
+     * @return array Tree structure of posts.
+     */
+    public static function build_post_tree(array &$postmap, string $parentid = "0"): array {
         $tree = [];
 
         foreach ($postmap as $postid => $post) {
@@ -42,9 +81,10 @@ class forums_service {
     /**
      * Get forums data for the user.
      * @param mixed $user
-     * @return array{course_title: string, description: string, forum_name: string, html_url: string, lock_at: string, posted_at: int, replies: bool|string, todo_date: string, topic_title: string, unread_count: int|string[]}
+     * @param int|null $timeafter Optional timestamp to filter forums. Only get forums modified after this time.
+     * @return array JSON structure with forum data.
      */
-    public static function get_items($user) {
+    public static function get_forums($user, $timeafter = null) {
         global $DB, $CFG, $USER;
         // TODO: Show only tracking forums??
         $tracking = false;
@@ -65,6 +105,7 @@ class forums_service {
                 continue;
             }
             $context = context_module::instance($cm->id);
+            $course = $cm->get_course();
             // Process files.
             $forumdescription = file_rewrite_pluginfile_urls(
                 $forum->intro,
@@ -99,11 +140,16 @@ class forums_service {
             );
 
             foreach ($discussions as $discussion) {
+                // Skip discussions last modified before the specified time.
+                if ($timeafter && $discussion->modified < $timeafter) {
+                    continue; 
+                }
                 $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
                 $postmap = [];
                 foreach ($posts as $post) {
+                    $message = $post->message;
                     $message = file_rewrite_pluginfile_urls(
-                        $post->message,
+                        $message,
                         'pluginfile.php',
                         $context->id,
                         'mod_forum',
@@ -151,10 +197,9 @@ class forums_service {
     /**
      * An array of forum objects that the user is allowed to read/search through.
      * NOTE: This is copypasted from Moodle core function forum_get_readable_forums()
-     * because it has a bug that breaks in Moodle 4.5, at least.
-     * @global object
-     * @global object
-     * @global object
+     * because:
+     * - it had a bug that breaks in Moodle 4.5, at least.
+     * - need to filter by group mode and hidden discussions.
      * @param int $userid
      * @param int $courseid if 0, we look for forums throughout the whole site.
      * @return array of forum objects, or false if no matches
@@ -189,14 +234,14 @@ class forums_service {
             $modinfo = get_fast_modinfo($course);
 
             if (empty($modinfo->instances['forum'])) {
-                // hmm, no forums?
+                // Hmm, no forums?
                 continue;
             }
 
             $courseforums = $DB->get_records('forum', ['course' => $course->id]);
 
             foreach ($modinfo->instances['forum'] as $forumid => $cm) {
-                if (!$cm->uservisible or !isset($courseforums[$forumid])) {
+                if (!$cm->uservisible || !isset($courseforums[$forumid])) {
                     continue;
                 }
                 $context = context_module::instance($cm->id);
@@ -208,13 +253,22 @@ class forums_service {
                     continue;
                 }
 
-                /// group access
-                if (groups_get_activity_groupmode($cm, $course) == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
-                    $forum->onlygroups = $modinfo->get_groups($cm->groupingid);
+                // Group access.
+                if (
+                    groups_get_activity_groupmode($cm, $course) == SEPARATEGROUPS
+                    && !has_capability('moodle/site:accessallgroups', $context)
+                ) {
+                    $groups =$modinfo->get_groups($cm->groupingid);
+                    if (empty($groups)) {
+                        // No groups, so no access.
+                        continue;
+                    }
+                    // If the forum is in a grouping, we need to get the groups in that grouping
+                    $forum->onlygroups = $groups;
                     $forum->onlygroups[] = -1;
                 }
 
-                /// hidden timed discussions
+                // Hidden timed discussions.
                 $forum->viewhiddentimedposts = true;
                 if (!empty($CFG->forum_enabletimedposts)) {
                     if (!has_capability('mod/forum:viewhiddentimedposts', $context)) {
@@ -222,7 +276,7 @@ class forums_service {
                     }
                 }
 
-                /// qanda access
+                // Question and answers access.
                 if (
                     $forum->type == 'qanda'
                     && !has_capability('mod/forum:viewqandawithoutposting', $context)

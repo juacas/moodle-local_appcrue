@@ -97,6 +97,18 @@ if ($hassiteconfig) {
         get_string('enable_autologin_help', 'local_appcrue'),
         true
     ));
+    // Select "bearer" or "token" mark in deep urls.
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/deep_url_token_mark',
+        get_string('autologin:deep_url_token_mark', 'local_appcrue'),
+        get_string('autologin:deep_url_token_mark_help', 'local_appcrue'),
+        'bearer',
+        [
+            '' => get_string('autologin:deep_url_token_mark_disabled', 'local_appcrue'),
+            'bearer' => get_string('autologin:deep_url_token_mark_bearer', 'local_appcrue'),
+            'token' => get_string('autologin:deep_url_token_mark_token', 'local_appcrue'),
+        ]
+    ));
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/allow_continue',
         get_string('allow_continue', 'local_appcrue'),
@@ -191,7 +203,22 @@ if ($hassiteconfig) {
         'email',
         $userfields
     ));
-
+    global $DB;
+    $modules = $DB->get_records("modules");
+    $modulelist = [];
+    foreach ($modules as $mod) {
+        $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
+    }
+    uasort($modulelist, function ($a, $b) {
+        return strcmp($a, $b);
+    });
+    $settings->add(new admin_setting_configmultiselect(
+        'local_appcrue/calendar_examen_event_type',
+        get_string('calendar:examen_event_type', 'local_appcrue'),
+        get_string('calendar:examen_event_type_help', 'local_appcrue'),
+        ['quiz', 'quest', 'assign', 'workshop'],
+        $modulelist
+    ));
     // Calendar.
     $settings->add(
         new admin_setting_heading(
@@ -232,22 +259,7 @@ if ($hassiteconfig) {
         get_string('calendar:share_user_events_help', 'local_appcrue'),
         true
     ));
-    global $DB;
-    $modules = $DB->get_records("modules");
-    $modulelist = [];
-    foreach ($modules as $mod) {
-        $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
-    }
-    uasort($modulelist, function ($a, $b) {
-        return strcmp($a, $b);
-    });
-    $settings->add(new admin_setting_configmultiselect(
-        'local_appcrue/calendar_examen_event_type',
-        get_string('calendar:examen_event_type', 'local_appcrue'),
-        get_string('calendar:examen_event_type_help', 'local_appcrue'),
-        ['quiz', 'quest', 'assign', 'workshop'],
-        $modulelist
-    ));
+    
     $settings->add(new admin_setting_configtext(
         'local_appcrue/calendar_event_imgdetail',
         get_string('calendar:event_imgdetail', 'local_appcrue'),
@@ -264,11 +276,27 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
         true
     ));
+    // LMS AppCRUE forums section.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_forums_header',
+            get_string('lmsappcrue:forums', 'local_appcrue'),
+            get_string('lmsappcrue:forums_help', 'local_appcrue')
+        )
+    );
     // Enable LMS AppCRUE forums endpoint.
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/lmsappcrue_enable_forums',
         get_string('lmsappcrue:enable_forums', 'local_appcrue'),
         get_string('lmsappcrue:enable_forums_help', 'local_appcrue'),
         true
+    ));
+    // Time window for forums.
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_forums_timewindow',
+        get_string('lmsappcrue:forums_timewindow', 'local_appcrue'),
+        get_string('lmsappcrue:forums_timewindow_help', 'local_appcrue'),
+        WEEKSECS * 4 * 6, // Default 6 months.
+        WEEKSECS * 4
     ));
 }

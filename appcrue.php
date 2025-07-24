@@ -17,19 +17,19 @@
 // phpcs:disable moodle.Files.RequireLogin.Missing
 
 /**
- * Proxy service for calendar events with enhanced error handling.
+ * TODO describe file appcrue
  *
- * @package   local_appcrue
- * @author    Juan Pablo de Castro
- * @copyright 2025 juanpablo.decastro@uva.es
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_appcrue
+ * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use local_appcrue\appcrue_service;
 
 require_once('../../config.php');
 require_once('locallib.php');
 
-
-if (!get_config('local_appcrue', 'lmsappcrue_enable_forums')) {
+if (!get_config('local_appcrue', 'lmsappcrue_enable_grades')) {
     @header('HTTP/1.1 404 Not Found');
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
@@ -41,14 +41,11 @@ header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 // Disable context in formatting.
 $PAGE->set_context(null);
-try {
-    [$user, $diag] = appcrue_get_user_from_request();
-    // Config user context. Calendar API does not need impersonation.
-    appcrue_config_user($user, true);
 
-    $service = new local_appcrue\forums_service();
-    $posts = $service->get_items();
-    echo json_encode($posts, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+try {
+    $endpoint = appcrue_service::instance_from_request();
+    $items = $endpoint->get_items();
+    echo json_encode($items, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
-    appcrue_send_error_response($e, debug: debugging());
+    appcrue_send_error_response($e, debugging());
 }

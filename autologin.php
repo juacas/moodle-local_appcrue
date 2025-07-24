@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
+
 /**
  * Auto-login end-point, a user can be fully authenticated in the site providing a valid token.
  *

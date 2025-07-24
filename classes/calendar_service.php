@@ -34,7 +34,36 @@ require_once($CFG->dirroot . '/calendar/lib.php');
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class calendar_service {
+class calendar_service extends appcrue_service {
+    /**
+     * @var int Start time for the events.
+     */
+    public $timestart;
+    /**
+     * @var int End time for the events.
+     */
+    public $timeend;
+    /**
+     * configure_from_request
+     * Read parameters from the request and configure the service.
+     * This method is called in the constructor.
+     */
+    public function configure_from_request() {
+        parent::configure_from_request();
+        $this->timestart = optional_param('timestart', 0, PARAM_INT);
+        $this->timeend = optional_param('timeend', 0, PARAM_INT);
+    }
+    /**
+     * Get items for the service.
+     * @return mixed JSON structure of calendar events for the user.
+     */
+    public function get_items() {
+        // Get events from Moodle API according to the group, site and user restrictions of the user.
+        $events = self::get_events($this->user, $this->timestart, $this->timeend);
+        // Format events for the user calendar service.
+        $formattedevents = self::format_events_for_lmsappcrue($events, $this->user);
+        return $formattedevents;
+    }
     /**
      * Get events from Moodle API according to the group, site and user restrictions of the user.
      * @param \stdClass $user the user object
@@ -110,10 +139,11 @@ class calendar_service {
     /**
      * Get the URL of the event.
      * @param \stdClass $event the event object
+     * @param string $tokenmark the token mark to use in the URL, default is 'bearer'
      * @param string $token the token to use in the urls
      * @return string the URL of the event
      */
-    public static function get_event_url(stdClass $event, ?string $token, ?cm_info $cminfo): string {
+    public static function get_event_url(stdClass $event, ?string $token, ?cm_info $cminfo, ?string $tokenmark = 'bearer'): string {
         if ($cminfo) {
             $eventurl = $cminfo->get_url()->out(true);
         } else {
@@ -129,9 +159,7 @@ class calendar_service {
             $eventurl = $url->out(false);
         }
         // Convert the url to a redirected url with token.
-        if ($token) {
-            $eventurl = appcrue_create_deep_url($eventurl, $token);
-        }
+        $eventurl = appcrue_create_deep_url($eventurl, $token, $tokenmark);
         return $eventurl;
     }
     /**
@@ -141,9 +169,15 @@ class calendar_service {
      * @param string $token the token to use in the urls
      * @return stdClass the formatted events
      */
-    public static function format_events_for_usercalendar(array $events, $user, string $category = '', ?string $token = ''): stdClass {
+    public static function format_events_for_usercalendar(
+        array $events,
+        $user,
+        string $category = '',
+        ?string $token = ''
+    ): stdClass {
         $outputmessage = new stdClass();
         $outputmessage->calendar = [];
+        $tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
         // Order events by day.
         $eventsbyday = [];
         foreach ($events as $event) {
@@ -187,7 +221,7 @@ class calendar_service {
                 $eventitem->startsAt = $event->timestart;
                 $eventitem->imgDetail = get_config('local_appcrue', 'calendar_event_imgdetail');
                 $eventitem->endsAt = $event->timestart + $event->timeduration;
-                $eventitem->url = self::get_event_url($event, $token, $cminfo);
+                $eventitem->url = self::get_event_url($event, $token, $cminfo, $tokenmark);
                 $dayitem->events[] = $eventitem;
             }
             $outputmessage->calendar[] = $dayitem;
@@ -204,7 +238,7 @@ class calendar_service {
     public static function format_events_for_lmsappcrue(array $eventlist, stdClass $user, ?string $token = ''): array {
         global $DB;
         $events = [];
-
+        $tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
         foreach ($eventlist as $event) {
             // Get the course module info the fastest way.
             $fastmodinfo = $event->courseid ? get_fast_modinfo($event->courseid, $user->id) : null;
@@ -219,7 +253,7 @@ class calendar_service {
 
             $course = $cminfo ? $cminfo->get_course() : null;
             // Asegura que el evento tenga URL.
-            $eventurl = self::get_event_url($event, $token, $cminfo);
+            $eventurl = self::get_event_url($event, $token, $cminfo, $tokenmark);
             // Obtener el autor si existe.
             $nameauthor = appcrue_get_userfullname($event->userid);
             // Format the description text. It applies filters and formats.

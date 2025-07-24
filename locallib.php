@@ -24,19 +24,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// phpcs:disable moodle.Commenting.MissingDocblock.Constant
+use local_appcrue\appcrue_service;
 
-/**
- * Error codes for the AppCrue services.
- */
-class appcrue_error_constants {
-    const INVALID_API_KEY = 1;
-    const MISSING_WS_TOKEN = 2;
-    const USER_NOT_ENROLLED = 3;
-    const JSON_DECODE_ERROR = 4;
-    const INVALID_PARAMETER = 5;
-}
-// phpcs:enable moodle.Commenting.MissingDocblock.Constant
 /**
  * Get the user from the request.
  * Supports the following parameters in the request:
@@ -64,25 +53,26 @@ function appcrue_get_user_from_request(): array {
         if ($apikey == get_config('local_appcrue', 'api_key')) {
             $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
             $user = appcrue_find_user($fieldname, $iduser);
-            if ($user) {
-                $diag->code = 200;
-                $diag->message = 'User found';
-            } else {
-                $diag->code = 404;
-                $diag->message = 'User not found';
-                throw new Exception('User not found', appcrue_error_constants::USER_NOT_ENROLLED);
-            }
         } else {
             $diag->code = 401;
             $diag->message = 'Invalid API Key';
             $user = null;
-            throw new Exception('Invalid API Key', appcrue_error_constants::INVALID_API_KEY);
+            throw new Exception('Invalid API Key', appcrue_service::INVALID_API_KEY);
         }
     } else {
-        throw new Exception('Missing token or API key', appcrue_error_constants::MISSING_WS_TOKEN);
+        throw new Exception('Missing token or API key', appcrue_service::MISSING_WS_TOKEN);
+    }
+    if ($user) {
+        $diag->code = 200;
+        $diag->message = 'User found';
+    } else {
+        $diag->code = 404;
+        $diag->message = 'User not found';
+        throw new Exception('User not found', appcrue_service::USER_NOT_ENROLLED);
     }
     return [$user, $diag, $token];
 }
+
 /**
  * Checks the token and gets the user associated with it.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
@@ -188,7 +178,7 @@ function appcrue_find_user($fieldname, $matchvalue) {
     if (array_search($fieldname, $fields) !== false) {
         $user = $DB->get_record('user', [$fieldname => $matchvalue], '*');
         if ($user == false) {
-            throw new Exception("No match with: {$fieldname} => {$matchvalue}", appcrue_error_constants::USER_NOT_ENROLLED);
+            throw new Exception("No match with: {$fieldname} => {$matchvalue}", appcrue_service::USER_NOT_ENROLLED);
         }
     } else {
         global $CFG;
@@ -218,14 +208,18 @@ function appcrue_find_user($fieldname, $matchvalue) {
 /**
  * Envelops the url with an token-based url.
  * If token is not provided, the url is labelled depending on $tokenmark:
+ * If tokenmark and token are not provided, the url is returned as is.
  * @param string $url the url to be enveloped.
- * @param string $token the token to be used.
- * @param string $tokenmark the mark to be used in the url if $token is nos provided. Can be 'bearer' or 'token'.
+ * @param string|null $token the token to be used.
+ * @param string|null $tokenmark the mark to be used in the url if $token is nos provided. Can be 'bearer' or 'token'.
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
 function appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fallback = 'continue') {
     $params = [];
+    if (!$token && !$tokenmark) {
+        return $url; // No token, no mark, return the original URL.
+    }
     $params['urltogo'] = $url;
     $params['fallback'] = $fallback;
 
@@ -546,12 +540,12 @@ function appcrue_send_error_response($exception, $debug = false) {
     // Determine appropriate HTTP status code.
     $httpcode = 500;
     $errorcodesmap = [
-        appcrue_error_constants::INVALID_API_KEY => 401,
+        appcrue_service::INVALID_API_KEY => 401,
         // Bad request for missing token.
-        appcrue_error_constants::MISSING_WS_TOKEN => 400,
-        appcrue_error_constants::USER_NOT_ENROLLED => 403,
-        appcrue_error_constants::JSON_DECODE_ERROR => 400,
-        appcrue_error_constants::INVALID_PARAMETER => 400,
+        appcrue_service::MISSING_WS_TOKEN => 400,
+        appcrue_service::USER_NOT_ENROLLED => 403,
+        appcrue_service::JSON_DECODE_ERROR => 400,
+        appcrue_service::INVALID_PARAMETER => 400,
     ];
 
     if (isset($errorcodesmap[$errorcode])) {

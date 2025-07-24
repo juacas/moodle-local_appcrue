@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
+
 /**
  * Give the calendar events to the app.
  *
@@ -26,10 +28,7 @@ require_once('../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once('locallib.php');
 
-/**
- * Access to DB.
- * @var moodle_database $DB
- */
+/** @var moodle_database $DB */
 global $DB;
 
 if (!get_config('local_appcrue', 'enable_sitemap')) {
@@ -152,9 +151,9 @@ if ($sitemap == false) {
 }
 // TODO: substitute current token with bearer mark if caching at server is a problem.
 // Change simple URLs by DeepURLs.
-if ($token) {
-    $navegableroot = json_decode($sitemap);
-    appcrue_filter_urls($navegableroot, $token, 'bearer');
-    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-}
+$tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
+$navegableroot = json_decode($sitemap);
+appcrue_filter_urls($navegableroot, $token, $tokenmark);
+$sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
 echo $sitemap;
