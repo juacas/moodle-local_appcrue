@@ -54,6 +54,16 @@ class calendar_service extends appcrue_service {
         $this->timeend = optional_param('timeend', 0, PARAM_INT);
     }
     /**
+     * Get data response.
+     */
+    public function get_data_response() {
+        // Get the items and count.
+        $items = $this->get_items();
+        $count = count($items);
+        // Return the items and count.
+        return [ [ 'events' => $items ], $count];
+    }
+    /**
      * Get items for the service.
      * @return mixed JSON structure of calendar events for the user.
      */
@@ -275,9 +285,6 @@ class calendar_service extends appcrue_service {
                 'nameauthor'    => $nameauthor,
             ];
         }
-
-        return [
-            'events' => $events,
-        ];
+        return $events;
     }
 }

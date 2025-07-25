@@ -46,7 +46,15 @@ class forums_service extends appcrue_service {
         $timewindow = time() - get_config('local_appcrue', 'lmsappcrue_forums_timewindow') ?? 0;
         $this->timestart = max($timestart, $timewindow);
     }
-
+    /**
+     * Get data response.
+     */
+    public function get_data_response() {
+        // Get the items and count.
+        [$items, $count] = $this->get_items();
+        // Return the items and count.
+        return [ [ 'forums' => $items ], $count];
+    }
     /**
      * Build a tree of posts from a flat array.
      * @param array $postmap Array of posts indexed by post ID.
@@ -68,12 +76,12 @@ class forums_service extends appcrue_service {
     }
     /**
      * Get forums data for the user.
-     * @return array JSON structure with forum data.
+     * @return [array, int] JSON structure with forum data, count of posts.
      */
     public function get_items() {
         // TODO: Show only tracking forums??
         $tracking = false;
-
+        $numposts = 0;
         $forumoutput = [];
         // Get forums accessible to the user.
         $forums = self::get_readable_forums($this->user->id);
@@ -165,6 +173,7 @@ class forums_service extends appcrue_service {
                         'permalink'    => $permalink,
                         'replylink'    => $replylink,
                     ];
+                    $numposts++;
                 }
 
                 $rootposts = self::build_post_tree($postmap);
@@ -187,7 +196,7 @@ class forums_service extends appcrue_service {
             }
         }
 
-        return $forumoutput;
+        return [$forumoutput, $numposts];
     }
 
     /**

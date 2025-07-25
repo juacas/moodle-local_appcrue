@@ -44,8 +44,16 @@ $PAGE->set_context(null);
 
 try {
     $endpoint = appcrue_service::instance_from_request();
-    $items = $endpoint->get_items();
-    echo json_encode($items, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    [$data, $count] = $endpoint->get_data_response();
+    // Envelope the items in a response object.
+    $response = [
+        'success' => true,
+        'count' => $count,
+        'timestamp' => time(),
+        'data' => $data,
+    ];
+    // Send the response as JSON.
+    echo json_encode($response, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
-    appcrue_send_error_response($e, debugging());
+    appcrue_service::send_error_response($e, debugging());
 }

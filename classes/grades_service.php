@@ -26,6 +26,16 @@ use grade_grade;
  */
 class grades_service extends appcrue_service {
     /**
+     * Get data response.
+     */
+    public function get_data_response() {
+        // Get the items and count.
+        $items = $this->get_items();
+        $count = count($items);
+        // Return the items and count.
+        return [ [ 'grades' => $items ], $count];
+    }
+    /**
      * Get grades for a user.
      * @return array Array of grade items for the user.
      */
@@ -77,6 +87,6 @@ class grades_service extends appcrue_service {
                 ];
             }
         }
-        return ['grades' => $grades];
+        return $grades;
     }
 }
