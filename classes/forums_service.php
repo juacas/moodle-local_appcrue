@@ -104,6 +104,7 @@ class forums_service extends appcrue_service {
                 $forum->introformat,
                 ['context' => $context],
             );
+            $forumdescription = html_entity_decode(strip_tags($forumdescription ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
             // Get all the recent discussions we're allowed to see
             // get the most recent posts in a forum in descending order.
             // The call to default sort order here will use

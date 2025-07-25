@@ -61,7 +61,7 @@ class calendar_service extends appcrue_service {
         // Get events from Moodle API according to the group, site and user restrictions of the user.
         $events = self::get_events($this->user, $this->timestart, $this->timeend);
         // Format events for the user calendar service.
-        $formattedevents = self::format_events_for_lmsappcrue($events, $this->user);
+        $formattedevents = $this->format_events_for_lmsappcrue($events, $this->user);
         return $formattedevents;
     }
     /**
@@ -235,10 +235,9 @@ class calendar_service extends appcrue_service {
       * @param ?string $token the token to use in the urls
       * @return array{events: array|array{events: mixed}}
       */
-    public static function format_events_for_lmsappcrue(array $eventlist, stdClass $user, ?string $token = ''): array {
+    public function format_events_for_lmsappcrue(array $eventlist, stdClass $user, ?string $token = ''): array {
         global $DB;
         $events = [];
-        $tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
         foreach ($eventlist as $event) {
             // Get the course module info the fastest way.
             $fastmodinfo = $event->courseid ? get_fast_modinfo($event->courseid, $user->id) : null;
@@ -253,7 +252,7 @@ class calendar_service extends appcrue_service {
 
             $course = $cminfo ? $cminfo->get_course() : null;
             // Asegura que el evento tenga URL.
-            $eventurl = self::get_event_url($event, $token, $cminfo, $tokenmark);
+            $eventurl = self::get_event_url($event, $token, $cminfo, $this->tokenmark);
             // Obtener el autor si existe.
             $nameauthor = appcrue_get_userfullname($event->userid);
             // Format the description text. It applies filters and formats.

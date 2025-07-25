@@ -39,7 +39,7 @@ class appcrue_service {
 // phpcs:enable moodle.Commenting.MissingDocblock.Constant
 
     /**
-     * @var \stdClass User object
+     * @var \stdClass $user User object
      */
     public $user = null;
     /**
@@ -98,11 +98,8 @@ class appcrue_service {
      */
     public static function instance_from_request(): object {
         // Get endpoint from slash parameter using Moodle's URL handling.
-        $pathinfo = optional_param('pathinfo', '', PARAM_PATH);
-        // Alternative: Use $_SERVER['PATH_INFO'] if available.
-        if (empty($pathinfo) && isset($_SERVER['PATH_INFO'])) {
-            $pathinfo = clean_param($_SERVER['PATH_INFO'], PARAM_PATH);
-        }
+        // Get pathinfo.
+        $pathinfo = get_file_argument();
         // Parse slash-separated parameters.
         $pathparts = array_filter(explode('/', trim($pathinfo, '/')));
         $endpoint = isset($pathparts[0]) ? clean_param($pathparts[0], PARAM_ALPHA) : '';
