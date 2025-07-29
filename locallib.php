@@ -26,6 +26,13 @@
 
 use local_appcrue\appcrue_service;
 
+// Compatibility class aliases for Moodle 4.1-
+if ($CFG->version < 2023042400) {
+    if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) {
+    class_alias(cache_store::class, core_cache\store::class);
+    }
+}
+
 /**
  * Get the user from the request.
  * Supports the following parameters in the request:
