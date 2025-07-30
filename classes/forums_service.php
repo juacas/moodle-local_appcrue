@@ -21,11 +21,13 @@
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 namespace local_appcrue;
-use context_module;
+
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/mod/forum/lib.php');
+
+require_once("$CFG->dirroot/mod/forum/lib.php");
+
+use context_module;
 
 /**
  * Class forums_service
@@ -179,8 +181,7 @@ class forums_service extends appcrue_service {
                 $rootposts = self::build_post_tree($postmap);
 
                 $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->id]);
-
-                // JPC ¿¿¿¿¿ Se mezcla foro y discussion ????
+                // Forum and discussion data are combined here for output structure.
                 $forumoutput[] = [
                     'course_title' => (string) ($course->fullname ?? ''),
                     'forum_name'   => (string) ($forum->name ?? ''),
