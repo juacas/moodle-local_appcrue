@@ -451,7 +451,8 @@ function appcrue_get_event_type($event) {
  * @return array An array containing the result log message.
  */
 function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
-    global $PAGE, $USER, $DB;
+    global $PAGE, $DB, $CFG;
+    $messageingenabled = $CFG->messaging;
 
     $eventdata = new \core\message\message();
     $eventdata->courseid = $course->id;
@@ -462,15 +463,23 @@ function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
 
     $eventdata->subject = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
 
-    if ($format == FORMAT_HTML) {
-        $eventdata->fullmessagehtml = $message;
-        $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
+    // Keep fullmessage fields empty  to avoid emailtagline mentioning the messaging subsystem.
+    if ($messageingenabled) {
+        if ($format == FORMAT_HTML) {
+            $eventdata->fullmessagehtml = $message;
+            $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
+        } else {
+            $eventdata->fullmessage = $message;
+            $eventdata->fullmessagehtml = '';
+        }
+        $eventdata->fullmessageformat = $format;
     } else {
-        $eventdata->fullmessage = $message;
+        // If messaging is disabled, we do not send fullmessage.
+        $eventdata->fullmessage = '';
         $eventdata->fullmessagehtml = '';
+        $eventdata->fullmessageformat = FORMAT_PLAIN;
     }
 
-    $eventdata->fullmessageformat = $format;
     $eventdata->smallmessage = $message;
     $eventdata->timecreated = time();
     $eventdata->notification = 0;
@@ -487,8 +496,17 @@ function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
             'send' => get_string_manager()->get_string('writeamessage', 'message', null, $eventdata->userto->lang),
         ],
     ];
-
+    // Bypass general message sending.
+    // This is to force this message to be sent through the messaging subsystem and allow processors to send notifications.
+    // This is for systems with messaging disabled, i.e. site using only local_mail.
+    if (!$messageingenabled) {
+        $CFG->messaging = "1";
+    }
     $success = message_send($eventdata);
+    // Restore system configuration.
+    if (!$messageingenabled) {
+        $CFG->messaging = "0";
+    }
 
     $resultmsg = [];
     if (isset($message['clientmsgid'])) {

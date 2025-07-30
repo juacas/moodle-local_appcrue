@@ -29,13 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
-    $settings->add(
-        new admin_setting_heading(
-            'local_appcrue/idp_header',
-            get_string('idpheader', 'local_appcrue'),
-            get_string('idpheader_help', 'local_appcrue')
-        )
-    );
+    
     // API KEY for directa access without token.
     // Generate a deafult as an example.
     $defaultkey = bin2hex(random_bytes(16));
@@ -48,6 +42,13 @@ if ($hassiteconfig) {
         $defaultkey,
         PARAM_ALPHANUMEXT
     ));
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue/idp_header',
+            get_string('idpheader', 'local_appcrue'),
+            get_string('idpheader_help', 'local_appcrue')
+        )
+    );
     // IdP configuration.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',

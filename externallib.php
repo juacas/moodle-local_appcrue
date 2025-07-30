@@ -254,7 +254,7 @@ class local_appcrue_external extends external_api {
             $params['revdateformat'] = userdate($revdate, get_string('strftimedatetime', 'core_langconfig'));
             $params['revdateformat'] = get_string('notify_grade_revdate', 'local_appcrue', $params);
         }
-        $message = get_string('new_grade_message', 'local_appcrue', $params);
+        $message = get_string('notify_new_grade_message', 'local_appcrue', $params);
         $format = FORMAT_MARKDOWN;
 
         // Find a teacher as sender.

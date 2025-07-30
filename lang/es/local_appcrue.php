@@ -25,6 +25,8 @@
  */
 $string['allow_continue'] = 'Permitir fallback continue';
 $string['allow_continue_help'] = 'Permitir fallback=continue que si el token es invalido, no genera error, loguea como invitado y redirige a la URL de continuación.';
+$string['api_key'] = 'API key';
+$string['api_key_help'] = 'API key para acceder a los servicios de AppCrue. Se utiliza para identificar la aplicación que invoca el servicio sin necesidad de tokens de usuario.';
 $string['autologinheader'] = 'Servicio Auto-login';
 $string['autologinheader_help'] = 'Permite a los usuarios saltar a Moodle desde el AppCrue. También implementa redirecciones predefinidas.';
 $string['avatarheader'] = 'Servicio Avatar';
@@ -78,7 +80,7 @@ $string['lmsappcrue:enable_grades'] = 'Activar el API de calificaciones LMS';
 $string['lmsappcrue:enable_grades_help'] = 'El API de calificaciones LMS permite a las aplicaciones externas obtener calificaciones de Moodle para un usuario.';
 $string['match_user_by'] = 'Campo de coincidencia con el perfil del usuario';
 $string['match_user_by_help'] = 'El token de autorización devuelve una identificación que debe coincidir con un campo de usuario.';
-$string['notify:new_grade_message'] = '### Nota para {$a->subjectname}' . "\n" . 'Tu nota es {$a->gradealpha} ({$a->grade}).' . "\n" . '{$a->revdateformat}.' . "\n" . '{$a->comment}';
+$string['notify_new_grade_message'] = '### Nota para {$a->subjectname}' . "\n" . 'Tu nota es {$a->gradealpha} ({$a->grade}).' . "\n" . '{$a->revdateformat}.' . "\n" . '{$a->comment}';
 $string['notify_grade_anyteacher'] = 'Cualquier profesor';
 $string['notify_grade_header'] = 'Web service para notificar las notas a los estudiantes';
 $string['notify_grade_header_help'] = 'El servicio de notificación de notas envía un mensaje al usuario con la nota y el comentario del profesor.';
@@ -90,11 +92,6 @@ $string['notify_grade_webserviceuser'] = 'Usuario que invoca el servicio web';
 $string['pattern_lib'] = 'Lista de patrones para crear URL de redirección.';
 $string['pattern_lib_help'] = 'Lista de patrones de URL para generar urls de redirección. Cada línea define un patrón que puede ser solicitado para generar urls de redirección. Los parámetros permitidos son: curso, grupo, param1, param2';
 $string['pluginname'] = 'Servicios de conexión a AppCrue';
-
-
-
 $string['privacy:metadata'] = 'El plugin "AppCrue connection services" no almacena ningún dato personal.';
-
-
 $string['sitemapheader'] = 'Servicio de mapa del sitio';
 $string['sitemapheader_help'] = 'Genera una estructura JSON de categorías y cursos.';

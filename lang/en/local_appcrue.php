@@ -26,7 +26,7 @@
 $string['allow_continue'] = 'Allow continue as guest';
 $string['allow_continue_help'] = 'Allows fallback=continue that does not error when the token is not valid. It logon the user as guest and redirects to the URL anyway.';
 $string['api_key'] = 'API key';
-$string['api_key_help'] = 'API key to access the AppCrue services. It is used to identify the app that is invoking the service.';
+$string['api_key_help'] = 'API key to access the AppCrue services. It is used to identify the app that is invoking the service without user tokens.';
 $string['autologin:deep_url_token_mark'] = 'Autologin URL token mark';
 $string['autologin:deep_url_token_mark_bearer'] = 'bearer';
 $string['autologin:deep_url_token_mark_disabled'] = 'No autologin URLs';
@@ -110,7 +110,7 @@ $string['lmsappcrue:notifications_help'] = 'Expose the user notifications to App
 $string['match_user_by'] = 'Field for matching user\'s profile';
 $string['match_user_by_help'] = 'The authorization token returns a identifcation that need to be matched to a user field.';
 $string['missingtoken'] = 'Missing token';
-$string['notify:new_grade_message'] = '### New grade for {$a->subjectname}' . "\n" . 'Your grade is {$a->gradealpha} ({$a->grade}).' . "\n" . '{$a->revdateformat}.' . "\n" . '{$a->comment}';
+$string['notify_new_grade_message'] = '### New grade for {$a->subjectname}' . "\n" . 'Your grade is {$a->gradealpha} ({$a->grade}).' . "\n" . '{$a->revdateformat}.' . "\n" . '{$a->comment}';
 $string['notify_grade_anyteacher'] = 'Any teacher';
 $string['notify_grade_header'] = 'Web service for notifying grades';
 $string['notify_grade_header_help'] = 'This web service allows to notify grades to students.';
