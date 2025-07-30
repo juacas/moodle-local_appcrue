@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
+
 /**
  * Auto-login end-point, a user can be fully authenticated in the site providing a valid token.
  *
@@ -46,7 +48,7 @@ try {
 }
 
 // Check token and get user record.
-[$user, $diag] = $token ? appcrue_get_user($token) : [null, null];
+[$user, $diag] = $token ? appcrue_get_user_by_token($token) : [null, null];
 if ($user == null && $fallback == 'error') {
     header('HTTP/1.0 401 Unauthorized ' . $diag->result);
     die();

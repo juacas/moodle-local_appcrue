@@ -1,9 +1,11 @@
 # AppCRUE services #
 
-Implements services for extracting different types of information for an user identified by a token.
-The token need to be validated and authenticated by an external identity provider (IdP).
+Implements services for extracting different types of information for an user identified by a token or an APIkey.
+
+The token needs to be validated and authenticated by a configurable external identity provider (IdP).
 
 It was developed to enable Moodle to publish information for the AppCrue application.
+
 # Functionality #
 
 This local plugin provides the following services following the AppCRUE API:
@@ -111,10 +113,24 @@ This local plugin provides the following services following the AppCRUE API:
 }
 ```
 - avatar: identifies a user with an external token and returns his avatar picture in raw or base64 format.
-
-TODO Provide more detailed description here.
 - notifygrades web service: receives a webhook from an external academic management system and composes a localized message with the grade and other details and sends it via messaging API (may be routed to AppCRUE as well).
 - send_instant_message web service: send a private message for a user via messaging API.
+
+## New LMS integration API
+- appcrue_calendar: provides calendar events for a user. It takes the params apikey, studentemail, timestart, timeend.
+  - apikey: API key for authentication.
+  - studentemail: email of the student to get calendar events for.
+  - timestart: start timestamp for the calendar events.
+  - timeend: end timestamp for the calendar events.
+- appcrue_forums: provides forum posts for a user. It takes the params apikey, studentemail.
+  - apikey: API key for authentication.
+  - studentemail: email of the student to get forum posts for.
+- appcrue_files: provides files for a user. It takes the params apikey, studentemail.
+  - apikey: API key for authentication.
+  - studentemail: email of the student to get files for.
+- appcrue_grades: provides grades for a user. It takes the params apikey, studentemail.
+  - apikey: API key for authentication.
+  - studentemail: email of the student to get grades for.
 
 ## Web Service ##
 

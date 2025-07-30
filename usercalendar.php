@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
+
 /**
  * Send the calendar events to the app.
  *
@@ -21,62 +23,36 @@
  * @copyright  2021 University of Valladoild, Spain
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(__DIR__ . '/../../config.php');
+
+require_once('../../config.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 require_once('locallib.php');
 
 if (!get_config('local_appcrue', 'enable_usercalendar')) {
-    @header('HTTP/1.1 405 Method Not Allowed');
+    @header('HTTP/1.1 404 Not Found');
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }
+
+// No requiere login ya que usaremos un apikey interna.
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: text/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
 try {
     $fromdate = optional_param('fromDate', '', PARAM_ALPHANUM);
     $todate = optional_param('toDate', '', PARAM_ALPHANUM);
     $category = optional_param('category', '', PARAM_ALPHA);
     $lang = required_param('lang', PARAM_ALPHA);
-    [$user, $diag] = appcrue_get_user_from_request();
+    // Get the token to use in the urls.
+    [$user, $diag, $token] = appcrue_get_user_from_request();
+    appcrue_config_user($user, true, $lang);
 
     $outputmessage = new stdClass();
     $outputmessage->calendar = [];
     $PAGE->set_context(null);
-    header('Content-Type: text/json; charset=utf-8');
-    // Get the token to use in the urls.
-    $token = appcrue_get_token_param(false);
 
     if ($user != null) {
-        // Set lang.
-        if ($lang) {
-            force_current_language($lang);
-        }
-        // Get the calendar type we are using.
-        $calendartype = \core_calendar\type_factory::get_calendar_instance();
-        // Select events.
-        if (get_config('local_appcrue', 'share_course_events')) {
-            // All courses.
-            $courses = enrol_get_users_courses($user->id, true, 'id, visible, shortname');
-            // All groups.
-            $groups = [];
-            foreach ($courses as $course) {
-                $coursegroups = groups_get_all_groups($course->id, $user->id);
-                $groups = array_merge($groups, array_keys($coursegroups));
-            }
-        } else {
-            $courses = [];
-            $groups = [];
-        }
-        // Site events.
-        if (get_config('local_appcrue', 'share_site_events')) {
-            $courses[SITEID] = new stdClass();
-            $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
-        }
-
-        if (get_config('local_appcrue', 'share_personal_events')) {
-            $users = $user->id;
-        } else {
-            $users = [];
-        }
-        // Time range.
+        // Get timestamps.
         // By default events in the last 5 or next 60 days.
         if ($fromdate != '') {
             $date = DateTime::createFromFormat('Ymd', $fromdate);
@@ -94,82 +70,10 @@ try {
             // Next 60 days.
             $timeend = time() + 5184000;
         }
-
         $limitnum = 0;
-        $events = calendar_get_legacy_events(
-            $timestart,
-            $timeend,
-            $users,
-            $groups,
-            array_keys($courses),
-            false,
-            true,
-            true,
-            $limitnum
-        );
-        // Order events by day.
-        $eventsbyday = [];
-        foreach ($events as $event) {
-            $eventtype = appcrue_get_event_type($event);
-            if ($category != '' && $eventtype != $category) {
-                continue;
-            }
-            $day = date('Y-m-d', $event->timesort);
-            $eventsbyday[$day][] = $event;
-        }
-        // Format output.
 
-
-        foreach ($eventsbyday as $day => $eventlist) {
-            $dayitem = new stdClass();
-            $dayitem->date = $day;
-            $dayitem->events = [];
-            foreach ($eventlist as $event) {
-                $me = new calendar_event($event); // To use moodle calendar event services.
-                // Hide if module is hidden.
-                if (!empty($event->modulename)) {
-                    $instances = get_fast_modinfo($event->courseid, $user->id)->get_instances_of($event->modulename);
-                    if (empty($instances[$event->instance]->uservisible)) {
-                        continue;
-                    }
-                }
-                $eventitem = new stdClass();
-                $eventitem->id = $event->id;
-                $eventitem->title = format_text($event->name, FORMAT_HTML);
-
-                // Format the description text.
-                $description = format_text($me->description, $me->format, ['context' => $me->context]);
-                // Then convert it to plain text, since it's the only format allowed for the event description property.
-                // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
-                $description = html_to_text($description, 0);
-                $eventitem->description = $description;
-
-                // TODO: get author.
-                $eventitem->nameAuthor = appcrue_get_username($event->userid);
-                $eventitem->type = appcrue_get_event_type($event);
-                $eventitem->startsAt = $event->timestart;
-                $eventitem->imgDetail = get_config('local_appcrue', 'event_imgdetail');
-                $eventitem->endsAt = $event->timestart + $event->timeduration;
-                if ($event->instance != null) {
-                    $eventitem->url = $instances[$event->instance]->url->out(true);
-                } else {
-                    // The event is a calendar event.
-                    $params = [
-                        'view' => 'day',
-                        'time' => $event->timestart,
-                    ];
-                    if (isset($event->courseid) && $event->eventtype != 'user') {
-                        $params['course'] = $event->courseid;
-                    }
-                    $url = new moodle_url("/calendar/view.php", $params);
-                    $eventitem->url = $url->out(false);
-                }
-                // Convert the url to a redirected url with token.
-                $eventitem->url = appcrue_create_deep_url($eventitem->url, $token);
-                $dayitem->events[] = $eventitem;
-            }
-            $outputmessage->calendar[] = $dayitem;
-        }
+        $events = local_appcrue\calendar_service::get_events($user, $timestart, $timeend, $limitnum);
+        $outputmessage = local_appcrue\calendar_service::format_events_for_usercalendar($events, $user, $category, $token);
     }
 
     if (debugging()) {
@@ -184,10 +88,6 @@ try {
         header('HTTP/1.0 404 not found');
     }
     echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
-} catch (moodle_exception $e) {
-    header('HTTP/1.0 400 Bad Request');
-    die();
-} catch (Exception $e) {
-    header('HTTP/1.0 500 Internal Server Error');
-    die();
+} catch (Throwable $e) {
+    appcrue_send_error_response($e, debugging());
 }

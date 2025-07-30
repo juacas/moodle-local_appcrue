@@ -29,13 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
-    $settings->add(
-        new admin_setting_heading(
-            'local_appcrue/idp_header',
-            get_string('idpheader', 'local_appcrue'),
-            get_string('idpheader_help', 'local_appcrue')
-        )
-    );
+    
     // API KEY for directa access without token.
     // Generate a deafult as an example.
     $defaultkey = bin2hex(random_bytes(16));
@@ -48,6 +42,13 @@ if ($hassiteconfig) {
         $defaultkey,
         PARAM_ALPHANUMEXT
     ));
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue/idp_header',
+            get_string('idpheader', 'local_appcrue'),
+            get_string('idpheader_help', 'local_appcrue')
+        )
+    );
     // IdP configuration.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',
@@ -82,62 +83,6 @@ if ($hassiteconfig) {
         $userfields
     ));
 
-    // Calendar.
-    $settings->add(
-        new admin_setting_heading(
-            'local_appcrue_calendar_header',
-            get_string('calendarheader', 'local_appcrue'),
-            get_string('calendarheader_help', 'local_appcrue')
-        )
-    );
-    $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/enable_usercalendar',
-        get_string('enable_calendar', 'local_appcrue'),
-        get_string('enable_calendar_help', 'local_appcrue'),
-        true
-    ));
-    $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/share_site_events',
-        get_string('share_site_events', 'local_appcrue'),
-        get_string('share_site_events_help', 'local_appcrue'),
-        true
-    ));
-    $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/share_course_events',
-        get_string('share_course_events', 'local_appcrue'),
-        get_string('share_course_events_help', 'local_appcrue'),
-        true
-    ));
-    $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/share_personal_events',
-        get_string('share_user_events', 'local_appcrue'),
-        get_string('share_user_events_help', 'local_appcrue'),
-        true
-    ));
-    global $DB;
-    $modules = $DB->get_records("modules");
-    $modulelist = [];
-    foreach ($modules as $mod) {
-        $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
-    }
-    uasort($modulelist, function ($a, $b) {
-        return strcmp($a, $b);
-    });
-    $settings->add(new admin_setting_configmultiselect(
-        'local_appcrue/examen_event_type',
-        get_string('examen_event_type', 'local_appcrue'),
-        get_string('examen_event_type_help', 'local_appcrue'),
-        ['quiz', 'quest', 'assign', 'workshop'],
-        $modulelist
-    ));
-    $settings->add(new admin_setting_configtext(
-        'local_appcrue/event_imgdetail',
-        get_string('event_imgdetail', 'local_appcrue'),
-        get_string('event_imgdetail_help', 'local_appcrue'),
-        '',
-        PARAM_URL
-    ));
-
 
     // Autologin.
     $settings->add(
@@ -152,6 +97,18 @@ if ($hassiteconfig) {
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
         true
+    ));
+    // Select "bearer" or "token" mark in deep urls.
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/deep_url_token_mark',
+        get_string('autologin:deep_url_token_mark', 'local_appcrue'),
+        get_string('autologin:deep_url_token_mark_help', 'local_appcrue'),
+        'bearer',
+        [
+            '' => get_string('autologin:deep_url_token_mark_disabled', 'local_appcrue'),
+            'bearer' => get_string('autologin:deep_url_token_mark_bearer', 'local_appcrue'),
+            'token' => get_string('autologin:deep_url_token_mark_token', 'local_appcrue'),
+        ]
     ));
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/allow_continue',
@@ -173,44 +130,6 @@ if ($hassiteconfig) {
         "course=/course/view.php?id={course}\nguia=https://docserver/grades/{param1}/{param2}/{course}/doc.pdf",
         PARAM_RAW_TRIMMED
     ));
-    // TODO: Redirect to other plattform depending on a value in a user field.
-    /*
-    $settings->add(
-        new admin_setting_heading(
-            'local_appcrue_externalredirect_header',
-            get_string('externalredirectheader', 'local_appcrue'),
-            get_string('externalredirectheader_help', 'local_appcrue')
-        )
-    );
-
-    $settings->add(new admin_setting_configcheckbox(
-        'local_appcrue/enable_redirect',
-        get_string('enable_externalredirect', 'local_appcrue'),
-        get_string('enable_externalredirect_help', 'local_appcrue'),
-        false
-    ));
-    $settings->add(new admin_setting_configselect(
-        'local_appcrue/externalredirect_match_user_by',
-        get_string('match_user_by', 'local_appcrue'),
-        get_string('match_user_by_help', 'local_appcrue'),
-        'id',
-        $userfields
-    ));
-    $settings->add(new admin_setting_configtext(
-        'local_appcrue/externalredirect_pattern',
-        get_string('externalredirect_pattern', 'local_appcrue'),
-        get_string('externalredirect_pattern_help', 'local_appcrue'),
-        '',
-        PARAM_RAW_TRIMMED
-    ));
-    $settings->add(new admin_setting_configtext(
-        'local_appcrue/externalredirect_url',
-        get_string('externalredirect_url', 'local_appcrue'),
-        get_string('externalredirect_url_help', 'local_appcrue'),
-        '',
-        PARAM_URL
-    ));
-    */
     // Avatar service.
     $settings->add(
         new admin_setting_heading(
@@ -266,7 +185,168 @@ if ($hassiteconfig) {
         get_string('notify_grade_sender_help', 'local_appcrue'),
         'id',
         ['anyteacher' => get_string('notify_grade_anyteacher', 'local_appcrue'),
-         'webserviceuser' => get_string('notify_grade_webserviceuser', 'local_appcrue'),
-         ]
+        'webserviceuser' => get_string('notify_grade_webserviceuser', 'local_appcrue'),
+        ]
+    ));
+    // Section for LMS AppCRUE integration.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_header',
+            get_string('lmsappcrue:header', 'local_appcrue'),
+            get_string('lmsappcrue:header_help', 'local_appcrue')
+        )
+    );
+    // Select mapping field.
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/lmsappcrue_match_user_by',
+        get_string('lmsappcrue:match_user_by', 'local_appcrue'),
+        get_string('lmsappcrue:match_user_by_help', 'local_appcrue'),
+        'email',
+        $userfields
+    ));
+    global $DB;
+    $modules = $DB->get_records("modules");
+    $modulelist = [];
+    foreach ($modules as $mod) {
+        $modulelist[$mod->name] = get_string("modulename", "$mod->name", null, true);
+    }
+    uasort($modulelist, function ($a, $b) {
+        return strcmp($a, $b);
+    });
+    $settings->add(new admin_setting_configmultiselect(
+        'local_appcrue/calendar_examen_event_type',
+        get_string('calendar:examen_event_type', 'local_appcrue'),
+        get_string('calendar:examen_event_type_help', 'local_appcrue'),
+        ['quiz', 'quest', 'assign', 'workshop'],
+        $modulelist
+    ));
+    // Calendar.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_calendar_header',
+            get_string('calendarheader', 'local_appcrue'),
+            get_string('calendarheader_help', 'local_appcrue')
+        )
+    );
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/enable_usercalendar',
+        get_string('calendar:enable_calendar', 'local_appcrue'),
+        get_string('calendar:enable_calendar_help', 'local_appcrue'),
+        true
+    ));
+    // Enable LMS AppCRUE calendar endpoint.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_calendar',
+        get_string('lmsappcrue:calendar:enable_calendar', 'local_appcrue'),
+        get_string('lmsappcrue:calendar:enable_calendar_help', 'local_appcrue'),
+        true
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/calendar_share_site_events',
+        get_string('calendar:share_site_events', 'local_appcrue'),
+        get_string('calendar:share_site_events_help', 'local_appcrue'),
+        true
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/calendar_share_course_events',
+        get_string('calendar:share_course_events', 'local_appcrue'),
+        get_string('calendar:share_course_events_help', 'local_appcrue'),
+        true
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/share_personal_events',
+        get_string('calendar:share_user_events', 'local_appcrue'),
+        get_string('calendar:share_user_events_help', 'local_appcrue'),
+        true
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/calendar_event_imgdetail',
+        get_string('calendar:event_imgdetail', 'local_appcrue'),
+        get_string('calendar:event_imgdetail_help', 'local_appcrue'),
+        '',
+        PARAM_URL
+    ));
+    // LMS AppCRUE grades endpoint.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_grades_header',
+            get_string('lmsappcrue:grades', 'local_appcrue'),
+            get_string('lmsappcrue:grades_help', 'local_appcrue')
+        )
+    );
+
+    // Enable LMS AppCRUE grades endpoint.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_grades',
+        get_string('lmsappcrue:enable_grades', 'local_appcrue'),
+        get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
+        true
+    ));
+    // LMS AppCRUE forums section.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_forums_header',
+            get_string('lmsappcrue:forums', 'local_appcrue'),
+            get_string('lmsappcrue:forums_help', 'local_appcrue')
+        )
+    );
+    // Enable LMS AppCRUE forums endpoint.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_forums',
+        get_string('lmsappcrue:enable_forums', 'local_appcrue'),
+        get_string('lmsappcrue:enable_forums_help', 'local_appcrue'),
+        true
+    ));
+    // Time window for forums.
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_forums_timewindow',
+        get_string('lmsappcrue:forums_timewindow', 'local_appcrue'),
+        get_string('lmsappcrue:forums_timewindow_help', 'local_appcrue'),
+        WEEKSECS * 4 * 6, // Default 6 months.
+        WEEKSECS * 4
+    ));
+
+    // LMS AppCRUE files section.
+    $settings->add(
+        new admin_setting_heading(
+            'local_appcrue_lms_files_header',
+            get_string('lmsappcrue:files', 'local_appcrue'),
+            get_string('lmsappcrue:files_help', 'local_appcrue')
+        )
+    );
+    // Enable LMS AppCRUE files endpoint.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_files',
+        get_string('lmsappcrue:enable_files', 'local_appcrue'),
+        get_string('lmsappcrue:enable_files_help', 'local_appcrue'),
+        true
+    ));
+
+    // Enable LMS AppCRUE notifications endpoint.
+    $settings->add(new admin_setting_heading(
+        'local_appcrue_lms_notifications_header',
+        get_string('lmsappcrue:notifications', 'local_appcrue'),
+        get_string('lmsappcrue:notifications_help', 'local_appcrue')
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_notifications',
+        get_string('lmsappcrue:enable_notifications', 'local_appcrue'),
+        get_string('lmsappcrue:enable_notifications_help', 'local_appcrue'),
+        true
+    ));
+
+    // LMS AppCRUE assignments endpoint.
+    $settings->add(new admin_setting_heading(
+        'local_appcrue_lms_assignments_header',
+        get_string('lmsappcrue:assignments', 'local_appcrue'),
+        get_string('lmsappcrue:assignments_help', 'local_appcrue')
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_enable_assignments',
+        get_string('lmsappcrue:enable_assignments', 'local_appcrue'),
+        get_string('lmsappcrue:enable_assignments_help', 'local_appcrue'),
+        true
     ));
 }
