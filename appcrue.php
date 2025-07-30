@@ -29,11 +29,7 @@ use local_appcrue\appcrue_service;
 require_once('../../config.php');
 require_once('locallib.php');
 
-if (!get_config('local_appcrue', 'lmsappcrue_enable_grades')) {
-    @header('HTTP/1.1 404 Not Found');
-    die();
-    // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
-}
+
 
 // No requiere login ya que usaremos un apikey interna.
 header('Access-Control-Allow-Origin: *');
@@ -44,6 +40,11 @@ $PAGE->set_context(null);
 
 try {
     $endpoint = appcrue_service::instance_from_request();
+    // Check if the endpoint is enabled.
+    if (!$endpoint->is_enabled()) {
+        @header('HTTP/1.1 404 Not Found');
+        die();
+    }
     [$data, $count] = $endpoint->get_data_response();
     // Envelope the items in a response object.
     $response = [

@@ -104,6 +104,21 @@ class appcrue_service {
         $this->token = $token;
     }
     /**
+     * Check if the service is enabled.
+     * @return bool True if the service is enabled, false otherwise.
+     */
+    public function is_enabled(): bool {
+        // Check if the service is enabled in the configuration.
+        $service = str_replace('local_appcrue\\', '', get_class($this));
+        $service = str_replace('_service', '', $service);
+        $service = strtolower($service);
+        $enabled = get_config('local_appcrue', "lmsappcrue_enable_{$service}");
+        if ($enabled === false || $enabled === null) {  // Not set or false means not enabled.
+            return false;
+        }
+        return $enabled === '1'; // Only '1' means enabled.
+    }
+    /**
      * Get the endpoint implementation from the slash parameters.
      * @throws \moodle_exception
      * @return object the endpoint implementation.

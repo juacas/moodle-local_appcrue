@@ -20,7 +20,6 @@ use calendar_event;
 use cm_info;
 use stdClass;
 use moodle_url;
-use const bar\foo\baz\DEFINE;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/local/appcrue/locallib.php');

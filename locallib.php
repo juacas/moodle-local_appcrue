@@ -26,11 +26,13 @@
 
 use local_appcrue\appcrue_service;
 
-// Compatibility class aliases for Moodle 4.1-
-if ($CFG->version < 2023042400) {
-    if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) {
+defined('MOODLE_INTERNAL') || die();
+
+// Compatibility class aliases for Moodle 4.1.
+// Some classes have been renamed in Moodle 4.2 and later versions.
+// This ensures that the code works in both versions.
+if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) {
     class_alias(cache_store::class, core_cache\store::class);
-    }
 }
 
 /**
@@ -44,7 +46,11 @@ if ($CFG->version < 2023042400) {
  */
 function appcrue_get_user_from_request(): array {
     $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
+    // Accept both 'studentemail' and legacy 'user' parameter for backward compatibility.
     $iduser = optional_param('studentemail', '', PARAM_RAW);
+    if (empty($iduser)) {
+        $iduser = optional_param('user', '', PARAM_RAW);
+    }
     $token = appcrue_get_token_param();
     $user = null;
     // Reporting object.
@@ -67,7 +73,7 @@ function appcrue_get_user_from_request(): array {
             throw new Exception('Invalid API Key', appcrue_service::INVALID_API_KEY);
         }
     } else {
-        throw new Exception('Missing token or API key', appcrue_service::MISSING_WS_TOKEN);
+        throw new Exception('Missing token and API key', appcrue_service::MISSING_WS_TOKEN);
     }
     if ($user) {
         $diag->code = 200;
