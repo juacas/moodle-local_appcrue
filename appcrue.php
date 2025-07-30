@@ -17,7 +17,9 @@
 // phpcs:disable moodle.Files.RequireLogin.Missing
 
 /**
- * TODO describe file appcrue
+ * Handles API requests for the appcrue service in Moodle.
+ * This file processes incoming requests, validates the endpoint, retrieves data,
+ * and sends a JSON response to the client.
  *
  * @package    local_appcrue
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
