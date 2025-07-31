@@ -27,6 +27,7 @@
 require_once('../../config.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 require_once('locallib.php');
+use local_appcrue\appcrue_service;
 
 if (!get_config('local_appcrue', 'enable_usercalendar')) {
     @header('HTTP/1.1 404 Not Found');
@@ -89,5 +90,5 @@ try {
     }
     echo json_encode($outputmessage, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
-    appcrue_send_error_response($e, debugging());
+    appcrue_service::send_error_response($e, debugging());
 }
