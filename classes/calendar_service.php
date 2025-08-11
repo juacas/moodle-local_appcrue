@@ -168,7 +168,7 @@ class calendar_service extends appcrue_service {
             $eventurl = $url->out(false);
         }
         // Convert the url to a redirected url with token.
-        $eventurl = appcrue_create_deep_url($eventurl, $token, $tokenmark);
+        $eventurl = local_appcrue_create_deep_url($eventurl, $token, $tokenmark);
         return $eventurl;
     }
     /**
@@ -190,7 +190,7 @@ class calendar_service extends appcrue_service {
         // Order events by day.
         $eventsbyday = [];
         foreach ($events as $event) {
-            $eventtype = appcrue_get_event_type($event);
+            $eventtype = local_appcrue_get_event_type($event);
             if ($category != '' && $eventtype != $category) {
                 continue;
             }
@@ -225,8 +225,8 @@ class calendar_service extends appcrue_service {
                 $eventitem->description = $description;
 
                 // TODO: get author.
-                $eventitem->nameAuthor = appcrue_get_userfullname($event->userid);
-                $eventitem->type = appcrue_get_event_type($event);
+                $eventitem->nameAuthor = local_appcrue_get_userfullname($event->userid);
+                $eventitem->type = local_appcrue_get_event_type($event);
                 $eventitem->startsAt = $event->timestart;
                 $eventitem->imgDetail = get_config('local_appcrue', 'calendar_event_imgdetail');
                 $eventitem->endsAt = $event->timestart + $event->timeduration;
@@ -263,7 +263,7 @@ class calendar_service extends appcrue_service {
             // Asegura que el evento tenga URL.
             $eventurl = self::get_event_url($event, $token, $cminfo, $this->tokenmark);
             // Obtener el autor si existe.
-            $nameauthor = appcrue_get_userfullname($event->userid);
+            $nameauthor = local_appcrue_get_userfullname($event->userid);
             // Format the description text. It applies filters and formats.
             $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $calendarevt->context]);
             // Then convert it to plain text, since it's the only format allowed for the event description property.

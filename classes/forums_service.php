@@ -160,15 +160,15 @@ class forums_service extends appcrue_service {
                     $permalink = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->id]);
                     $permalink->set_anchor('p' . $post->id);
                     // Deep link.
-                    $permalink = appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
+                    $permalink = local_appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
                     // Get Reply to link.
                     $replylink = new \moodle_url('/mod/forum/post.php', ['reply' => $post->id]);
-                    $replylink = appcrue_create_deep_url($replylink->out(), $this->token, $this->tokenmark);
+                    $replylink = local_appcrue_create_deep_url($replylink->out(), $this->token, $this->tokenmark);
 
                     $postmap[$post->id] = [
                         'id'           => (string)$post->id,
                         'parent_id'    => (string)$post->parent,
-                        'display_name' => appcrue_get_userfullname($post->userid),
+                        'display_name' => local_appcrue_get_userfullname($post->userid),
                         'createdAt'    => $post->created,
                         'message'      => $message,
                         'replies'      => [],

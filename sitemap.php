@@ -153,7 +153,7 @@ if ($sitemap == false) {
 // Change simple URLs by DeepURLs.
 $tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
 $navegableroot = json_decode($sitemap);
-appcrue_filter_urls($navegableroot, $token, $tokenmark);
+local_appcrue_filter_urls($navegableroot, $token, $tokenmark);
 $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 echo $sitemap;

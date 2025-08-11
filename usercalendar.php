@@ -45,8 +45,8 @@ try {
     $category = optional_param('category', '', PARAM_ALPHA);
     $lang = required_param('lang', PARAM_ALPHA);
     // Get the token to use in the urls.
-    [$user, $diag, $token] = appcrue_get_user_from_request();
-    appcrue_config_user($user, true, $lang);
+    [$user, $diag, $token] = local_appcrue_get_user_from_request();
+    local_appcrue_config_user($user, true, $lang);
 
     $outputmessage = new stdClass();
     $outputmessage->calendar = [];

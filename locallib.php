@@ -44,14 +44,14 @@ if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) 
  * Returns an array with the user and a diagnostic object.
  * @return [stdClass|null, stdClass, ?string] the user and the diagnostic object.
  */
-function appcrue_get_user_from_request(): array {
+function local_appcrue_get_user_from_request(): array {
     $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
     // Accept both 'studentemail' and legacy 'user' parameter for backward compatibility.
     $iduser = optional_param('studentemail', '', PARAM_RAW);
     if (empty($iduser)) {
         $iduser = optional_param('user', '', PARAM_RAW);
     }
-    $token = appcrue_get_token_param();
+    $token = local_appcrue_get_token_param();
     $user = null;
     // Reporting object.
     $diag = new stdClass();
@@ -59,7 +59,7 @@ function appcrue_get_user_from_request(): array {
     $diag->message = 'OK';
     if ($token) {
          // User token mode.
-        [$user, $diag] = appcrue_get_user_by_token($token);
+        [$user, $diag] = local_appcrue_get_user_by_token($token);
     } else if ($apikey != '') {
         // If there is an apikey, we use it to get the user.
         // API Key mode.
@@ -91,11 +91,11 @@ function appcrue_get_user_from_request(): array {
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
  * @return list(stdClass|null, stdClass) the user and the result of the check.
  */
-function appcrue_get_user_by_token($token) {
+function local_appcrue_get_user_by_token($token) {
     $matchvalue = false;
     $user = false;
     $returnstatus = new stdClass();
-    [$matchvalue, $tokenstatus] = appcrue_validate_token($token);
+    [$matchvalue, $tokenstatus] = local_appcrue_validate_token($token);
     $returnstatus->code = $tokenstatus->code;
     $returnstatus->result = $tokenstatus->result;
     // Get user.
@@ -118,7 +118,7 @@ function appcrue_get_user_by_token($token) {
 /**
  * Get token from the request.
  */
-function appcrue_get_token_param($required = false): string {
+function local_appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
      // Try to extract a Bearer token.
     $headers = getallheaders();
@@ -137,7 +137,7 @@ function appcrue_get_token_param($required = false): string {
  * Validate token and return the matchvalue.
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
-function appcrue_validate_token($token) {
+function local_appcrue_validate_token($token) {
     if (empty($token)) {
         return [false, (object)['code' => 401, 'result' => 'Token is empty']];
     }
@@ -164,7 +164,7 @@ function appcrue_validate_token($token) {
     // Extract a matchvalue of the token from the idp.
     if ($statuscode == 200) {
         $jsonpath = get_config('local_appcrue', 'idp_user_json_path');
-        $matchvalue = appcrue_get_json_node($result, $jsonpath);
+        $matchvalue = local_appcrue_get_json_node($result, $jsonpath);
         if ($matchvalue == false) {
             $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
             debugging($returnstatus->result, DEBUG_NORMAL);
@@ -228,7 +228,7 @@ function appcrue_find_user($fieldname, $matchvalue) {
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
-function appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fallback = 'continue') {
+function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fallback = 'continue') {
     $params = [];
     if (!$token && !$tokenmark) {
         return $url; // No token, no mark, return the original URL.
@@ -251,13 +251,13 @@ function appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fa
 /**
  * Traverse all nodes and re-encode the urls.
  */
-function appcrue_filter_urls($node, $token, $tokenmark) {
+function local_appcrue_filter_urls($node, $token, $tokenmark) {
     if (isset($node->url)) {
-        $node->url = appcrue_create_deep_url($node->url, $token, $tokenmark);
+        $node->url = local_appcrue_create_deep_url($node->url, $token, $tokenmark);
     }
     if (isset($node->navegable)) {
         foreach ($node->navegable as $child) {
-            appcrue_filter_urls($child, $token, $tokenmark);
+            local_appcrue_filter_urls($child, $token, $tokenmark);
         }
     }
 }
@@ -266,7 +266,7 @@ function appcrue_filter_urls($node, $token, $tokenmark) {
  * @param string text the text to search in
  * @param string jsonpath a list of dot separated terms.
  */
-function appcrue_get_json_node($text, $jsonpath) {
+function local_appcrue_get_json_node($text, $jsonpath) {
     $steps = explode('.', $jsonpath);
     $json = json_decode($text);
     // Traverse the steps.
@@ -294,7 +294,7 @@ function appcrue_get_json_node($text, $jsonpath) {
  * - param1, param2: general purpose ALPHANUM arguments for generating redirections.
  * @return \moodle_url
  */
-function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
+function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
     global $DB;
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
@@ -321,7 +321,7 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
         }
     } else if ($course !== null) {
         // Get courserecord.
-        $courserecord = appcrue_find_course($course, $group, $year, $param1, $param2, $param3);
+        $courserecord = local_appcrue_find_course($course, $group, $year, $param1, $param2, $param3);
         if ($courserecord) {
             // Check if it is metalinked to any parent "META" course.
             $metaid = $DB->get_record('enrol', ['customint1' => $courserecord->id, 'enrol' => 'meta'], 'courseid');
@@ -346,7 +346,7 @@ function appcrue_get_target_url($token, $urltogo, $course, $group, $year, $patte
  * @param string $param3 free to use part
  * @return bool|stdClass
  */
-function appcrue_find_course($course, $group, $year, $param1 = '', $param2 = '', $param3 = '') {
+function local_appcrue_find_course($course, $group, $year, $param1 = '', $param2 = '', $param3 = '') {
     /** @var \moodle_database $DB */
     global $DB;
     $coursepattern = get_config('local_appcrue', 'course_pattern');
@@ -369,7 +369,7 @@ function appcrue_find_course($course, $group, $year, $param1 = '', $param2 = '',
  * @param stdClass $course
  * @return stdClass
  */
-function appcrue_find_sender($course) {
+function local_appcrue_find_sender($course) {
     // Find a Teacher in the course.
     $select = get_config('local_appcrue', 'notify_grade_sender');
     $teacher = null;
@@ -395,7 +395,7 @@ function appcrue_find_sender($course) {
  * @param string $lang the language to be forced.
  * @return stdClass previous user.
  */
-function appcrue_config_user($user, $impersonate = true, string $lang = ''): stdClass {
+function local_appcrue_config_user($user, $impersonate = true, string $lang = ''): stdClass {
     global $USER;
     // Save the current user.
     $previoususer = $USER;
@@ -417,7 +417,7 @@ function appcrue_config_user($user, $impersonate = true, string $lang = ''): std
  * @param int $userid
  * @return string
  */
-function appcrue_get_userfullname($userid) {
+function local_appcrue_get_userfullname($userid) {
     global $DB;
     // Cache the known users to save queries.
     static $knownusers;
@@ -438,7 +438,7 @@ function appcrue_get_userfullname($userid) {
  * @param stdClass $event
  * @return "EXAMEN"|"HORARIO"
  */
-function appcrue_get_event_type($event) {
+function local_appcrue_get_event_type($event) {
     $examentype = get_config('local_appcrue', 'calendar_examen_event_type');
     if ($event->modulename != null && strpos($examentype, $event->modulename) !== false) {
         return 'EXAMEN';
@@ -456,7 +456,7 @@ function appcrue_get_event_type($event) {
  * @param int $format The format of the message (FORMAT_HTML or FORMAT_MARKDOWN).
  * @return array An array containing the result log message.
  */
-function appcrue_post_message($course, $userfrom, $userto, $message, $format) {
+function local_appcrue_post_message($course, $userfrom, $userto, $message, $format) {
     global $PAGE, $DB, $CFG;
     $messageingenabled = $CFG->messaging;
 

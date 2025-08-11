@@ -96,9 +96,9 @@ class appcrue_service {
      */
     public function identify_from_request() {
         // Read parameters from the request and configure the service.
-        [$user, $diag, $token] = appcrue_get_user_from_request();
+        [$user, $diag, $token] = local_appcrue_get_user_from_request();
         // Config user context. Calendar API does not need impersonation.
-        appcrue_config_user($user, true);
+        local_appcrue_config_user($user, true);
         $this->user = $user;
         $this->diag = $diag;
         $this->token = $token;

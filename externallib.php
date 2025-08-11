@@ -242,7 +242,7 @@ class local_appcrue_external extends external_api {
             ];
         }
         // Find out course from $subject code.
-        $course = appcrue_find_course($subject, $group, $course);
+        $course = local_appcrue_find_course($subject, $group, $course);
         if ($course == false) {
             debugging("Course not found for subject $subject, group $group, course $course", DEBUG_NONE);
         }
@@ -258,9 +258,9 @@ class local_appcrue_external extends external_api {
         $format = FORMAT_MARKDOWN;
 
         // Find a teacher as sender.
-        $userfrom = appcrue_find_sender($course);
+        $userfrom = local_appcrue_find_sender($course);
 
-        return appcrue_post_message($course, $userfrom, $userto, $message, $format);
+        return local_appcrue_post_message($course, $userfrom, $userto, $message, $format);
     }
 
     /**
