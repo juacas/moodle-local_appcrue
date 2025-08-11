@@ -25,6 +25,7 @@
 // phpcs:disable moodle.Files.RequireLogin.Missing
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/../../lib/filelib.php');
 require_once('locallib.php');
 
 $context = context_system::instance();
