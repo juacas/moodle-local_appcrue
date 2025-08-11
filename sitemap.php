@@ -82,7 +82,7 @@ if ($sitemap == false) {
         }
         $navegable = new stdClass();
         $navegable->name = $cat->name;
-        $navegable->description = format_text($cat->description, FORMAT_HTML, ['nocache' => true]);
+        $navegable->description = format_text($cat->description, FORMAT_HTML);
         $navegable->id = $cat->id;
         // URL.
         $url = new moodle_url('/course/index.php', ['categoryid' => $cat->id]);
