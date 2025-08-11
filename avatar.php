@@ -37,7 +37,7 @@ if (!get_config('local_appcrue', 'enable_avatar')) {
 try {
     $mode = optional_param('mode', 'base64', PARAM_ALPHA);
     // Check token and get user record.
-    [$user, $resultstatus] = appcrue_get_user_from_request();
+    [$user, $resultstatus] = local_appcrue_get_user_from_request();
     if ($resultstatus->code == 401) {
         header('HTTP/1.0 401 unauthorized');
     } else if ($resultstatus->code == 404) {
