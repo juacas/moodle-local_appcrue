@@ -226,6 +226,8 @@ class local_appcrue_external extends external_api {
             'comment' => $comment,
         ];
         $result = self::validate_parameters(self::notify_grade_parameters(), $params);
+        $context = context_system::instance();
+        self::validate_context($context);
         // TODO: Find a way to integrate final grades into gradebook.
         // Compose message.
         // Find user.

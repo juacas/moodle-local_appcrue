@@ -50,7 +50,7 @@ $services = [
         'restrictedusers' => 1, // If enabled, the Moodle administrator must link some user to this service
         // ... into the administration https://server/admin/webservice/service_users.php?id=7.
         'enabled' => 0, // If enabled, the service can be reachable on a default installation.
-        'shortname' => 'external notifications', // Optional – but needed if restrictedusers is set so as to allow logins.
+        'shortname' => 'external_notifications', // Optional – but needed if restrictedusers is set so as to allow logins.
         'downloadfiles' => 0, // Allow file downloads.
         'uploadfiles' => 0, // Allow file uploads.
     ],
