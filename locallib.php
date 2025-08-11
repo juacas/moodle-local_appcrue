@@ -165,6 +165,9 @@ function appcrue_validate_token($token) {
  */
 function appcrue_find_user($fieldname, $matchvalue) {
     global $DB;
+    if (empty($matchvalue)) {
+        return false;
+    }
     // First check in standard fieldnames.
     $fields = get_user_fieldnames();
     if (array_search($fieldname, $fields) !== false) {

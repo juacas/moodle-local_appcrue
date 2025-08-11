@@ -23,6 +23,7 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/../../lib/filelib.php');
 require_once('locallib.php');
 
 $context = context_system::instance();
@@ -41,7 +42,7 @@ try {
         header('HTTP/1.0 401 unauthorized');
     } else if ($resultstatus->code == 404) {
         header('HTTP/1.0 404 not found');
-    } else {
+    } else if ($user) {
         $userpicture = new user_picture($user);
         $userpicture->size = 1;
         // TODO: Get the file directly without making an HTTP request.
@@ -55,6 +56,8 @@ try {
             header('Content-Type: application/base64');
             echo base64_encode($result);
         }
+    } else {
+        header('HTTP/1.0 404 not found');
     }
 } catch (moodle_exception $e) {
     header('HTTP/1.0 400 Bad Request');
