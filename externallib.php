@@ -75,7 +75,8 @@ class local_appcrue_external extends external_api {
     }
 
     /**
-     * Send private messages from the admin USER to other users
+     * Send private messages from the admin USER to other users.
+     * This is a wrapper around core_message_external::send_instant_messages.
      *
      * @param array $messages An array of message to send.
      * @param string $field User field for finding the user. Defaults to setting 'local_appcrue/matchuserby'.
@@ -89,7 +90,8 @@ class local_appcrue_external extends external_api {
             throw new moodle_exception('disabled', 'message');
         }
         self::validate_parameters(self::send_instant_messages_parameters(), ['messages' => $messages, 'field' => $field]);
-
+        // Context and Capability Checks are delegated to core_message_external::send_instant_messages 
+        // which is called at the end of this function. (Issue #3).
         if (!$field) {
             $field = get_config('local_appcrue', 'match_user_by');
         }
