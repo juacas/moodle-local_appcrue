@@ -18,7 +18,7 @@
  * Version file.
  *
  * @package    local_appcrue
- * @copyright  2021 University of Valladolid, Spain
+ * @copyright  2021 University of Valladolid, Spain & Altia Consultores S.L.
  * @author     Juan Pablo de Castro <juanpablo.decastro@uva.es>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
