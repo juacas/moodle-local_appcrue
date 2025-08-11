@@ -35,14 +35,14 @@ try {
     $todate = optional_param('toDate', '', PARAM_ALPHANUM);
     $category = optional_param('category', '', PARAM_ALPHA);
     $lang = required_param('lang', PARAM_ALPHA);
-    [$user, $diag] = appcrue_get_user_from_request();
+    [$user, $diag] = local_appcrue_get_user_from_request();
 
     $outputmessage = new stdClass();
     $outputmessage->calendar = [];
     $PAGE->set_context(null);
     header('Content-Type: text/json; charset=utf-8');
     // Get the token to use in the urls.
-    $token = appcrue_get_token_param(false);
+    $token = local_appcrue_get_token_param(false);
 
     if ($user != null) {
         // Set lang.
@@ -110,7 +110,7 @@ try {
         // Order events by day.
         $eventsbyday = [];
         foreach ($events as $event) {
-            $eventtype = appcrue_get_event_type($event);
+            $eventtype = local_appcrue_get_event_type($event);
             if ($category != '' && $eventtype != $category) {
                 continue;
             }
@@ -145,8 +145,8 @@ try {
                 $eventitem->description = $description;
 
                 // TODO: get author.
-                $eventitem->nameAuthor = appcrue_get_username($event->userid);
-                $eventitem->type = appcrue_get_event_type($event);
+                $eventitem->nameAuthor = local_appcrue_get_username($event->userid);
+                $eventitem->type = local_appcrue_get_event_type($event);
                 $eventitem->startsAt = $event->timestart;
                 $eventitem->imgDetail = get_config('local_appcrue', 'event_imgdetail');
                 $eventitem->endsAt = $event->timestart + $event->timeduration;
@@ -165,7 +165,7 @@ try {
                     $eventitem->url = $url->out(false);
                 }
                 // Convert the url to a redirected url with token.
-                $eventitem->url = appcrue_create_deep_url($eventitem->url, $token);
+                $eventitem->url = local_appcrue_create_deep_url($eventitem->url, $token);
                 $dayitem->events[] = $eventitem;
             }
             $outputmessage->calendar[] = $dayitem;
