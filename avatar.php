@@ -24,9 +24,13 @@
 
 // phpcs:disable moodle.Files.RequireLogin.Missing
 
+// Define AJAX_SCRIPT to avoid debug messages in output.
+define('AJAX_SCRIPT', true);
+
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/../../lib/filelib.php');
 require_once('locallib.php');
+
 
 $context = context_system::instance();
 $PAGE->set_context($context);

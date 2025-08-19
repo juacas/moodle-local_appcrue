@@ -27,11 +27,11 @@
  */
 
 use local_appcrue\appcrue_service;
+// Define AJAX_SCRIPT to avoid debug messages in output.
+define('AJAX_SCRIPT', true);
 
 require_once('../../config.php');
 require_once('locallib.php');
-
-
 
 // No requiere login ya que usaremos un apikey interna.
 header('Access-Control-Allow-Origin: *');
