@@ -299,7 +299,7 @@ function local_appcrue_get_json_node($text, $jsonpath) {
     return $node;
 }
 /**
- * Returns the target URL according to optional_param parameters in @see autologin.php.
+ * Returns the target URL according to optional_param parameters in {@see autologin.php}.
  * - urltogo: if present, uses it as relative path.
  * - course, group, year: (not necessarily Moodle's identifiers) search a course with idnumber
  *   matching the course pattern i.e.'%-{$course}-{$group}-%'.
