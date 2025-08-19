@@ -123,6 +123,9 @@ function local_appcrue_get_user_by_token($token) {
 }
 /**
  * Get token from the request.
+ * If the token is not present, it throws an exception if $required is true.
+ * @param bool $required
+ * @return string the token from the request.
  */
 function local_appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
@@ -141,6 +144,7 @@ function local_appcrue_get_token_param($required = false): string {
 }
 /**
  * Validate token and return the matchvalue.
+ * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
 function local_appcrue_validate_token($token) {
@@ -256,6 +260,9 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer
 }
 /**
  * Traverse all nodes and re-encode the urls.
+ * @param stdClass $node the node to traverse.
+ * @param string $token the authorization token.
+ * @param string $tokenmark the token mark to use: bearer or token.
  */
 function local_appcrue_filter_urls($node, $token, $tokenmark) {
     if (isset($node->url)) {
@@ -269,8 +276,9 @@ function local_appcrue_filter_urls($node, $token, $tokenmark) {
 }
 /**
  * Simple path traversal. Support only dot separator. If it finds an array takes the first item.
- * @param string text the text to search in
- * @param string jsonpath a list of dot separated terms.
+ * @param string $text the text to search in
+ * @param string $jsonpath a list of dot separated terms.
+ * @return mixed the value found at the jsonpath or null.
  */
 function local_appcrue_get_json_node($text, $jsonpath) {
     $steps = explode('.', $jsonpath);
@@ -298,6 +306,16 @@ function local_appcrue_get_json_node($text, $jsonpath) {
  *   Resolves any metalinking and returns the parent course.
  * - pattern: Selector from the patterns library.
  * - param1, param2: general purpose ALPHANUM arguments for generating redirections.
+ *
+ * @param string|null $token the token to be used in the URL.
+ * @param mixed $urltogo the URL to go to, if present.
+ * @param string|null $course any course identifier. Not necessarily Moodle's.
+ * @param string|null $group a group identifier. Not necessarily Moodle's.
+ * @param string|null $year the year identifier.
+ * @param string|null $pattern the pattern to use.
+ * @param string|null $param1 the first additional parameter.
+ * @param string|null $param2 the second additional parameter.
+ * @param string|null $param3 the third additional parameter.
  * @return \moodle_url
  */
 function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
