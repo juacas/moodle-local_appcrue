@@ -41,12 +41,12 @@ class announcements_service extends appcrue_service {
      */
     public function get_items() {
         global $DB, $USER;
-    
+
         // Obtener los cursos donde el usuario está inscrito.
         $courses = enrol_get_users_courses($USER->id, true, '*');
-    
+
         $results = [];
-        
+
         foreach ($courses as $course) {
             // Buscar foros de tipo 'news' (foro de anuncios).
             $newsforums = $DB->get_records('forum', ['course' => $course->id, 'type' => 'news']);
@@ -70,8 +70,10 @@ class announcements_service extends appcrue_service {
                     // Obtener el primer post (el anuncio principal).
                     $post = $DB->get_record('forum_posts', ['discussion' => $discussion->id, 'parent' => 0]);
 
-                    if (!$post) continue;
-                    
+                    if (!$post) {
+                        continue;
+                    }
+
                     $message = $post->message;
                     $message = file_rewrite_pluginfile_urls(
                         $message,

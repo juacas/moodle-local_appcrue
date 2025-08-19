@@ -25,8 +25,6 @@
  */
 $string['allow_continue'] = 'Permitir fallback continue';
 $string['allow_continue_help'] = 'Permitir fallback=continue que si el token es invalido, no genera error, loguea como invitado y redirige a la URL de continuación.';
-$string['api_key'] = 'API key';
-$string['api_key_help'] = 'API key para acceder a los servicios de AppCrue. Se utiliza para identificar la aplicación que invoca el servicio sin necesidad de tokens de usuario.';
 $string['autologinheader'] = 'Servicio Auto-login';
 $string['autologinheader_help'] = 'Permite a los usuarios saltar a Moodle desde el AppCrue. También implementa redirecciones predefinidas.';
 $string['avatarheader'] = 'Servicio Avatar';
@@ -70,8 +68,14 @@ $string['idp_user_json_path'] = 'Selector del identificador';
 $string['idp_user_json_path_help'] = 'Selector tipo jsonpath para identificar el valor para identificar al usuario.';
 $string['idpheader'] = 'Verificación de tokens';
 $string['idpheader_help'] = 'Configuración del servico de verificación de tokens AppCrue. Válido para instituciones que usan un IdP OAUth.';
+$string['lmsappcrue:api_key'] = 'API key';
+$string['lmsappcrue:api_key_help'] = 'API key para acceder a los servicios de AppCrue. Se utiliza para identificar la aplicación que invoca el servicio sin necesidad de tokens de usuario.';
 $string['lmsappcrue:calendar:enable_calendar'] = 'Activar el API de calendario LMS';
 $string['lmsappcrue:calendar:enable_calendar_help'] = 'El API de calendario LMS permite a las aplicaciones externas obtener eventos del calendario de Moodle para un usuario.';
+$string['lmsappcrue:enable_announcements'] = 'Activar el API de anuncios LMS';
+$string['lmsappcrue:enable_announcements_help'] = 'El API de anuncios LMS permite a las aplicaciones externas obtener anuncios destinados al usuario.';
+$string['lmsappcrue:enable_api_key_rotation'] = 'Activar la rotación de claves API LMS';
+$string['lmsappcrue:enable_api_key_rotation_help'] = 'El endpoint de rotación de claves API permite a AppCrue cambiar periódicamente la API Key utilizada por AppCrue.';
 $string['lmsappcrue:enable_files'] = 'Activar el API de archivos LMS';
 $string['lmsappcrue:enable_files_help'] = 'El API de archivos LMS permite a las aplicaciones externas obtener archivos de Moodle para un usuario.';
 $string['lmsappcrue:enable_forums'] = 'Activar el API de foros LMS';

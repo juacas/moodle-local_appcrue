@@ -25,8 +25,6 @@
  */
 $string['allow_continue'] = 'Allow continue as guest';
 $string['allow_continue_help'] = 'Allows fallback=continue that does not error when the token is not valid. It logon the user as guest and redirects to the URL anyway.';
-$string['api_key'] = 'API key';
-$string['api_key_help'] = 'API key to access the AppCrue services. It is used to identify the app that is invoking the service without user tokens.';
 $string['autologin:deep_url_token_mark'] = 'Autologin URL token mark';
 $string['autologin:deep_url_token_mark_bearer'] = 'bearer';
 $string['autologin:deep_url_token_mark_disabled'] = 'No autologin URLs';
@@ -79,12 +77,16 @@ $string['idpheader'] = 'Verification of tokens';
 $string['idpheader_help'] = 'AppCrue token verification service configuration. This functionality is for institutions that use an OAUth IdP.';
 $string['lmsappcrue:announcements'] = 'AppCRUE announcements';
 $string['lmsappcrue:announcements_help'] = 'Expose the user announcements to AppCRUE.';
+$string['lmsappcrue:api_key'] = 'API key';
+$string['lmsappcrue:api_key_help'] = 'API key to access the AppCrue services. It is used to identify the app that is invoking the service without user tokens.';
 $string['lmsappcrue:assignments'] = 'AppCRUE assignments';
 $string['lmsappcrue:assignments_help'] = 'Expose the user assignments to AppCRUE. This endpoint allows AppCRUE to retrieve the user assignments and their due dates and status.';
 $string['lmsappcrue:calendar:enable_calendar'] = 'Enable calendar endpoint';
 $string['lmsappcrue:calendar:enable_calendar_help'] = 'Enable calendar endpoint to share the user calendar with AppCRUE.';
 $string['lmsappcrue:enable_announcements'] = 'Enable announcements endpoint';
 $string['lmsappcrue:enable_announcements_help'] = 'Enable announcements endpoint to share the user announcements with AppCRUE.';
+$string['lmsappcrue:enable_api_key_rotation'] = 'Enable API rotation endpoint';
+$string['lmsappcrue:enable_api_key_rotation_help'] = 'API rotation endpoint allows AppCRUE to change periodically the API key used by AppCRUE.';
 $string['lmsappcrue:enable_assignments'] = 'Enable assignments endpoint';
 $string['lmsappcrue:enable_assignments_help'] = 'Enable assignments endpoint to share the user assignments with AppCRUE.';
 $string['lmsappcrue:enable_files'] = 'Enable files endpoint';

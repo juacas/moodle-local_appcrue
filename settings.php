@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
-    
+
     // API KEY for directa access without token.
     // Generate a deafult as an example.
     $defaultkey = bin2hex(random_bytes(16));
@@ -37,11 +37,20 @@ if ($hassiteconfig) {
     // API Key configuration.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/api_key',
-        get_string('api_key', 'local_appcrue'),
-        get_string('api_key_help', 'local_appcrue'),
+        get_string('lmsappcrue:api_key', 'local_appcrue'),
+        get_string('lmsappcrue:api_key_help', 'local_appcrue'),
         $defaultkey,
         PARAM_ALPHANUMEXT
     ));
+    // API Rotation endpoint.
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'local_appcrue/lmsappcrue_enable_keyrotation',
+            get_string('lmsappcrue:enable_api_key_rotation', 'local_appcrue'),
+            get_string('lmsappcrue:enable_api_key_rotation_help', 'local_appcrue'),
+            true
+        )
+    );
     $settings->add(
         new admin_setting_heading(
             'local_appcrue/idp_header',
@@ -307,7 +316,7 @@ if ($hassiteconfig) {
         WEEKSECS * 4 * 6, // Default 6 months.
         WEEKSECS * 4
     ));
-   // Enable LMS AppCRUE announcements endpoint.
+    // Enable LMS AppCRUE announcements endpoint.
     $settings->add(new admin_setting_heading(
         'local_appcrue_lms_announcements_header',
         get_string('lmsappcrue:announcements', 'local_appcrue'),

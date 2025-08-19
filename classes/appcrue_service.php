@@ -23,7 +23,7 @@ namespace local_appcrue;
  * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class appcrue_service {
+abstract class appcrue_service {
 // phpcs:disable moodle.Commenting.MissingDocblock.Constant
 
     /**
@@ -86,6 +86,7 @@ class appcrue_service {
     }
     /**
      * Read parameters from the request and configure them.
+     * Default implementation: no arguments.
      */
     public function configure_from_request() {
     }

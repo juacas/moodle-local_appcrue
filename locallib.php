@@ -26,8 +26,6 @@
 
 use local_appcrue\appcrue_service;
 
-defined('MOODLE_INTERNAL') || die();
-
 // Compatibility class aliases for Moodle 4.1.
 // Some classes have been renamed in Moodle 4.2 and later versions.
 // This ensures that the code works in both versions.
@@ -63,7 +61,7 @@ function local_appcrue_get_user_from_request(): array {
     } else if ($apikey != '') {
         // If there is an apikey, we use it to get the user.
         // API Key mode.
-        if ($apikey == get_config('local_appcrue', 'api_key')) {
+        if (local_appcrue_is_apikey_valid($apikey)) {
             $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
             $user = appcrue_find_user($fieldname, $iduser);
         } else {
@@ -84,6 +82,14 @@ function local_appcrue_get_user_from_request(): array {
         throw new Exception('User not found', appcrue_service::USER_NOT_ENROLLED);
     }
     return [$user, $diag, $token];
+}
+/**
+ * Checks if API key is valid.
+ * @param string $apikey
+ * @return bool
+ */
+function local_appcrue_is_apikey_valid($apikey): bool {
+    return $apikey === get_config('local_appcrue', 'api_key');
 }
 
 /**
@@ -347,7 +353,6 @@ function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, 
  * @return bool|stdClass
  */
 function local_appcrue_find_course($course, $group, $year, $param1 = '', $param2 = '', $param3 = '') {
-    /** @var \moodle_database $DB */
     global $DB;
     $coursepattern = get_config('local_appcrue', 'course_pattern');
     // Compose the pattern.

@@ -30,9 +30,6 @@ require_once('../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once('locallib.php');
 
-/** @var moodle_database $DB */
-global $DB;
-
 if (!get_config('local_appcrue', 'enable_sitemap')) {
     header('HTTP/1.1 405 Method Not Allowed');
     die();
@@ -67,6 +64,7 @@ if (get_config('local_appcrue', 'cache_sitemap')) {
     }
 }
 
+global $DB;
 if ($sitemap == false) {
     $categories = $DB->get_records_select(
         'course_categories',

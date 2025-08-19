@@ -269,7 +269,7 @@ class forums_service extends appcrue_service {
                         // No groups, so no access.
                         continue;
                     }
-                    // If the forum is in a grouping, we need to get the groups in that grouping
+                    // If the forum is in a grouping, we need to get the groups in that grouping.
                     $forum->onlygroups = $groups;
                     $forum->onlygroups[] = -1;
                 }
