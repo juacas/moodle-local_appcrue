@@ -42,6 +42,15 @@ if ($hassiteconfig) {
         $defaultkey,
         PARAM_ALPHANUMEXT
     ));
+    // Define network filtering.
+    $settings->add(new admin_setting_configmixedhostiplist(
+        'local_appcrue/api_authorized_networks',
+        get_string('lmsappcrue:api_authorized_networks', 'local_appcrue'),
+        get_string('lmsappcrue:api_authorized_networks_help', 'local_appcrue'),
+        '',
+        PARAM_TEXT
+    ));
+
     // API Rotation endpoint.
     $settings->add(
         new admin_setting_configcheckbox(

@@ -29,7 +29,8 @@
 use local_appcrue\appcrue_service;
 // Define AJAX_SCRIPT to avoid debug messages in output.
 define('AJAX_SCRIPT', true);
-
+// Avoid creating sesions.
+define('NO_MOODLE_COOKIES', true);
 require_once('../../config.php');
 require_once('locallib.php');
 
@@ -41,6 +42,14 @@ header('X-Content-Type-Options: nosniff');
 $PAGE->set_context(null);
 
 try {
+    if (!empty(get_config('local_appcrue', 'api_authorized_networks'))) {
+        // Check network restrictions.
+        $networkhelper = new \local_appcrue\network_security_helper();
+        if (!$networkhelper->is_request_in_list()) {
+            @header('HTTP/1.1 403 Forbidden');
+            die();
+        }
+    }
     $endpoint = appcrue_service::instance_from_request();
     // Check if the endpoint is enabled.
     if (!$endpoint->is_enabled()) {

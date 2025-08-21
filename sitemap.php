@@ -26,6 +26,8 @@
 
 // Define AJAX_SCRIPT to avoid debug messages in output.
 define('AJAX_SCRIPT', true);
+define('NO_MOODLE_COOKIES', true);
+
 require_once('../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once('locallib.php');

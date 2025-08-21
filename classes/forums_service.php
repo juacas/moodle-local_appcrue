@@ -100,6 +100,8 @@ class forums_service extends appcrue_service {
             }
             $context = context_module::instance($cm->id);
             $course = $cm->get_course();
+            // Get groups of the user in course.
+            $groups = groups_get_all_groups($courseid, $this->user->id);
             // Process files.
             $forumdescription = file_rewrite_pluginfile_urls(
                 $forum->intro,
@@ -135,8 +137,14 @@ class forums_service extends appcrue_service {
             );
 
             foreach ($discussions as $discussion) {
+                $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
                 // Skip discussions last modified before the specified time.
                 if ($this->timestart && $discussion->modified < $this->timestart) {
+                    continue;
+                }
+                // Skip discussions not for this group.
+                // TODO: check capability "see all posts".
+                if ($discussion->groupid && $discussion->groupid != -1 && !isset($groups[$discussion->groupid])) {
                     continue;
                 }
                 $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
@@ -157,7 +165,7 @@ class forums_service extends appcrue_service {
                         ['context' => $context, 'para' => false, 'trusted' => true]
                     );
                     // Get a permalink to post.
-                    $permalink = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->id]);
+                    $permalink = clone($discussionurl);
                     $permalink->set_anchor('p' . $post->id);
                     // Deep link.
                     $permalink = local_appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
@@ -180,7 +188,6 @@ class forums_service extends appcrue_service {
 
                 $rootposts = self::build_post_tree($postmap);
 
-                $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->id]);
                 // Forum and discussion data are combined here for output structure.
                 $forumoutput[] = [
                     'course_title' => (string) ($course->fullname ?? ''),
