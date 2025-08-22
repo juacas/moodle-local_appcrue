@@ -147,9 +147,9 @@ class calendar_service extends appcrue_service {
     }
     /**
      * Get the URL of the event.
-     * @param \stdClass $event the event object
+     * @param stdClass $event the event object
      * @param string $token the token to use in the urls
-     * @param \cm_info|null $cminfo the course module info, if available
+     * @param cm_info|null $cminfo the course module info, if available
      * @param string $tokenmark the token mark to use in the URL, default is 'bearer'
      * @return string the URL of the event
      */
@@ -177,12 +177,12 @@ class calendar_service extends appcrue_service {
      * @param array $events the list of events
      * @param stdClass $user the user object
      * @param string $category the category to filter events by
-     * @param string $token the token to use in the urls
+     * @param string|null $token the token to use in the urls
      * @return stdClass the formatted events
      */
     public static function format_events_for_usercalendar(
         array $events,
-        $user,
+        stdClass $user,
         string $category = '',
         ?string $token = ''
     ): stdClass {
@@ -241,10 +241,10 @@ class calendar_service extends appcrue_service {
     }
      /**
       * Format events for the LMS AppCrue service.
-      * @param array(event) $eventlist
+      * @param array $eventlist
       * @param stdClass $user
       * @param ?string $token the token to use in the urls
-      * @return array{events: array|array{events: mixed}}
+      * @return array array of arrays for json output.
       */
     public function format_events_for_lmsappcrue(array $eventlist, stdClass $user, ?string $token = ''): array {
         global $DB;

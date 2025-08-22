@@ -48,7 +48,9 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:api_authorized_networks', 'local_appcrue'),
         get_string('lmsappcrue:api_authorized_networks_help', 'local_appcrue'),
         '',
-        PARAM_TEXT
+        PARAM_TEXT,
+        60,
+        2
     ));
 
     // API Rotation endpoint.
@@ -57,7 +59,7 @@ if ($hassiteconfig) {
             'local_appcrue/lmsappcrue_enable_keyrotation',
             get_string('lmsappcrue:enable_api_key_rotation', 'local_appcrue'),
             get_string('lmsappcrue:enable_api_key_rotation_help', 'local_appcrue'),
-            true
+            false
         )
     );
     $settings->add(
@@ -114,7 +116,7 @@ if ($hassiteconfig) {
         'local_appcrue/enable_autologin',
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
-        true
+        false
     ));
     // Select "bearer" or "token" mark in deep urls.
     $settings->add(new admin_setting_configselect(
@@ -160,7 +162,7 @@ if ($hassiteconfig) {
         'local_appcrue/enable_avatar',
         get_string('enable_avatar', 'local_appcrue'),
         get_string('enable_avatar_help', 'local_appcrue'),
-        true
+        false
     ));
     // SiteMap service.
     $settings->add(
@@ -174,7 +176,7 @@ if ($hassiteconfig) {
         'local_appcrue/enable_sitemap',
         get_string('enable_sitemap', 'local_appcrue'),
         get_string('enable_sitemap_help', 'local_appcrue'),
-        true
+        false
     ));
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/cache_sitemap',
@@ -250,14 +252,14 @@ if ($hassiteconfig) {
         'local_appcrue/enable_usercalendar',
         get_string('calendar:enable_calendar', 'local_appcrue'),
         get_string('calendar:enable_calendar_help', 'local_appcrue'),
-        true
+        false
     ));
     // Enable LMS AppCRUE calendar endpoint.
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/lmsappcrue_enable_calendar',
         get_string('lmsappcrue:calendar:enable_calendar', 'local_appcrue'),
         get_string('lmsappcrue:calendar:enable_calendar_help', 'local_appcrue'),
-        true
+        defaultsetting: false
     ));
 
     $settings->add(new admin_setting_configcheckbox(
@@ -300,7 +302,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_grades',
         get_string('lmsappcrue:enable_grades', 'local_appcrue'),
         get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
-        true
+        false
     ));
     // LMS AppCRUE forums section.
     $settings->add(
@@ -315,7 +317,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_forums',
         get_string('lmsappcrue:enable_forums', 'local_appcrue'),
         get_string('lmsappcrue:enable_forums_help', 'local_appcrue'),
-        true
+        false
     ));
     // Time window for forums.
     $settings->add(new admin_setting_configduration(
@@ -336,7 +338,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_announcements',
         get_string('lmsappcrue:enable_announcements', 'local_appcrue'),
         get_string('lmsappcrue:enable_announcements_help', 'local_appcrue'),
-        true
+        false
     ));
     // LMS AppCRUE files section.
     $settings->add(
@@ -351,7 +353,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_files',
         get_string('lmsappcrue:enable_files', 'local_appcrue'),
         get_string('lmsappcrue:enable_files_help', 'local_appcrue'),
-        true
+        false
     ));
     // LMS AppCRUE assignments endpoint.
     $settings->add(new admin_setting_heading(
@@ -363,6 +365,6 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_assignments',
         get_string('lmsappcrue:enable_assignments', 'local_appcrue'),
         get_string('lmsappcrue:enable_assignments_help', 'local_appcrue'),
-        true
+        false
     ));
 }
