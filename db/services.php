@@ -102,7 +102,8 @@ $functions = [
         // ...defaults to the service's externalib.php.
         'classpath'   => 'local/appcrue/externallib.php',
         // Human readable description of the web service function.
-        'description' => 'Notify a oficial grade with revision info and sends instant message to one user identified by any user field.',
+        'description' => 'Notify a oficial grade with revision info, compose a message ' .
+                         ' and sends instant message to one user identified by any user field.',
         // Database rights of the web service function (read, write).
         'type'        => 'write',
         // Is the service available to 'internal' ajax calls.

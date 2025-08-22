@@ -398,7 +398,7 @@ function local_appcrue_find_sender($course) {
     $teacher = null;
     if ($select == 'anyteacher') {
         $context = context_course::instance($course->id);
-        $teachers = get_users_by_capability($context, 'moodle/grade:manage');
+        $teachers = $context instanceof context ? get_users_by_capability($context, 'moodle/grade:manage') : [];
         if (count($teachers) > 0) {
             $teacher = array_shift($teachers);
         }

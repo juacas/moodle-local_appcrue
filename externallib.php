@@ -52,12 +52,22 @@ class local_appcrue_external extends external_api {
                 'messages' => new external_multiple_structure(
                     new external_single_structure(
                         [
-                            'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
-                            'text' => new external_value(PARAM_RAW, 'The text of the message'),
-                            'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
+                            'touserkey' => new external_value(
+                                PARAM_RAW,
+                                'Match value for finding the user to send the private message to'
+                            ),
+                            'text' => new external_value(
+                                PARAM_RAW,
+                                'The text of the message'
+                            ),
+                            'textformat' => new external_format_value(
+                                'text',
+                                VALUE_DEFAULT,
+                                FORMAT_MOODLE
+                            ),
                             'clientmsgid' => new external_value(
                                 PARAM_ALPHANUMEXT,
-                                'your own client id for the message. If this id is provided, the fail message id will be returned to you',
+                                'your own client id for the message. The failure message id will be returned to you',
                                 VALUE_DEFAULT,
                                 null
                             ),
@@ -128,7 +138,12 @@ class local_appcrue_external extends external_api {
                 'touserkey' => new external_value(PARAM_RAW, 'Match value for finding the user to send the private message to'),
                 'text' => new external_value(PARAM_RAW, 'The text of the message'),
                 'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
-                'field' => new external_value(PARAM_RAW, 'User field for finding the user. Defaults to setting local_appcrue/match_user_by', VALUE_DEFAULT, null),
+                'field' => new external_value(
+                    PARAM_RAW,
+                    'User field for finding the user. Defaults to setting local_appcrue/match_user_by',
+                    VALUE_DEFAULT,
+                    null
+                ),
             ]
         );
     }
@@ -144,7 +159,10 @@ class local_appcrue_external extends external_api {
      * @since Moodle 2.2
      */
     public static function send_instant_message($touserkey, $text, $textformat = FORMAT_MOODLE, $field = null) {
-        self::validate_parameters(self::send_instant_message_parameters(), ['touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field]);
+        self::validate_parameters(
+            self::send_instant_message_parameters(),
+            ['touserkey' => $touserkey, 'text' => $text, 'textformat' => $textformat, 'field' => $field]
+        );
         $message = [];
         $message['touserkey'] = $touserkey;
         $message['text'] = $text;
@@ -208,7 +226,20 @@ class local_appcrue_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function notify_grade($idusuario, $nip, $useremail, $subject, $group, $subjectname, $course, $grade, $call, $gradealpha, $revdate, $comment) {
+    public static function notify_grade(
+        $idusuario,
+        $nip,
+        $useremail,
+        $subject,
+        $group,
+        $subjectname,
+        $course,
+        $grade,
+        $call,
+        $gradealpha,
+        $revdate,
+        $comment
+    ) {
         $params = [
             'idusuario' => $idusuario,
             'nip' => $nip,
@@ -225,9 +256,9 @@ class local_appcrue_external extends external_api {
         ];
         $result = self::validate_parameters(self::notify_grade_parameters(), $params);
         $context = context_system::instance();
-        self::validate_context($context);
+        self::validate_context($context); // phpcs:ignore PHP0406 let exceptions work
         // TODO: Find a way to integrate final grades into gradebook.
-        // Compose message.
+
         // Find user.
         if ($idusuario) {
             $fieldname = get_config('local_appcrue', 'match_user_by');

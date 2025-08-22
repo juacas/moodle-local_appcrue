@@ -27,10 +27,8 @@
 $string['allow_continue'] = 'Permitir continuar como invitado';
 $string['allow_continue_help'] = 'Permite fallback=continue que no genera error cuando el token no es válido. Inicia sesión al usuario como invitado y redirecciona a la URL de todas formas.';
 $string['autologin:deep_url_token_mark'] = 'Marca de token en URL de autologin';
-$string['autologin:deep_url_token_mark_bearer'] = 'bearer';
 $string['autologin:deep_url_token_mark_disabled'] = 'Sin URLs de autologin';
 $string['autologin:deep_url_token_mark_help'] = 'La marca de token a usar en las URLs profundas: "token" indica a la app usar el token en la URL como parámetro de consulta. "bearer" indica a la app usar el token en el header Authorization.';
-$string['autologin:deep_url_token_mark_token'] = 'token';
 $string['autologinheader'] = 'Servicio de auto-login';
 $string['autologinheader_help'] = 'Permite a los usuarios saltar a Moodle desde AppCrue.';
 $string['avatarheader'] = 'Servicio de avatar';

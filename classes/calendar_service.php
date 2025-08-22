@@ -18,6 +18,7 @@ namespace local_appcrue;
 
 use calendar_event;
 use cm_info;
+use context;
 use stdClass;
 use moodle_url;
 
@@ -148,9 +149,9 @@ class calendar_service extends appcrue_service {
     /**
      * Get the URL of the event.
      * @param stdClass $event the event object
-     * @param string $token the token to use in the urls
+     * @param string|null $token the token to use in the urls
      * @param cm_info|null $cminfo the course module info, if available
-     * @param string $tokenmark the token mark to use in the URL, default is 'bearer'
+     * @param string|null $tokenmark the token mark to use in the URL, default is 'bearer'
      * @return string the URL of the event
      */
     public static function get_event_url(stdClass $event, ?string $token, ?cm_info $cminfo, ?string $tokenmark = 'bearer'): string {
@@ -219,14 +220,15 @@ class calendar_service extends appcrue_service {
                 $eventitem->title = format_text($event->name, FORMAT_HTML);
 
                 $calendarevt = new calendar_event($event); // To use moodle calendar event services.
+                // Get context via magic method because get_context is protected. Moodle core use it extensively.
+                $eventcontext = $calendarevt->context; // phpcs:ignore PHP6602
                 // Format the description text.
-                $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $calendarevt->context]);
+                $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $eventcontext]);
                 // Then convert it to plain text, since it's the only format allowed for the event description property.
                 // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
                 $description = html_to_text($description, 0);
                 $eventitem->description = $description;
 
-                // TODO: get author.
                 $eventitem->nameAuthor = local_appcrue_get_userfullname($event->userid);
                 $eventitem->type = local_appcrue_get_event_type($event);
                 $eventitem->startsAt = $event->timestart;
@@ -266,8 +268,10 @@ class calendar_service extends appcrue_service {
             $eventurl = self::get_event_url($event, $token, $cminfo, $this->tokenmark);
             // Obtener el autor si existe.
             $nameauthor = local_appcrue_get_userfullname($event->userid);
+            // Event context via magic method.
+            $eventcontext = $calendarevt->context; // phpcs:ignore PHP6602
             // Format the description text. It applies filters and formats.
-            $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $calendarevt->context]);
+            $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $eventcontext]);
             // Then convert it to plain text, since it's the only format allowed for the event description property.
             // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
             $description = html_to_text($description, 0);
