@@ -55,14 +55,7 @@ try {
         @header('HTTP/1.1 404 Not Found');
         die();
     }
-    [$data, $count] = $endpoint->get_data_response();
-    // Envelope the items in a response object.
-    $response = [
-        'success' => true,
-        'count' => $count,
-        'timestamp' => time(),
-        'data' => $data,
-    ];
+    $response = $endpoint->get_response_json();
     // Send the response as JSON.
     echo json_encode($response, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {

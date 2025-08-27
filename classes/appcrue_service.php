@@ -76,13 +76,27 @@ abstract class appcrue_service {
         throw new \Exception('Method get_items not implemented in ' . __CLASS__);
     }
     /**
-     * If needed encapsulate items in a data response.
+     * If needed, encapsulate items in a data response structure.
      * @return [array, int] Array of items and the count of items.
      */
     public function get_data_response() {
         // By default, return the items as they are.
         $items = $this->get_items();
         return [$items, count($items)];
+    }
+    /**
+     * Build a response structure for JSON.
+     */
+    public function get_response_json() {
+        [$data, $count] = $this->get_data_response();
+        // Envelope the items in a response object.
+        $response = [
+            'success' => true,
+            'count' => $count,
+            'timestamp' => time(),
+            'data' => $data,
+        ];
+        return $response;
     }
     /**
      * Read parameters from the request and configure them.

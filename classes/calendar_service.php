@@ -56,12 +56,8 @@ class calendar_service extends appcrue_service {
     /**
      * Get data response.
      */
-    public function get_data_response() {
-        // Get the items and count.
-        $items = $this->get_items();
-        $count = count($items);
-        // Return the items and count.
-        return [ [ 'events' => $items ], $count];
+    public function get_response_json() {
+        return $this->get_items();
     }
     /**
      * Get items for the service.
@@ -71,7 +67,7 @@ class calendar_service extends appcrue_service {
         // Get events from Moodle API according to the group, site and user restrictions of the user.
         $events = self::get_events($this->user, $this->timestart, $this->timeend);
         // Format events for the user calendar service.
-        $formattedevents = $this->format_events_for_lmsappcrue($events, $this->user);
+        $formattedevents = $this->format_events_for_usercalendar($events, $this->user);
         return $formattedevents;
     }
     /**
