@@ -32,8 +32,8 @@ class network_security_helper extends curl_security_helper {
      * Check if caller is in the list.
      */
     public function is_request_in_list() {
-        // Get request remote address.
-        $remoteaddr = $_SERVER['REMOTE_ADDR'] ?? '';
+        // Get request remote client address behind proxy.
+        $remoteaddr = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
         $isinlist = $this->address_explicitly_blocked($remoteaddr);
         return $isinlist;
     }
