@@ -18,14 +18,14 @@
  * Forums service implementation for the AppCrue.
  *
  * @package    local_appcrue
- * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
+ * @copyright  2025 Alberto Otero Mato <alberto.otero@altia.es> Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once("$CFG->dirroot/mod/forum/lib.php");
+require_once($CFG->dirroot . '/mod/forum/lib.php');
 
 use context_module;
 

@@ -21,7 +21,7 @@ use grade_grade;
  * Class grades_service
  *
  * @package    local_appcrue
- * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
+ * @copyright  2025 Alberto Otero Mato <alberto.otero@altia.es> Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grades_service extends appcrue_service {
