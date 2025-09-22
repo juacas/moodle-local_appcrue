@@ -19,16 +19,16 @@
  *
  * @package    local_appcrue
  * @copyright  2021 University of Valladolid, Spain & Altia Consultores S.L.
- * @author     Juan Pablo de Castro <juanpablo.decastro@uva.es>
+ * @author     Juan Pablo de Castro <juanpablo.decastro@uva.es>, Alberto Otero <alberto.otero@altia.es>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version      = 2025090300;
+$plugin->version      = 2025092200;
 $plugin->requires     = 2022112802;   // Moodle 4.1.
 $plugin->component    = 'local_appcrue';
 $plugin->maturity     = MATURITY_STABLE;
-$plugin->release      = 'v1.0.2';
+$plugin->release      = 'v1.0.3';
 $plugin->dependencies = [
 ];
