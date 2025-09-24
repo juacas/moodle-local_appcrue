@@ -52,21 +52,21 @@ class assignments_service extends appcrue_service {
         $courses = enrol_get_users_courses($this->user->id, true);
         $assignments = [];
 
+        $supportedmods = ['assign', 'quiz', 'offlinequiz', 'lesson', 'scorm', 'workshop', 'quest'];
+
         foreach ($courses as $course) {
             $modinfo = get_fast_modinfo($course, $this->user->id);
 
             foreach ($modinfo->get_cms() as $cm) {
                 // Filter only visible assign modules.
-                if (!$cm->uservisible || $cm->modname !== 'assign') {
+                if (!$cm->uservisible || !in_array($cm->modname, $supportedmods)) {
                     continue;
                 }
 
-                $context = context_module::instance($cm->id);
-
                 // Get the assignment record
-                $assign = $DB->get_record('assign', ['id' => $cm->instance], '*', MUST_EXIST);
+                $record  = $DB->get_record($cm->modname, ['id' => $cm->instance], '*', MUST_EXIST);
 
-                $assignments[] = $this->format_assignment($course, $assign, $cm);
+                $assignments[] = $this->format_activity($course, $cm, $record);
             }
         }
 
@@ -74,44 +74,46 @@ class assignments_service extends appcrue_service {
     }
 
     /**
-     * Formats the assignment data to return in the service.
+     * Formats the activity data to return in the service.
      *
      * @param object $course
-     * @param object $assign
      * @param object $cm
+     * @param object $record
      * @return array
      */
-    private function format_assignment($course, $assign, $cm) {
-        global $DB;
-
-        // Get the enabled submission types
-        $sql = "SELECT plugin
-                FROM {assign_plugin_config}
-                WHERE assignment = :assignid
-                  AND subtype = :subtype
-                  AND name = :name
-                  AND " . $DB->sql_compare_text('value') . " = :value";
-
-        $params = [
-            'assignid' => $assign->id,
-            'subtype'  => 'assignsubmission',
-            'name'     => 'enabled',
-            'value'    => '1'
+    private function format_activity($course, $cm, $record) {
+        $data = [
+            'course_title' => $course->fullname,
+            'title'        => $record->name ?? $cm->name,
+            'description'  => html_entity_decode(strip_tags($record->intro ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+            'type'         => $cm->modname,
+            'html_url'     => (new \moodle_url('/mod/' . $cm->modname . '/view.php', ['id' => $cm->id]))->out(false),
+            'due_at'       => null,
         ];
-
-        $records = $DB->get_records_sql($sql, $params);
-
-        $submissiontypes = array_values(array_map(function($r) {
-            return $r->plugin; // "file", "onlinetext"
-        }, $records));
-
-        return [
-            'course_title'     => $course->fullname,
-            'title'            => $assign->name,
-            'description'      => html_entity_decode(strip_tags($assign->intro), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-            'due_at'           => $assign->duedate,
-            'submission_types' => $submissiontypes,
-            'html_url'         => (new \moodle_url('/mod/assign/view.php', ['id' => $cm->id]))->out(false),
-        ];
+    
+        // Extraer fechas según el tipo de actividad.
+        switch ($cm->modname) {
+            case 'assign':
+                $data['due_at'] = $record->duedate;
+                break;
+            case 'quiz':
+            case 'offlinequiz':
+                $data['due_at'] = $record->timeclose;
+                break;
+            case 'lesson':
+                $data['due_at'] = $record->deadline;
+                break;
+            case 'scorm':
+                $data['due_at'] = $record->timeclose ?? null;
+                break;
+            case 'workshop':
+                $data['due_at'] = $record->submissionend;
+                break;
+            case 'quest':
+                $data['due_at'] = $record->timeend;
+                break;
+        }
+    
+        return $data;
     }
 }
