@@ -128,12 +128,15 @@ class files_service extends appcrue_service {
             'created_at'   => $f->get_timecreated(),
             'content_type' => $f->get_mimetype(),
             'size'         => $f->get_filesize(),
-            'url'          => file_encode_url(
-                "$CFG->wwwroot/pluginfile.php",
-                '/' . $f->get_contextid() . '/' . $f->get_component() . '/' .
-                $f->get_filearea() . '/' . $f->get_itemid() .
-                $f->get_filepath() . $f->get_filename()
-            )
+            'url'          => \moodle_url::make_pluginfile_url(
+                $f->get_contextid(),
+                $f->get_component(),
+                $f->get_filearea(),
+                $f->get_itemid(),
+                $f->get_filepath(),
+                $f->get_filename(),
+                true
+            )->out(false)
         ];
     }
 }
