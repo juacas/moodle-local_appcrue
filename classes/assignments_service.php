@@ -91,7 +91,7 @@ class assignments_service extends appcrue_service {
             'due_at'       => null,
         ];
     
-        // Extraer fechas según el tipo de actividad.
+        // Extract dates based on the activity type.
         switch ($cm->modname) {
             case 'assign':
                 $data['due_at'] = $record->duedate;
