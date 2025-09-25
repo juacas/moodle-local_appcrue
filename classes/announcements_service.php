@@ -96,6 +96,7 @@ class announcements_service extends appcrue_service {
                         'forumid' => $forum->id,
                         'forumname' => $forum->name,
                         'subject' => format_string($post->subject),
+                         // TODO: Why not html_to_text?
                         'message' => html_entity_decode(strip_tags($message), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                         'author' => fullname($author),
                         'timecreated' => $post->created,

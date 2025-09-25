@@ -25,6 +25,8 @@
  */
 $string['allow_continue'] = 'Allow continue as guest';
 $string['allow_continue_help'] = 'Allows fallback=continue that does not error when the token is not valid. It logs in the user as guest and redirects to the URL anyway.';
+$string['assignments:dates'] = 'Assignment dates';
+$string['assignments:dates_desc'] = 'Map each activity type considered as an assignment with the dates fields (due date, cut-off date, etc.) in the database. In format "mod_activityname|table|duedate|cutoffdate".';
 $string['autologin:deep_url_token_mark'] = 'Autologin URL token mark';
 $string['autologin:deep_url_token_mark_bearer'] = 'bearer';
 $string['autologin:deep_url_token_mark_disabled'] = 'No autologin URLs';

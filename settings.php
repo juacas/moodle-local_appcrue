@@ -367,4 +367,26 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_assignments_help', 'local_appcrue'),
         false
     ));
+    // Mapping activities types to start dates.
+    $settingstartdate = new admin_setting_configtextarea(
+        'local_appcrue/assignments_dates',
+        get_string('assignments:dates', 'local_appcrue'),
+        get_string('assignments:dates_desc', 'local_appcrue'),
+        'mod_assign|assign|allowsubmissionsfromdate|duedate
+mod_bigbluebuttonbn|bigbluebuttonbn|openingtime
+mod_chat|chat|chattime|
+mod_choice|choice|timeopen|timeclose
+mod_data|data|timeavailablefrom|timeavailableto
+mod_feedback|feedback|timeopen|timeclose
+mod_forum|forum|duedate|cutoffdate
+mod_glossary|glossary|assesstimestart|assesstimefinish
+mod_lesson|lesson|available|deadline
+mod_quiz|quiz|timeopen|timeclose
+mod_scorm|scorm|timeopen|timeclose
+mod_workshop|workshop|submissionstart|submissionend',
+        PARAM_RAW,
+        10,
+        15
+    );
+    $settings->add($settingstartdate);
 }

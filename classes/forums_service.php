@@ -262,14 +262,14 @@ class forums_service extends appcrue_service {
                 $forum->context = $context;
                 $forum->cm = $cm;
 
-                if (!has_capability('mod/forum:viewdiscussion', $context)) {
+                if (!has_capability('mod/forum:viewdiscussion', $context)) { // phpcs:ignore
                     continue;
                 }
 
                 // Group access.
                 if (
                     groups_get_activity_groupmode($cm, $course) == SEPARATEGROUPS
-                    && !has_capability('moodle/site:accessallgroups', $context)
+                    && !has_capability('moodle/site:accessallgroups', $context) // phpcs:ignore
                 ) {
                     $groups = $modinfo->get_groups($cm->groupingid);
                     if (empty($groups)) {
@@ -284,7 +284,7 @@ class forums_service extends appcrue_service {
                 // Hidden timed discussions.
                 $forum->viewhiddentimedposts = true;
                 if (!empty($CFG->forum_enabletimedposts)) {
-                    if (!has_capability('mod/forum:viewhiddentimedposts', $context)) {
+                    if (!has_capability('mod/forum:viewhiddentimedposts', $context)) { // phpcs:ignore
                         $forum->viewhiddentimedposts = false;
                     }
                 }
@@ -292,7 +292,7 @@ class forums_service extends appcrue_service {
                 // Question and answers access.
                 if (
                     $forum->type == 'qanda'
-                    && !has_capability('mod/forum:viewqandawithoutposting', $context)
+                    && !has_capability('mod/forum:viewqandawithoutposting', $context) // phpcs:ignore
                 ) {
                     // We need to check whether the user has posted in the qanda forum.
                     $forum->onlydiscussions = [];  // Holds discussion ids for the discussions

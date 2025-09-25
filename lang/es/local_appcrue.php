@@ -26,6 +26,8 @@
 
 $string['allow_continue'] = 'Permitir continuar como invitado';
 $string['allow_continue_help'] = 'Permite fallback=continue que no genera error cuando el token no es válido. Inicia sesión al usuario como invitado y redirecciona a la URL de todas formas.';
+$string['assignments:dates'] = 'Fechas de tareas';
+$string['assignments:dates_desc'] = 'Mapea cada tipo de actividad considerada como tarea con los campos de fechas (fecha de entrega, fecha límite, etc.) en la base de datos en formato mod_nombreactividad|tabla|fechainicio|fechalimite.';
 $string['autologin:deep_url_token_mark'] = 'Marca de token en URL de autologin';
 $string['autologin:deep_url_token_mark_disabled'] = 'Sin URLs de autologin';
 $string['autologin:deep_url_token_mark_help'] = 'La marca de token a usar en las URLs profundas: "token" indica a la app usar el token en la URL como parámetro de consulta. "bearer" indica a la app usar el token en el header Authorization.';

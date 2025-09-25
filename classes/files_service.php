@@ -23,15 +23,12 @@
  */
 namespace local_appcrue;
 
-use context_module;
-use context_course;
 use core_availability\info_module;
 
 /**
  * Class files_service
  */
 class files_service extends appcrue_service {
-
     /**
      * Get data response.
      */
@@ -122,7 +119,8 @@ class files_service extends appcrue_service {
 
     /**
      * Uniformly formats the information in a file.
-     *
+     * url is a direct download link with an authorization token
+     * that enables access to everyone with the link.
      * @param \stdClass $course The course object containing file.
      * @param \stored_file $f The file object to format.
      * @param \stdClass $CFG The global configuration object.
@@ -142,8 +140,9 @@ class files_service extends appcrue_service {
                 $f->get_itemid(),
                 $f->get_filepath(),
                 $f->get_filename(),
+                true,
                 true
-            )->out(false)
+            )->out(false),
         ];
     }
 }
