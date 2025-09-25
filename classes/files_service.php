@@ -120,7 +120,14 @@ class files_service extends appcrue_service {
         return $files;
     }
 
-    // Uniformly formats the information in a file.
+    /**
+     * Uniformly formats the information in a file.
+     *
+     * @param \stdClass $course The course object containing file.
+     * @param \stored_file $f The file object to format.
+     * @param \stdClass $CFG The global configuration object.
+     * @return array The formatted file information.
+     */
     private function format_file($course, $f, $CFG) {
         return [
             'course_title' => $course->fullname,
