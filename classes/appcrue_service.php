@@ -66,7 +66,7 @@ abstract class appcrue_service {
             $this->tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
         } else {
             $this->tokenmark = null;
-        }   
+        }
 
         $this->identify_from_request();
         // Configure the service based on the request parameters.

@@ -215,8 +215,8 @@ class forums_service extends appcrue_service {
                         'todo_date'    => $forum->assesstimestart != "0" ? $forum->assesstimestart : null,
                         'html_url'     => (string) ($discussionurl->out(false) ?? ''),
                         'topic_title'  => (string) ($discussion->name ?? ''),
-                        'posted_at'    => isset($discussion->created) ? (int)$discussion->created : time(),
-                        'unread_count' => isset($discussion->replies) ? (string)$discussion->replies : '0',
+                        'posted_at'    => (string) isset($discussion->created) ? $discussion->created : time(),
+                        'unread_count' => (string) isset($discussion->replies) ? $discussion->replies : '0',
                         'replies'      => $rootposts,
                     ];
                 }
