@@ -32,13 +32,33 @@ if ($hassiteconfig) {
 
     // API KEY for directa access without token.
     // Generate a deafult as an example.
-    $defaultkey = bin2hex(random_bytes(16));
+    if (!get_config('local_appcrue', 'api_key')) {
+        $defaultkey = bin2hex(random_bytes(16));
+    } else {
+        $defaultkey = "";
+    }
+    // If an invalid apikey was used, show it here for easy recovery.
+    $attemptkey = get_config('local_appcrue', 'api_key_attempt');
+    $apikeyhelp = get_string('lmsappcrue:api_key_help', 'local_appcrue');
+    if ($attemptkey) {
+        $warning = get_string('lmsappcrue:api_key_warning', 'local_appcrue', $attemptkey);
+        $apikeyhelp .= "<p>" .
+                       $warning .
+                       "</p>";
+        core\notification::error($warning);
+    }
+    $rotatedate = get_config('local_appcrue', 'api_key_last_rotation');
+    if ($rotatedate) {
+        $apikeyhelp .= "<p>" .
+                       get_string('lmsappcrue:api_key_rotated', 'local_appcrue', userdate($rotatedate)) .
+                       "</p>";
+    }
 
     // API Key configuration.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/api_key',
         get_string('lmsappcrue:api_key', 'local_appcrue'),
-        get_string('lmsappcrue:api_key_help', 'local_appcrue'),
+        $apikeyhelp,
         $defaultkey,
         PARAM_ALPHANUMEXT
     ));
