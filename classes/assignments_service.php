@@ -130,7 +130,7 @@ class assignments_service extends appcrue_service {
             $datefieldname = $datesinfo['duedate'];
             // Check if the record has the date fields.
             if (property_exists($record, $datefieldname)) {
-                $data['due_at'] = $record->{$datefieldname} ?? null;
+                $data['due_at'] = $record->{$datefieldname} != "0" ? $record->{$datefieldname} : null;
             }
         }
         return $data;

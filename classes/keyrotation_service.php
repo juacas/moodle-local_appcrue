@@ -60,14 +60,23 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
     public function identify_from_request() {
         $this->oldapikey = required_param('apikey', PARAM_ALPHANUMEXT);
         if (!$this->oldapikey || ! local_appcrue_is_apikey_valid($this->oldapikey)) {
+            // Register invalid apikey for easy configuration of first-time setups or recovery of lost keys.
+            if ($this->oldapikey) {
+                set_config('api_key_attempt', $this->oldapikey, 'local_appcrue');
+            }
             throw new \exception('Invalid API key provided.', self::INVALID_API_KEY);
+        } else {
+            set_config('api_key_attempt', '', 'local_appcrue'); // Clear any previous attempt.
         }
     }
     /**
      * Updates the API key in the configuration.
      */
     public function get_data_response() {
+        // Store new API key.
         set_config('api_key', $this->newapikey, 'local_appcrue');
+        // Record the rotation time.
+        set_config('api_key_last_rotation', time(), 'local_appcrue');
         debugging("API key updated from {$this->oldapikey} to {$this->newapikey}", DEBUG_NORMAL);
 
         $response = [

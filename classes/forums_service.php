@@ -135,68 +135,91 @@ class forums_service extends appcrue_service {
                 0,
                 FORUM_POSTS_ALL_USER_GROUPS
             );
-
-            foreach ($discussions as $discussion) {
-                $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
-                // Skip discussions last modified before the specified time.
-                if ($this->timestart && $discussion->modified < $this->timestart) {
-                    continue;
-                }
-                // Skip discussions not for this group.
-                // TODO: check capability "see all posts".
-                if ($discussion->groupid && $discussion->groupid != -1 && !isset($groups[$discussion->groupid])) {
-                    continue;
-                }
-                $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
-                $postmap = [];
-                foreach ($posts as $post) {
-                    $message = $post->message;
-                    $message = file_rewrite_pluginfile_urls(
-                        $message,
-                        'pluginfile.php',
-                        $context->id,
-                        'mod_forum',
-                        'post',
-                        $post->id
-                    );
-                    $message = html_entity_decode(strip_tags($message ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    // Get a permalink to post.
-                    $permalink = clone($discussionurl);
-                    $permalink->set_anchor('p' . $post->id);
-                    // Deep link.
-                    $permalink = local_appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
-                    // Get Reply to link.
-                    $replylink = new \moodle_url('/mod/forum/post.php', ['reply' => $post->id]);
-                    $replylink = local_appcrue_create_deep_url($replylink->out(), $this->token, $this->tokenmark);
-
-                    $postmap[$post->id] = [
-                        'id'           => (string)$post->id,
-                        'parent_id'    => (string)$post->parent,
-                        'display_name' => local_appcrue_get_userfullname($post->userid),
-                        'createdAt'    => $post->created,
-                        'message'      => $message,
+            if (!$discussions) {
+                // Create a link to the forum..
+                $forumurl = new \moodle_url('/mod/forum/view.php', ['id' => $cm->id]);
+                $forumurl = local_appcrue_create_deep_url($forumurl->out(), $this->token, $this->tokenmark);
+                // Forum without discussions, report with a fake topic with no posts.
+                 $forumoutput[] = [
+                        'course_title' => (string) ($course->fullname ?? ''),
+                        'forum_name'   => (string) ($forum->name ?? ''),
+                        'description'  => (string) $forumdescription,
+                        'lock_at'      => $forum->cutoffdate != "0" ? $forum->cutoffdate : null,
+                        'todo_date'    => $forum->duedate != "0" ? $forum->duedate : null,
+                        'html_url'     => $forumurl,
+                        'topic_title'  => (string) ($forum->name ?? ''),
+                        'posted_at'    => isset($forum->timemodified) ? (int)$forum->timemodified : time(),
+                        'unread_count' => '0',
                         'replies'      => [],
-                        'permalink'    => $permalink,
-                        'replylink'    => $replylink,
                     ];
-                    $numposts++;
+            } else {
+                // We have discussions.
+                foreach ($discussions as $discussion) {
+                    $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
+                    // Skip discussions last modified before the specified time.
+                    if ($this->timestart && $discussion->modified < $this->timestart) {
+                        continue;
+                    }
+                    // Skip discussions not for this group.
+                    // TODO: check capability "see all posts".
+                    if ($discussion->groupid && $discussion->groupid != -1 && !isset($groups[$discussion->groupid])) {
+                        continue;
+                    }
+                    $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
+                    $postmap = [];
+                    foreach ($posts as $post) {
+                        $message = $post->message;
+                        $message = file_rewrite_pluginfile_urls(
+                            $message,
+                            'pluginfile.php',
+                            $context->id,
+                            'mod_forum',
+                            'post',
+                            $post->id
+                        );
+                        $message = format_text(
+                            $message,
+                            $post->messageformat,
+                            ['context' => $context, 'para' => false, 'trusted' => true]
+                        );
+                        // Get a permalink to post.
+                        $permalink = clone($discussionurl);
+                        $permalink->set_anchor('p' . $post->id);
+                        // Deep link.
+                        $permalink = local_appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
+                        // Get Reply to link.
+                        $replylink = new \moodle_url('/mod/forum/post.php', ['reply' => $post->id]);
+                        $replylink = local_appcrue_create_deep_url($replylink->out(), $this->token, $this->tokenmark);
+
+                        $postmap[$post->id] = [
+                            'id'           => (string)$post->id,
+                            'parent_id'    => (string)$post->parent,
+                            'display_name' => local_appcrue_get_userfullname($post->userid),
+                            'createdAt'    => $post->created,
+                            'message'      => $message,
+                            'replies'      => [],
+                            'permalink'    => $permalink,
+                            'replylink'    => $replylink,
+                        ];
+                        $numposts++;
+                    }
+
+                    $rootposts = self::build_post_tree($postmap);
+
+                    // Forum and discussion data are combined here for output structure.
+                    $forumoutput[] = [
+                        'course_title' => (string) ($course->fullname ?? ''),
+                        'forum_name'   => (string) ($forum->name ?? ''),
+                        'description'  => (string) $forumdescription,
+                        'lock_at'      => $forum->assesstimefinish != "0" ? $forum->assesstimefinish : null,
+                        'todo_date'    => $forum->assesstimestart != "0" ? $forum->assesstimestart : null,
+                        'html_url'     => (string) ($discussionurl->out(false) ?? ''),
+                        'topic_title'  => (string) ($discussion->name ?? ''),
+                        'posted_at'    => (string) isset($discussion->created) ? $discussion->created : time(),
+                        'unread_count' => (string) isset($discussion->replies) ? $discussion->replies : '0',
+                        'replies'      => $rootposts,
+                    ];
                 }
-
-                $rootposts = self::build_post_tree($postmap);
-
-                // Forum and discussion data are combined here for output structure.
-                $forumoutput[] = [
-                    'course_title' => (string) ($course->fullname ?? ''),
-                    'forum_name'   => (string) ($forum->name ?? ''),
-                    'description'  => (string) $forumdescription,
-                    'lock_at'      => '',
-                    'todo_date'    => '',
-                    'html_url'     => (string) ($discussionurl->out(false) ?? ''),
-                    'topic_title'  => (string) ($discussion->name ?? ''),
-                    'posted_at'    => isset($discussion->created) ? (int)$discussion->created : time(),
-                    'unread_count' => isset($discussion->replies) ? (string)$discussion->replies : '0',
-                    'replies'      => $rootposts,
-                ];
             }
         }
 
@@ -250,7 +273,7 @@ class forums_service extends appcrue_service {
             $courseforums = $DB->get_records('forum', ['course' => $course->id]);
 
             foreach ($modinfo->instances['forum'] as $forumid => $cm) {
-                if (!$cm->uservisible || !isset($courseforums[$forumid])) {
+                if (!$cm->uservisible || $cm->deletioninprogress || !isset($courseforums[$forumid])) {
                     continue;
                 }
                 $context = context_module::instance($cm->id);

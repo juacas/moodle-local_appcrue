@@ -81,7 +81,7 @@ class grades_service extends appcrue_service {
                         'UTF-8'
                     ),
                     'gradeisoverridden' => $grade->overridden ? 'TRUE' : 'FALSE',
-                    'gradedategraded' => $grade->timemodified ?? 0,
+                    'gradedategraded' => $grade->timemodified != "0" ? $grade->timemodified : null,
                     'feedback' => html_entity_decode(strip_tags($grade->feedback ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'userid' => $this->user->id,
                 ];
