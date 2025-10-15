@@ -89,7 +89,17 @@ function local_appcrue_get_user_from_request(): array {
  * @return bool
  */
 function local_appcrue_is_apikey_valid($apikey): bool {
-    return $apikey === get_config('local_appcrue', 'api_key');
+    if (empty($apikey)) {
+        return false;
+    }
+    if ($apikey === get_config('local_appcrue', 'api_key')) {
+        set_config('api_key_attempt', '', 'local_appcrue'); // Clear any previous attempt.
+        return true;
+    } else {
+        // Register invalid apikey for easy configuration of first-time setups or recovery of lost keys.
+        set_config('api_key_attempt', $apikey, 'local_appcrue'); // Clear any previous attempt.
+        return false;
+    }
 }
 
 /**
