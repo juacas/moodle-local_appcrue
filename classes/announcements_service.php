@@ -47,7 +47,7 @@ class announcements_service extends appcrue_service {
     public function get_items() {
         global $DB, $USER;
 
-        // Devuelve solo cursos de tipos de inscripción ACTIVOS
+        // Devuelve solo cursos de tipos de inscripción ACTIVOS.
         $courses = enrol_get_users_courses($USER->id, true);
         $results = [];
         $tracking = false;
@@ -69,7 +69,7 @@ class announcements_service extends appcrue_service {
                 $forum = $courseforums[$forumid];
                 $context = context_module::instance($cm->id);
 
-                // Capability check
+                // Capability check.
                 if (!has_capability('mod/forum:viewdiscussion', $context)) {
                     continue;
                 }
@@ -91,12 +91,14 @@ class announcements_service extends appcrue_service {
                         }
                     }
 
-                    // Obtener primer post (anuncio principal)
+                    // Obtener primer post (anuncio principal).
                     $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
                     $post = reset($posts);
-                    if (!$post) continue;
+                    if (!$post) {
+                        continue;
+                    }
 
-                    // Procesar mensaje
+                    // Procesar mensaje.
                     $message = file_rewrite_pluginfile_urls(
                         $post->message,
                         'pluginfile.php',
@@ -105,7 +107,12 @@ class announcements_service extends appcrue_service {
                         'post',
                         $post->id
                     );
-                    $plaintext = html_entity_decode(strip_tags(format_text($message, $post->messageformat, ['context' => $context])), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $formattedtext = format_text($message, $post->messageformat, ['context' => $context]);
+                    $plaintext = html_entity_decode(
+                        strip_tags($formattedtext), 
+                        ENT_QUOTES | ENT_HTML5, 
+                        'UTF-8'
+                    );
 
                     $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
                     $discussionurl = local_appcrue_create_deep_url($discussionurl->out(), $this->token, $this->tokenmark);
