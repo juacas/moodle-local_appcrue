@@ -109,8 +109,8 @@ class announcements_service extends appcrue_service {
                     );
                     $formattedtext = format_text($message, $post->messageformat, ['context' => $context]);
                     $plaintext = html_entity_decode(
-                        strip_tags($formattedtext), 
-                        ENT_QUOTES | ENT_HTML5, 
+                        strip_tags($formattedtext),
+                        ENT_QUOTES | ENT_HTML5,
                         'UTF-8'
                     );
 
