@@ -81,7 +81,6 @@ class forums_service extends appcrue_service {
      * @return [array, int] JSON structure with forum data, count of posts.
      */
     public function get_items() {
-        // TODO: Show only tracking forums??
         $tracking = false;
         $numposts = 0;
         $forumoutput = [];
@@ -177,11 +176,7 @@ class forums_service extends appcrue_service {
                             'post',
                             $post->id
                         );
-                        $message = format_text(
-                            $message,
-                            $post->messageformat,
-                            ['context' => $context, 'para' => false, 'trusted' => true]
-                        );
+                        $message = html_entity_decode(strip_tags($message ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
                         // Get a permalink to post.
                         $permalink = clone($discussionurl);
                         $permalink->set_anchor('p' . $post->id);

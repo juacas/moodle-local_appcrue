@@ -30,8 +30,7 @@ class announcements_service extends appcrue_service {
      */
     public function get_data_response() {
         // Get the items and count.
-        $items = $this->get_items();
-        $count = count($items);
+        [$items, $count] = $this->get_items();
         // Return the items and count.
         return [ [ 'announcements' => $items ], $count];
     }
@@ -40,72 +39,95 @@ class announcements_service extends appcrue_service {
      * @return array Array of announcements for the user.
      */
     public function get_items() {
-        global $DB, $USER;
+        global $DB;
 
-        // Obtener los cursos donde el usuario está inscrito.
-        $courses = enrol_get_users_courses($USER->id, true, '*');
-
+        // Devuelve solo cursos de tipos de inscripción ACTIVOS.
+        $courses = enrol_get_users_courses($this->user->id, true);
         $results = [];
+        $tracking = false;
 
         foreach ($courses as $course) {
-            // Buscar foros de tipo 'news' (foro de anuncios).
-            $newsforums = $DB->get_records('forum', ['course' => $course->id, 'type' => 'news']);
+            $modinfo = get_fast_modinfo($course);
 
-            foreach ($newsforums as $forum) {
-                // Get the context for the forum.
-                $courseid = $forum->course;
-                $modinfos = get_fast_modinfo($courseid);
-                $cm = $modinfos->instances['forum'][$forum->id] ?? null;
-                if (!$cm) {
-                    continue; // Skip if the course module is not found.
-                }
-                if (!$cm->uservisible) {
+            if (empty($modinfo->instances['forum'])) {
+                continue;
+            }
+
+            $courseforums = $DB->get_records('forum', ['course' => $course->id, 'type' => 'news']);
+
+            foreach ($modinfo->instances['forum'] as $forumid => $cm) {
+                if (!isset($courseforums[$forumid]) || !$cm->uservisible) {
                     continue;
                 }
+
+                $forum = $courseforums[$forumid];
                 $context = context_module::instance($cm->id);
 
-                // Obtener las discusiones del foro (cada discusión = un anuncio).
-                $discussions = $DB->get_records('forum_discussions', ['forum' => $forum->id], 'timemodified DESC', '*', 0, 10);
-                foreach ($discussions as $discussion) {
-                    // Obtener el primer post (el anuncio principal).
-                    $post = $DB->get_record('forum_posts', ['discussion' => $discussion->id, 'parent' => 0]);
+                // Capability check.
+                if (!has_capability('mod/forum:viewdiscussion', $context)) { // phpcs:ignore
+                    continue;
+                }
 
+                // Grupos del usuario en el curso (array con claves = groupid).
+                $usergroups = groups_get_all_groups($course->id, $this->user->id);
+                $accessall = has_capability('moodle/site:accessallgroups', $context); // phpcs:ignore
+                $groupmode = groups_get_activity_groupmode($cm, $course);
+
+                // Obtener discusiones recientes (máx 10).
+                $discussions = forum_get_discussions($cm, 'd.timemodified DESC', false, -1, 10);
+
+                foreach ($discussions as $discussion) {
+                    // Filtrado por grupos: si la actividad está en SEPARATEGROUPS y el usuario no tiene accessall,
+                    // y la discusión tiene groupid distinto de -1, entonces sólo ver si el usuario pertenece.
+                    if ($groupmode == SEPARATEGROUPS && !$accessall && !empty($discussion->groupid) && $discussion->groupid != -1) {
+                        if (!isset($usergroups[$discussion->groupid])) {
+                            continue;
+                        }
+                    }
+
+                    // Obtener primer post (anuncio principal).
+                    $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
+                    $post = reset($posts);
                     if (!$post) {
                         continue;
                     }
 
-                    $message = $post->message;
+                    // Procesar mensaje.
                     $message = file_rewrite_pluginfile_urls(
-                        $message,
+                        $post->message,
                         'pluginfile.php',
                         $context->id,
                         'mod_forum',
                         'post',
                         $post->id
                     );
-                    $message = format_text(
-                        $message,
-                        $post->messageformat,
-                        ['context' => $context, 'para' => false, 'trusted' => true]
+                    $formattedtext = format_text($message, $post->messageformat, ['context' => $context]);
+                    $plaintext = html_entity_decode(
+                        strip_tags($formattedtext),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
                     );
 
+                    $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
+                    $discussionurl = local_appcrue_create_deep_url($discussionurl->out(), $this->token, $this->tokenmark);
+
                     $author = \core_user::get_user($post->userid);
+
                     $results[] = [
                         'courseid' => $course->id,
                         'coursefullname' => $course->fullname,
                         'forumid' => $forum->id,
                         'forumname' => $forum->name,
                         'subject' => format_string($post->subject),
-                         // TODO: Why not html_to_text?
-                        'message' => html_entity_decode(strip_tags($message), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                        'message' => $plaintext,
                         'author' => fullname($author),
-                        'timecreated' => $post->created,
-                        'url' => (new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->id]))->out(),
+                        'timecreated' => (int)$post->created,
+                        'url' => $discussionurl,
                     ];
                 }
             }
         }
 
-        return $results;
+        return [$results, count($results)];
     }
 }
