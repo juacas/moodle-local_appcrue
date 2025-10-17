@@ -81,7 +81,6 @@ class forums_service extends appcrue_service {
      * @return [array, int] JSON structure with forum data, count of posts.
      */
     public function get_items() {
-        // TODO: Show only tracking forums??
         $tracking = false;
         $numposts = 0;
         $forumoutput = [];

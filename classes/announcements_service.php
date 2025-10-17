@@ -26,12 +26,6 @@ use context_module;
  */
 class announcements_service extends appcrue_service {
     /**
-     * configure_from_request
-     * This method is used to get the forums data for the user.
-     */
-    public function configure_from_request() {
-    }
-    /**
      * Get data response.
      */
     public function get_data_response() {
@@ -45,10 +39,10 @@ class announcements_service extends appcrue_service {
      * @return array Array of announcements for the user.
      */
     public function get_items() {
-        global $DB, $USER;
+        global $DB;
 
         // Devuelve solo cursos de tipos de inscripción ACTIVOS.
-        $courses = enrol_get_users_courses($USER->id, true);
+        $courses = enrol_get_users_courses($this->user->id, true);
         $results = [];
         $tracking = false;
 
@@ -70,13 +64,13 @@ class announcements_service extends appcrue_service {
                 $context = context_module::instance($cm->id);
 
                 // Capability check.
-                if (!has_capability('mod/forum:viewdiscussion', $context)) {
+                if (!has_capability('mod/forum:viewdiscussion', $context)) { // phpcs:ignore
                     continue;
                 }
 
                 // Grupos del usuario en el curso (array con claves = groupid).
-                $usergroups = groups_get_all_groups($course->id, $USER->id);
-                $accessall = has_capability('moodle/site:accessallgroups', $context);
+                $usergroups = groups_get_all_groups($course->id, $this->user->id);
+                $accessall = has_capability('moodle/site:accessallgroups', $context); // phpcs:ignore
                 $groupmode = groups_get_activity_groupmode($cm, $course);
 
                 // Obtener discusiones recientes (máx 10).
