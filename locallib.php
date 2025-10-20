@@ -193,8 +193,16 @@ function local_appcrue_validate_token($token) {
     global $CFG;
     // Load curl class.
     require_once($CFG->dirroot . '/lib/filelib.php');
-    // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
-    $idpurl = get_config('local_appcrue', 'idp_token_url');
+    // Check if custom or default idp server.
+    if (get_config('local_appcrue', 'use_custom_idp') == false) {
+        // Default AppCRUE userdata endpoint.
+        $idpurl = 'https://api.appcrue.es/api/userprofile';
+    } else {
+        // Custom IDP server.
+        // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
+        $idpurl = get_config('local_appcrue', 'idp_token_url');
+    }
+
     $curl = new \curl();
     $options = [
         'CURLOPT_RETURNTRANSFER' => true,
@@ -271,11 +279,12 @@ function appcrue_find_user($fieldname, $matchvalue) {
  * If tokenmark and token are not provided, the url is returned as is.
  * @param string $url the url to be enveloped.
  * @param string|null $token the token to be used.
- * @param string|null $tokenmark the mark to be used in the url if $token is nos provided. Can be 'bearer' or 'token'.
+ * @param string|null $tokenmark the mark to be used in the url if $token is nos provided.
+ *                               Can be bearer|token|appcruebearer|appcruetoken
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
-function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fallback = 'continue') {
+function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcruebearer', $fallback = 'continue') {
     $params = [];
     if (!$token && !$tokenmark) {
         return $url; // No token, no mark, return the original URL.
@@ -286,10 +295,20 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer
     if ($token) {
         $params['token'] = $token;
     }
-    if ($tokenmark == 'bearer') {
-        $tokenmarksufix = '&<bearer>';
-    } else if ($tokenmark == 'token') {
-        $tokenmarksufix = '&token=<token>';
+
+    switch ($tokenmark) {
+        case 'token':
+            $tokenmarksufix = '&token=<token>';
+            break;
+        case 'bearer':
+            $tokenmarksufix = '&<bearer>';
+            break;
+        case 'appcruebearer':
+            $tokenmarksufix = '&<appcruebearer>';
+            break;
+        case 'appcruetoken':
+            $tokenmarksufix = '&token=<appcruetoken>';
+            break;
     }
 
     $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
