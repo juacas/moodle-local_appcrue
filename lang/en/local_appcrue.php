@@ -95,6 +95,10 @@ $string['lmsappcrue:enable_api_key_rotation'] = 'Enable API rotation endpoint';
 $string['lmsappcrue:enable_api_key_rotation_help'] = 'API rotation endpoint allows AppCRUE to change periodically the API key used by AppCRUE.';
 $string['lmsappcrue:enable_assignments'] = 'Enable assignments endpoint';
 $string['lmsappcrue:enable_assignments_help'] = 'Enable assignments endpoint to share the user assignments with LMS-AppCRUE API (with API key).';
+$string['lmsappcrue:enable_autoconfig_appcrue'] = 'Enable AppCRUE autoconfig procedure';
+$string['lmsappcrue:enable_autoconfig_appcrue_help'] = '<p>The autoconfig procedure eases the initial connection setup with AppCRUE: ' .
+    'It adds the official IPs of AppCRUE servers, enables the key rotation service, and stores the first API key received from AppCRUE.' .
+    ' Only keys from official AppCRUE servers or those added by the local admin are accepted.</p><p> To complete the setup, some request from the LMS components of the AppCRUE mobile app must be made.</p>';
 $string['lmsappcrue:enable_files'] = 'Enable files endpoint';
 $string['lmsappcrue:enable_files_help'] = 'Enable files endpoint to notify files and share download links.';
 $string['lmsappcrue:enable_forums'] = 'Enable forums endpoint';

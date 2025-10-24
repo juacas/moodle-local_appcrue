@@ -67,12 +67,7 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
      * Updates the API key in the configuration.
      */
     public function get_data_response() {
-        // Store new API key.
-        set_config('api_key', $this->newapikey, 'local_appcrue');
-        // Record the rotation time.
-        set_config('api_key_last_rotation', time(), 'local_appcrue');
-        debugging("API key updated from {$this->oldapikey} to {$this->newapikey}", DEBUG_NORMAL);
-
+        self::rotate_key($this->oldapikey, $this->newapikey);
         $response = [
             'success' => true,
             'message' => 'API key updated successfully.',
@@ -80,5 +75,18 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
             'new_api_key' => $this->newapikey,
         ];
         return [$response, 1];
+    }
+    /**
+     * Store a new apikey and report rotation time.
+     * @param string $oldapikey
+     * @param string $newapikey
+     * @return void
+     */
+    public static function rotate_key(string $oldapikey, string $newapikey): void {
+        // Store new API key.
+        set_config('api_key', $newapikey, 'local_appcrue');
+        // Record the rotation time.
+        set_config('api_key_last_rotation', time(), 'local_appcrue');
+        debugging("API key updated from {$oldapikey} to {$newapikey}", DEBUG_NORMAL);
     }
 }

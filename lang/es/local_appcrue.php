@@ -94,6 +94,10 @@ $string['lmsappcrue:enable_api_key_rotation'] = 'Habilitar endpoint de rotación
 $string['lmsappcrue:enable_api_key_rotation_help'] = 'El endpoint de rotación de clave API permite a AppCRUE cambiar periódicamente la clave API usada por AppCRUE.';
 $string['lmsappcrue:enable_assignments'] = 'Habilitar endpoint de tareas';
 $string['lmsappcrue:enable_assignments_help'] = 'Habilitar endpoint de tareas para compartir las tareas del usuario con API LMS-AppCRUE (con clave API).';
+$string['lmsappcrue:enable_autoconfig_appcrue'] = 'Habilitar procedimiento de autoconfiguración AppCRUE';
+$string['lmsappcrue:enable_autoconfig_appcrue_help'] = '<p>El procedimiento de autoconfiguración facilita la configuración inicial de conexión con AppCRUE: ' .
+    'Añade las IPs oficiales de los servidores de AppCRUE, activa el servicio de rotación de claves y almacena la primera clave API recibida desde AppCRUE.' .
+    ' Solo se aceptan claves desde los servidores oficiales de AppCRUE o añadidos manualmente por el administrador.</p><p> Para completar la configuración, debe hacerse alguna solicitud de los componentes de LMS de la aplicación móvil AppCRUE.</p>';
 $string['lmsappcrue:enable_files'] = 'Habilitar endpoint de archivos';
 $string['lmsappcrue:enable_files_help'] = 'Habilitar endpoint de archivos para notificar archivos y compartir enlaces de descarga.';
 $string['lmsappcrue:enable_forums'] = 'Habilitar endpoint de foros';

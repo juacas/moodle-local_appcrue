@@ -42,6 +42,8 @@ header('X-Content-Type-Options: nosniff');
 $PAGE->set_context(null);
 
 try {
+    // Check autoconfig mode.
+    appcrue_service::check_autoconfig_mode();
     // Check network restrictions.
     $networkhelper = new \local_appcrue\network_security_helper();
     if (!$networkhelper->is_request_in_list()) {

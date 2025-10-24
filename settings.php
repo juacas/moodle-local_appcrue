@@ -26,9 +26,23 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+use local_appcrue\appcrue_service;
+
 if ($hassiteconfig) {
+    global $CFG;
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
+    // Switch to activate autoconfiguration mode of the APIKey.
+    // If activated  the next apikey request will set the api_key.
+    // After a new API key is stored, the switch will be disabled.
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'local_appcrue/lmsappcrue_enable_autoconfig',
+            get_string('lmsappcrue:enable_autoconfig_appcrue', 'local_appcrue'),
+            get_string('lmsappcrue:enable_autoconfig_appcrue_help', 'local_appcrue'),
+            false
+        )
+    );
 
     // API KEY for directa access without token.
     // Generate a deafult as an example.
@@ -67,7 +81,7 @@ if ($hassiteconfig) {
         'local_appcrue/api_authorized_networks',
         get_string('lmsappcrue:api_authorized_networks', 'local_appcrue'),
         get_string('lmsappcrue:api_authorized_networks_help', 'local_appcrue'),
-        '',
+        join("\n", appcrue_service::APPCRUE_SERVERS),
         PARAM_TEXT,
         60,
         2

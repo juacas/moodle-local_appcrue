@@ -37,6 +37,12 @@ abstract class appcrue_service {
     const INVALID_PARAMETER = 5;
     const UNKNOWN_ENDPOINT = 6;
 
+    const APPCRUE_SERVERS = ['18.202.186.178',
+                            '52.31.215.134',
+                            '54.246.105.224',
+                            '63.34.94.66',
+                            '62.99.4.94'];
+
 // phpcs:enable moodle.Commenting.MissingDocblock.Constant
 
     /**
@@ -107,6 +113,35 @@ abstract class appcrue_service {
      * Default implementation: no arguments.
      */
     public function configure_from_request() {
+    }
+    /**
+     * Check autoconfig mode.
+     * If autoconfig mode is enabled, ensure appcrue IPs are in the allowed network list
+     * and process the request to set the API key.
+     * Then disable autoconfig mode.
+     */
+    public static function check_autoconfig_mode() {
+        $autoconfigenabled = get_config('local_appcrue', 'lmsappcrue_enable_autoconfig');
+        if ($autoconfigenabled) {
+            // Ensure appcrue IPs are in the allowed network list.
+            $allowednetworks = get_config('local_appcrue', 'api_authorized_networks');
+            $allowednetworksarray = array_map('trim', explode("\n", $allowednetworks));
+            foreach (self::APPCRUE_SERVERS as $ip) {
+                if (!in_array($ip, $allowednetworksarray)) {
+                    $allowednetworksarray[] = $ip;
+                }
+            }
+            // Save updated allowed networks.
+            $newallowednetworks = implode("\n", $allowednetworksarray);
+            set_config('api_authorized_networks', $newallowednetworks, 'local_appcrue');
+            // Process the request to set the new API key.
+            $apikey = required_param('apikey', PARAM_ALPHANUM);
+            keyrotation_service::rotate_key('AUTOCONFIG', $apikey);
+            // Enable rotatekey service.
+            set_config('enable_api_rotation', 1, 'local_appcrue');
+            // Disable autoconfig mode.
+            set_config('lmsappcrue_enable_autoconfig', 0, 'local_appcrue');
+        }
     }
     /**
      * Identify the service from the request.
