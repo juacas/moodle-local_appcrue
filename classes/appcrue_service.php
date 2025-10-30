@@ -135,7 +135,7 @@ abstract class appcrue_service {
             $newallowednetworks = implode("\n", $allowednetworksarray);
             set_config('api_authorized_networks', $newallowednetworks, 'local_appcrue');
             // Process the request to set the new API key.
-            $apikey = required_param('apikey', PARAM_ALPHANUM);
+            $apikey = local_appcrue_get_apikey_param(true);
             keyrotation_service::rotate_key('AUTOCONFIG', $apikey);
             // Enable rotatekey service.
             set_config('enable_api_rotation', 1, 'local_appcrue');

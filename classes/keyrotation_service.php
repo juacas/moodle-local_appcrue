@@ -58,7 +58,7 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
      * @return void
      */
     public function identify_from_request() {
-        $this->oldapikey = optional_param('apikey', "", PARAM_ALPHANUMEXT);
+        $this->oldapikey = local_appcrue_get_apikey_param(required: true);
         if (!$this->oldapikey || ! local_appcrue_is_apikey_valid($this->oldapikey)) {
             throw new \exception('Invalid API key provided.', self::INVALID_API_KEY);
         }

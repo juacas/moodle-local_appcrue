@@ -43,13 +43,14 @@ if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) 
  * @return [stdClass|null, stdClass, ?string] the user and the diagnostic object.
  */
 function local_appcrue_get_user_from_request(): array {
-    $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
-    // Accept both 'studentemail' and legacy 'user' parameter for backward compatibility.
+    // Get apikey.
+    $apikey = local_appcrue_get_apikey_param(required: false);
+    // Accept both 'studentemail' and 'user' parameter for backward compatibility.
     $iduser = optional_param('studentemail', '', PARAM_RAW);
     if (empty($iduser)) {
         $iduser = optional_param('user', '', PARAM_RAW);
     }
-    $token = local_appcrue_get_token_param();
+    $token = local_appcrue_get_token_param(required: false);
     $user = null;
     // Reporting object.
     $diag = new stdClass();
@@ -148,10 +149,32 @@ function local_appcrue_get_token_param($required = false): string {
         }
     }
     if ($required && empty($token)) {
-        throw new moodle_exception('missingtoken', 'local_appcrue');
+        throw new Exception('Missing token', appcrue_service::MISSING_WS_TOKEN);
     }
     return $token;
 }
+/**
+ * Get apikey from:
+ * a) the apikey parameter.
+ * b) the request in header: 'X-API-KEY: value'
+ * *
+ * @return string the apikey from the request or empty string.
+ */
+function local_appcrue_get_apikey_param($required = false): string {
+    $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
+    if (empty($apikey)) {
+        // Try to extract an API key from the headers.
+        $headers = getallheaders();
+        if (isset($headers['X-API-KEY'])) {
+            $apikey = $headers['X-API-KEY'];
+        }
+    }
+    if ($required && empty($apikey)) {
+        throw new Exception('Invalid API Key', appcrue_service::INVALID_API_KEY);
+    }
+    return $apikey;
+}
+
 /**
  * Validate token and return the matchvalue.
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
