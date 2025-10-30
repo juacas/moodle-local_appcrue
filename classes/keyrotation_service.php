@@ -44,7 +44,7 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
             throw new \exception('API key rotation is not enabled.');
         }
         // Read the new API key from the request.
-        $this->newapikey = required_param('newapikey', PARAM_ALPHANUMEXT);
+        $this->newapikey = optional_param('newapikey', "", PARAM_ALPHANUMEXT);
         if (!$this->newapikey) {
             throw new \exception('New API key is required.', self::INVALID_PARAMETER);
         }
@@ -58,7 +58,7 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
      * @return void
      */
     public function identify_from_request() {
-        $this->oldapikey = required_param('apikey', PARAM_ALPHANUMEXT);
+        $this->oldapikey = optional_param('apikey', "", PARAM_ALPHANUMEXT);
         if (!$this->oldapikey || ! local_appcrue_is_apikey_valid($this->oldapikey)) {
             throw new \exception('Invalid API key provided.', self::INVALID_API_KEY);
         }
