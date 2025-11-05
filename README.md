@@ -21,6 +21,7 @@ This plugin implements a set of REST endpoints to provide information for a spec
 - local/appcrue/appcrue.php/files: provides files downloadable by a user. Parameters: apikey, userid.
 - local/appcrue/appcrue.php/grades: provides grades for a user. Parameters: apikey, userid.
 - local/appcrue/appcrue.php/announcements: provides announcements for a user (news forums). Parameters: apikey, userid.
+- local/appcrue/appcrue.php/rotatekey: rotates the API key used by AppCRUE to call the LMS APIs. Parameters: apikey (current), newapikey.
 
 This local plugin provides the following services following the AppCRUE API:
 
@@ -151,14 +152,16 @@ https://[SERVER]/admin/settings.php?section=webservicesoverview
 
 After installing the `local_appcrue` plugin, configure it at:
 
-Site administration → Plugins → Local plugins → AppCrue Connection Services  
+Site administration → Plugins → Local plugins → AppCrue Connection Services
 or: `https://[YOUR_MOODLE_SITE]/admin/settings.php?section=local_appcrue`
+Each setting has a help icon with more information.
 
 General settings
+- Autoconfig mode: enable to let AppCRUE configure the plugin automatically on first API call.
 - API Key: shared secret used by AppCRUE backend to call LMS API endpoints.
+- API key rotation: enable if AppCRUE should be allowed to rotate the API key.
 - Authorized networks: list of IP addresses / CIDR ranges (one per line) allowed to call the LMS API.
 - Enable/disable per-service switches (calendar, forums, files, grades, announcements, sitemap, avatar, autologin, notifications, assignments).
-- API key rotation: enable if AppCRUE should be allowed to rotate the API key.
 
 LMS API (widget integration)
 - Calendar
@@ -177,7 +180,7 @@ LMS API (widget integration)
   - Enable news/forum announcements endpoint.
 
 Autologin
-- Enable autologin endpoint (token-based).
+- Enable autologin endpoint (token-based). Need to have a IdP token-user resolver endpoint.
 - Token mark: decide whether tokens arrive as URL parameter or bearer header.
 - Fallback behavior on invalid/missing token: `ignore/continue`, `logout`, or `error`.
 - Optional pattern library and course lookup SQL pattern to build deep links.
