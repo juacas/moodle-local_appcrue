@@ -165,12 +165,16 @@ function local_appcrue_get_apikey_param($required = false): string {
     if (empty($apikey)) {
         // Try to extract an API key from the headers.
         $headers = getallheaders();
-        if (isset($headers['X-API-KEY'])) {
+        if (isset($_SERVER['HTTP_X_API_KEY'])) {
+            $apikey = $_SERVER['HTTP_X_API_KEY'];
+        } else if (isset($headers['X-API-KEY'])) {
             $apikey = $headers['X-API-KEY'];
+        } else if (isset($headers['X-Api-Key'])) {
+            $apikey = $headers['X-Api-Key'];
         }
     }
     if ($required && empty($apikey)) {
-        throw new Exception('Invalid API Key', appcrue_service::INVALID_API_KEY);
+        throw new Exception('Missing API Key', appcrue_service::INVALID_API_KEY);
     }
     return $apikey;
 }

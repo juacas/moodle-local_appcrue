@@ -15,20 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version file.
+ * Install script for AppCrue connection services
+ *
+ * Documentation: {@link https://moodledev.io/docs/guides/upgrade}
  *
  * @package    local_appcrue
- * @copyright  2021 University of Valladolid, Spain & Altia Consultores S.L.
- * @author     Juan Pablo de Castro <juanpablo.decastro@uva.es>, Alberto Otero <alberto.otero@altia.es>
+ * @copyright  2025 Juan Pablo de Castro <juan.pablo.de.castro@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version      = 2026011200;
-$plugin->requires     = 2022112802;   // Moodle 4.1.
-$plugin->component    = 'local_appcrue';
-$plugin->maturity     = MATURITY_STABLE;
-$plugin->release      = 'v2.0.2';
-$plugin->dependencies = [
-];
+/**
+ * Executed on installation of AppCrue connection services
+ *
+ * @return bool
+ */
+function xmldb_local_appcrue_install() {
+    echo get_string('welcome_message', 'local_appcrue');
+    return true;
+}

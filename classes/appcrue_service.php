@@ -41,7 +41,7 @@ abstract class appcrue_service {
                             '52.31.215.134',
                             '54.246.105.224',
                             '63.34.94.66',
-                            '62.99.4.94'];
+                            ];
 
 // phpcs:enable moodle.Commenting.MissingDocblock.Constant
 

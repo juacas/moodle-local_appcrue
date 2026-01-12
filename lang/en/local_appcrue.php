@@ -84,7 +84,7 @@ $string['lmsappcrue:api_authorized_networks_help'] = 'List of networks that are 
 $string['lmsappcrue:api_key'] = 'API key';
 $string['lmsappcrue:api_key_help'] = 'API key to access the AppCrue services. It is used to identify the app that is invoking the service without user tokens.';
 $string['lmsappcrue:api_key_rotated'] = 'API key rotated at {$a}';
-$string['lmsappcrue:api_key_warning'] = 'A remote system used an unknown api_key "{$a}" while accessing the endpoints. If you are setting up the API key for the first time or have lost it, if you trust the services with access to the endpoint (e.g. due to network filters), you can use this value to configure it in the plugin settings.';
+$string['lmsappcrue:api_key_warning'] = 'AppCRUE: A remote system used an unknown api_key "{$a}" while accessing the endpoints. If you are setting up the API key for the first time or have lost it, if you trust the services with access to the endpoint (e.g. due to network filters), you can use this value to configure it in the plugin settings.';
 $string['lmsappcrue:assignments'] = 'AppCRUE assignments';
 $string['lmsappcrue:assignments_help'] = 'Expose the user assignments to AppCRUE. This endpoint allows AppCRUE to retrieve the user assignments and their due dates and status.';
 $string['lmsappcrue:calendar:enable_calendar'] = 'Enable calendar LMS-AppCRUE endpoint';
@@ -138,3 +138,15 @@ $string['privacy:metadata'] = 'The "AppCrue connection services" plugin does not
 
 $string['sitemapheader'] = 'Sitemap service';
 $string['sitemapheader_help'] = 'Generates a JSON structure of categories and courses with many options. This can be used for feeding navigation widget in AppCRUE.';
+$string['welcome_message'] = '<h3>Welcome to AppCrue connection services!</h3>'.
+    '<p>This plugin allows the integration of Moodle with AppCrue mobile applications. ' .
+    'It provides services for autologin, avatar retrieval, sitemap generation, and LMS-AppCrue API integration.</p>' .
+    '<p>Please configure the plugin settings to connect your Moodle site with AppCrue services.</p>'.
+    '<h3>Autoconfiguring LMS-AppCrue API</h3>'.
+    '<p>To autoconfigure the LMS-AppCrue API integration, please follow these steps:</p>'.
+    '<ol>' .
+    '<li>Ensure that your Moodle site is registered with UNIVERSIA and accessible from the AppCrue servers.</li>'.
+    '<li>Enable the "Enable AppCRUE autoconfig procedure" setting in the plugin configuration.</li>'.
+    '<li>From the AppCrue mobile app, click on any widget with Moodle information to initiate connection to your Moodle site.</li>'.
+    '<li>The plugin will automatically add the official AppCrue server IPs, enable the key rotation service, and store the first API key received from AppCrue.</li>'.
+    '</ol>';
