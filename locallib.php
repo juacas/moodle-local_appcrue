@@ -181,6 +181,24 @@ function local_appcrue_get_apikey_param($required = false): string {
 
 /**
  * Validate token and return the matchvalue.
+ * If the token resolutionservice is appcrue endpoint: https://appuniversitaria.universia.net/api/external/v3/users/info
+ * With POST body:
+ *  {
+ *           "import_token" : "university_id_code",
+ *           "token" : "university_api_token",
+ *           "user_token" : "appcrue_user_token"
+ *       }
+ * That returns:
+ * {
+ *       "id": 123456,
+ *       "username": "the_user_name",
+ *       "email": "email@sample.com",
+ *       "document_type": "DNI",
+ *       "document": "11111111H",
+ *       "nia": "123456789"
+ *  }
+ * From that JSON response we extract the value configured in idp_user_json_path.
+ *
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
@@ -196,25 +214,42 @@ function local_appcrue_validate_token($token) {
     // Check if custom or default idp server.
     if (get_config('local_appcrue', 'use_custom_idp') == false) {
         // Default AppCRUE userdata endpoint.
-        $idpurl = 'https://api.appcrue.es/api/userprofile';
+        $idpurl = 'https://appuniversitaria.universia.net/api/external/v3/users/info';
+        // Prepare curl POST request.
+        $curl = new \curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_CONNECTTIMEOUT' => 5,
+            'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
+        ];
+        $postdata = json_encode([
+            'import_token' => get_config('local_appcrue', 'appcrue_appid'),
+            'token' => get_config('local_appcrue', 'appcrue_apptoken'),
+            'user_token' => $token
+        ]);
+        $curl->setHeader(["Content-Type: application/json"]);
+        $result = $curl->post($idpurl, $postdata, $options);
+        $statuscode = $curl->get_info()['http_code'];
+        // Debugging info for response.
+        $returnstatus->code = $statuscode;
+        $returnstatus->result = $result;
     } else {
         // Custom IDP server.
         // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
         $idpurl = get_config('local_appcrue', 'idp_token_url');
+        $curl = new \curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_CONNECTTIMEOUT' => 5,
+            'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
+        ];
+        $curl->setHeader(["Authorization: Bearer $token"]);
+        $result = $curl->get($idpurl, null, $options);
+        $statuscode = $curl->get_info()['http_code'];
+        // Debugging info for response.
+        $returnstatus->code = $statuscode;
+        $returnstatus->result = $result;
     }
-
-    $curl = new \curl();
-    $options = [
-        'CURLOPT_RETURNTRANSFER' => true,
-        'CURLOPT_CONNECTTIMEOUT' => 5,
-        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
-    ];
-    $curl->setHeader(["Authorization: Bearer $token"]);
-    $result = $curl->get($idpurl, null, $options);
-    $statuscode = $curl->get_info()['http_code'];
-    // Debugging info for response.
-    $returnstatus->code = $statuscode;
-    $returnstatus->result = $result;
 
     // Extract a matchvalue of the token from the idp.
     if ($statuscode == 200) {

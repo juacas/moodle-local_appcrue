@@ -99,8 +99,8 @@ if ($hassiteconfig) {
     $settings->add(
         new admin_setting_heading(
             'local_appcrue/idp_header',
-            get_string('idpheader', 'local_appcrue'),
-            get_string('idpheader_help', 'local_appcrue')
+            get_string('idp:header', 'local_appcrue'),
+            get_string('idp:header_help', 'local_appcrue')
         )
     );
     // IdP configuration.
@@ -109,15 +109,33 @@ if ($hassiteconfig) {
     // Use custom IdP.
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/use_custom_idp',
-        get_string('idp_use_custom_idp', 'local_appcrue'),
-        get_string('idp_use_custom_idp_help', 'local_appcrue'),
+        get_string('idp:use_custom_idp', 'local_appcrue'),
+        get_string('idp:use_custom_idp_help', 'local_appcrue'),
         false
     ));
+    // Appcrue AppId.
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/appcrue_appid',
+        get_string('idp:client_id', 'local_appcrue'),
+        get_string('idp:client_id_help', 'local_appcrue'),
+        'MoodleAppCrue',
+        PARAM_ALPHANUMEXT
+    ));
+    $settings->hide_if('local_appcrue/appcrue_appid', 'local_appcrue/use_custom_idp', 'eq', 1);
+    // Appcrue API Token.
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/appcrue_apptoken',
+        get_string('idp:client_secret', 'local_appcrue'),
+        get_string('idp:client_secret_help', 'local_appcrue'),
+        '',
+        PARAM_ALPHANUMEXT
+    ));
+    $settings->hide_if('local_appcrue/appcrue_apptoken', 'local_appcrue/use_custom_idp', 'eq', 1);
 
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',
-        get_string('idp_token_url', 'local_appcrue'),
-        get_string('idp_token_url_help', 'local_appcrue'),
+        get_string('idp:token_url', 'local_appcrue'),
+        get_string('idp:token_url_help', 'local_appcrue'),
         'https://idp.uva.es/api/adas/oauth2/tokendata',
         PARAM_URL
     ));
@@ -127,9 +145,9 @@ if ($hassiteconfig) {
     // Select mapping field from json.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_user_json_path',
-        get_string('idp_user_json_path', 'local_appcrue'),
-        get_string('idp_user_json_path_help', 'local_appcrue'),
-        '.USUARIO_MOODLE',
+        get_string('idp:user_json_path', 'local_appcrue'),
+        get_string('idp:user_json_path_help', 'local_appcrue'),
+        '.username',
         PARAM_RAW_TRIMMED
     ));
 
