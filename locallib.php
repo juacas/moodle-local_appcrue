@@ -223,9 +223,9 @@ function local_appcrue_validate_token($token) {
             'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
         ];
         $postdata = json_encode([
-            'import_token' => get_config('local_appcrue', 'appcrue_appid'),
+            'import_code' => get_config('local_appcrue', 'appcrue_appid'),
             'token' => get_config('local_appcrue', 'appcrue_apptoken'),
-            'user_token' => $token
+            'user_token' => $token,
         ]);
         $curl->setHeader(["Content-Type: application/json"]);
         $result = $curl->post($idpurl, $postdata, $options);
