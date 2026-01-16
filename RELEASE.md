@@ -2,8 +2,10 @@
 AppCRUE — Release notes
 =======================
 
-v2.0.1 — 2026-01-12
+v2.0.2 — 2026-01-12
 - Fix API key extraction from headers to handle different casing and server variables.
+
+v2.0.1 — 2025-11-05
 - 2025-10-30 — Add API key support in header `X-API-KEY` and adjust HTTP status handling.
 - 2025-10-24 — Auto configuration mode added.
 
