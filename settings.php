@@ -194,8 +194,8 @@ if ($hassiteconfig) {
         'bearer',
         [
             '' => get_string('autologin:deep_url_token_mark_disabled', 'local_appcrue'),
-            'appcruebearer' => get_string('autologin:deep_url_token_mark_appcruebearer', 'local_appcrue'),
-            'appcruetoken' => get_string('autologin:deep_url_token_mark_appcruetoken', 'local_appcrue'),
+            'appcrue_bearer' => get_string('autologin:deep_url_token_mark_appcruebearer', 'local_appcrue'),
+            'appcrue_token' => get_string('autologin:deep_url_token_mark_appcruetoken', 'local_appcrue'),
             'bearer' => get_string('autologin:deep_url_token_mark_bearer', 'local_appcrue'),
             'token' => get_string('autologin:deep_url_token_mark_token', 'local_appcrue'),
         ]

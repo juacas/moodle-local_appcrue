@@ -276,6 +276,9 @@ function local_appcrue_validate_token($token) {
  */
 function appcrue_find_user($fieldname, $matchvalue) {
     global $DB;
+    if (empty($matchvalue)) {
+        return false;
+    }
     // First check in standard fieldnames.
     $fields = get_user_fieldnames();
     if (array_search($fieldname, $fields) !== false) {
@@ -315,11 +318,11 @@ function appcrue_find_user($fieldname, $matchvalue) {
  * @param string $url the url to be enveloped.
  * @param string|null $token the token to be used.
  * @param string|null $tokenmark the mark to be used in the url if $token is nos provided.
- *                               Can be bearer|token|appcruebearer|appcruetoken
+ *                               Can be bearer|token|appcrue_bearer|appcrue_token
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
-function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcruebearer', $fallback = 'continue') {
+function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcrue_bearer', $fallback = 'continue') {
     $params = [];
     if (!$token && !$tokenmark) {
         return $url; // No token, no mark, return the original URL.
@@ -338,11 +341,11 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcru
         case 'bearer':
             $tokenmarksufix = '&<bearer>';
             break;
-        case 'appcruebearer':
-            $tokenmarksufix = '&<appcruebearer>';
+        case 'appcrue_bearer':
+            $tokenmarksufix = '&<appcrue_bearer>';
             break;
-        case 'appcruetoken':
-            $tokenmarksufix = '&token=<appcruetoken>';
+        case 'appcrue_token':
+            $tokenmarksufix = '&token=<appcrue_token>';
             break;
     }
 
