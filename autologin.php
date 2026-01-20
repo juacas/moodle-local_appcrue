@@ -26,8 +26,6 @@
 
 // Define AJAX_SCRIPT to avoid debug messages in output.
 define('AJAX_SCRIPT', true);
-// Do not start a session / cookies for this endpoint to avoid MFA redirect checks.
-define('NO_MOODLE_COOKIES', true);
 
 require_once(__DIR__ . '/../../config.php');
 require_once('locallib.php');
