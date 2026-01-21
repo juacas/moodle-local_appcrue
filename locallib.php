@@ -116,7 +116,7 @@ function local_appcrue_get_user_by_token($token) {
     $returnstatus->code = $tokenstatus->code;
     $returnstatus->result = $tokenstatus->result;
     // Get user.
-    if ($returnstatus->code == 401) {
+    if ($returnstatus->code != 200) {
         $user = null;
         $returnstatus->status = 'error';
     } else {
@@ -264,6 +264,8 @@ function local_appcrue_validate_token($token) {
         // Do not break the output: debugging($returnstatus->result, DEBUG_NORMAL);.
         $matchvalue = false;
     } else {
+        $matchvalue = false;
+        $returnstatus->result = "IDP returned status code: {$statuscode}";
         debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
     }
     return [$matchvalue, $returnstatus];
