@@ -35,6 +35,10 @@ $string['autologin:deep_url_token_mark_disabled'] = 'No autologin URLs';
 $string['autologin:deep_url_token_mark_help'] = 'The token mark to use in the deep URLs: "token" tells the app to use the token in the URL as a query parameter. "bearer" tells the app to use the token in the Authorization header.';
 $string['autologin:deep_url_token_mark_token'] = 'Univesrsity\'s token in URL query parameter';
 $string['autologin:err_deepurltokenmark_customidp'] = 'The selected token mark is not compatible with the AppCRUE autologin configuration. Please select a AppCRUE tokens only.';
+$string['autologin:notauthenticated'] = 'Redirection not authorized. Try to reopen the session in the App and try again. If the problem persists, contact the site administrator.';
+$string['autologin:use_redirection_page'] = 'Use a redirection page instead of HTTP 303';
+$string['autologin:use_redirection_page_help'] = 'If enabled, autologin will use a redirection page instead of an HTTP 303 redirect. ' .
+    'Mark this option if your server has issues with recognizing new sessions in redirects.';
 $string['autologinheader'] = 'Auto-login service';
 $string['autologinheader_help'] = 'Allows the users to jump into Moodle from the AppCrue.';
 $string['avatarheader'] = 'Avatar service';
@@ -69,18 +73,18 @@ $string['enable_avatar_help'] = 'Avatar service takes a user\'s token, verifies 
 $string['enable_sitemap'] = 'Enable sitemap service';
 $string['enable_sitemap_help'] = 'Sitemap service generates a JSON representation of the categories and courses.';
 $string['idp:client_id'] = 'Client ID for the IDP';
-$string['idp:client_id_help'] = 'Client ID for the IDP to invoke the user token service.';
+$string['idp:client_id_help'] = 'Client ID for the IDP to invoke the user token service. It is "import_code" in AppCrue.';
 $string['idp:client_secret'] = 'Client secret for the IDP';
-$string['idp:client_secret_help'] = 'Client secret for the IDP to invoke the user token service.';
+$string['idp:client_secret_help'] = 'Client secret for the IDP to invoke the user token service. It is "token" in AppCrue.';
 $string['idp:token_url'] = 'Endpoint for token resolution';
 $string['idp:token_url_help'] = 'URL of the IDP service to resolve user identity from the token.';
 $string['idp:url'] = 'URL of the IDP';
 $string['idp:url_help'] = 'URL of the IDP to invoke the user token service.';
 $string['idp:use_custom_idp'] = 'Use custom IdP';
 $string['idp:use_custom_idp_help'] = 'If enabled, a custom Identity Provider endpoint will be used to validate the tokens provided by AppCrue. The custom IdP must implement an OAuth2 token introspection endpoint that returns user identity information in JSON format. ' .
-                                     'If disabled, the default AppCrue IdP will be used. AppCRUE service will return user fields: id, username, email, document_type, document, nia.';
+                                     'If disabled, the default AppCrue IdP will be used. AppCRUE service will return user fields: .id, .username, .email, .document, .nia.';
 $string['idp:user_json_path'] = 'Selector in the IDP response.';
-$string['idp:user_json_path_help'] = 'Selector like jsonpath to identify the value to identify the user.';
+$string['idp:user_json_path_help'] = 'Selector like jsonpath to identify the value to identify the user. Values for AppCrue Idp can be ".id", ".username", ".email", ".document", ".nia".';
 $string['idp:header'] = 'Verification of tokens';
 $string['idp:header_help'] = 'AppCrue token verification service configuration. This functionality is for institutions that use an OAuth IdP.';
 

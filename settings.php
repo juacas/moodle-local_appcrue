@@ -210,13 +210,20 @@ if ($hassiteconfig) {
     });
     $settings->add($tokenmarksetting);
 
-
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/allow_continue',
         get_string('allow_continue', 'local_appcrue'),
         get_string('allow_continue_help', 'local_appcrue'),
         true
     ));
+    // Check for forcing page redirection.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/use_redirection_page',
+        get_string('autologin:use_redirection_page', 'local_appcrue'),
+        get_string('autologin:use_redirection_page_help', 'local_appcrue'),
+        false
+    ));
+
     $settings->add(new admin_setting_configtext(
         'local_appcrue/course_pattern',
         get_string('course_pattern', 'local_appcrue'),

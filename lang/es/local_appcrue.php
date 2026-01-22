@@ -35,6 +35,10 @@ $string['autologin:deep_url_token_mark_bearer'] = 'Token de la universidad en el
 $string['autologin:deep_url_token_mark_disabled'] = 'Sin URLs de autologin';
 $string['autologin:deep_url_token_mark_help'] = 'La marca de token a usar en las URLs profundas: "token" indica a la app usar el token en la URL como parámetro de consulta. "bearer" indica a la app usar el token en el header Authorization.';
 $string['autologin:deep_url_token_mark_token'] = 'Token de la universidad en el parámetro de consulta de la URL';
+$string['autologin:notauthenticated'] = 'Redirección no autorizada. Intente cerrar y reabrir la sesión en la aplicación y vuelva a intentarlo. Si el problema persiste, contacte al administrador del sitio.';
+$string['autologin:use_redirection_page'] = 'Usar una página de redirección en lugar de HTTP 303';
+$string['autologin:use_redirection_page_help'] = 'Si está habilitado, autologin realizará la redirección mediante una página de redirección en lugar de una redirección HTTP 303.' .
+    ' Marque esta opción si su servidor tiene problemas para reconocer nuevas sesiones en las redirecciones.';
 $string['autologinheader'] = 'Servicio de auto-login';
 $string['autologinheader_help'] = 'Permite a los usuarios saltar a Moodle desde AppCrue.';
 $string['avatarheader'] = 'Servicio de avatar';
@@ -69,9 +73,11 @@ $string['enable_avatar_help'] = 'El servicio de avatar toma el token de un usuar
 $string['enable_sitemap'] = 'Habilitar servicio de mapa de sitio';
 $string['enable_sitemap_help'] = 'El servicio de mapa de sitio genera una representación JSON de las categorías y cursos.';
 $string['idp:client_id'] = 'Client ID para el IDP';
-$string['idp:client_id_help'] = 'Client ID para el IDP para invocar el servicio de token de usuario.';
+$string['idp:client_id_help'] = 'Client ID para el IDP para invocar el servicio de token de usuario. Es "import_code" en AppCrue.';
 $string['idp:client_secret'] = 'Client secret para el IDP';
-$string['idp:client_secret_help'] = 'Client secret para el IDP para invocar el servicio de token de usuario.';
+$string['idp:client_secret_help'] = 'Client secret para el IDP para invocar el servicio de token de usuario. Es "token" en AppCrue.';
+$string['idp:header'] = 'Verificación de tokens';
+$string['idp:header_help'] = 'Configuración del servicio de verificación de tokens de AppCrue. Esta funcionalidad es para instituciones que usan un IdP OAuth.';
 $string['idp:token_url'] = 'Endpoint para resolución de token';
 $string['idp:token_url_help'] = 'URL del servicio IDP para resolver la identidad del usuario desde el token.';
 $string['idp:url'] = 'URL del IDP';
@@ -80,9 +86,7 @@ $string['idp:use_custom_idp'] = 'Usar IdP personalizado';
 $string['idp:use_custom_idp_help'] = 'Si está habilitado, se utilizará un endpoint de Proveedor de Identidad personalizado para validar los tokens proporcionados por AppCrue. El IdP personalizado debe implementar un endpoint de introspección de token OAuth2 que devuelva información de identidad del usuario en formato JSON. ' .
         'Si está deshabilitado, se utilizará el IdP predeterminado de AppCrue. El servicio servicio AppCRUE devolverá los campos de usuario: id, username, email, document_type, document, nia.';
 $string['idp:user_json_path'] = 'Selector en la respuesta del IDP.';
-$string['idp:user_json_path_help'] = 'Selector como jsonpath para identificar el valor para identificar al usuario.';
-$string['idp:header'] = 'Verificación de tokens';
-$string['idp:header_help'] = 'Configuración del servicio de verificación de tokens de AppCrue. Esta funcionalidad es para instituciones que usan un IdP OAuth.';
+$string['idp:user_json_path_help'] = 'Selectr como jsonpath para identificar el valor para identificar al usuario. Los valores para el Idp de AppCrue pueden ser ".id", ".username", ".email", ".document", ".nia".';
 $string['lmsappcrue:announcements'] = 'Anuncios AppCRUE';
 $string['lmsappcrue:announcements_help'] = 'Exponer los anuncios del usuario a AppCRUE vía API LMS-AppCRUE (con clave API).';
 $string['lmsappcrue:api_authorized_networks'] = 'Redes autorizadas para API';
@@ -143,15 +147,15 @@ $string['pluginname'] = 'Servicios de conexión AppCrue';
 $string['privacy:metadata'] = 'El plugin "Servicios de conexión AppCrue" no almacena ningún dato personal.';
 $string['sitemapheader'] = 'Servicio de mapa de sitio';
 $string['sitemapheader_help'] = 'Genera una estructura JSON de categorías y cursos con muchas opciones. Esto puede ser usado para alimentar el widget de navegación en AppCRUE.';
-$string['welcome_message'] = '<h3>Bienvenido a los servicios de conexión de AppCrue!</h3>'.
+$string['welcome_message'] = '<h3>Bienvenido a los servicios de conexión de AppCrue!</h3>' .
     '<p>Este plugin permite la integración de Moodle con las aplicaciones móviles de AppCrue. ' .
     'Proporciona servicios para autologin, recuperación de avatar, generación de mapas de sitio e integración de la API LMS-AppCrue.</p>' .
-    '<p>Por favor, configure los ajustes del plugin para conectar su sitio Moodle con los servicios de AppCrue.</p>'.
-    '<h3>Autoconfiguración de la API LMS-AppCrue</h3>'.
-    '<p>Para autoconfigurar la integración de la API LMS-AppCrue, siga estos pasos:</p>'.
+    '<p>Por favor, configure los ajustes del plugin para conectar su sitio Moodle con los servicios de AppCrue.</p>' .
+    '<h3>Autoconfiguración de la API LMS-AppCrue</h3>' .
+    '<p>Para autoconfigurar la integración de la API LMS-AppCrue, siga estos pasos:</p>' .
     '<ol>' .
-    '<li>Asegúrese de que su sitio Moodle esté registrado en UNIVERSIA y sea accesible desde los servidores de AppCrue.</li>'.
-    '<li>Habilite la configuración "Habilitar procedimiento de autoconfiguración de AppCRUE" en la configuración del plugin.</li>'.
-    '<li>Desde la aplicación móvil AppCrue, inicie una petición de un widget con información de Moodle.</li>'.
-    '<li>El plugin agregará automáticamente las IP oficiales de los servidores de AppCrue, habilitará el servicio de rotación de claves y almacenará la primera clave API recibida de AppCrue.</li>'.
+    '<li>Asegúrese de que su sitio Moodle esté registrado en UNIVERSIA y sea accesible desde los servidores de AppCrue.</li>' .
+    '<li>Habilite la configuración "Habilitar procedimiento de autoconfiguración de AppCRUE" en la configuración del plugin.</li>' .
+    '<li>Desde la aplicación móvil AppCrue, inicie una petición de un widget con información de Moodle.</li>' .
+    '<li>El plugin agregará automáticamente las IP oficiales de los servidores de AppCrue, habilitará el servicio de rotación de claves y almacenará la primera clave API recibida de AppCrue.</li>' .
     '</ol>';
