@@ -49,7 +49,6 @@ try {
     [$user, $diag] = local_appcrue_get_user_by_token($token);
     if ($user == null && $fallback == 'error') {
         // Set status code 401 and show error.
-        header('HTTP/1.0 401 Unauthorized ' . ($diag->result ?? ''));
         echo $OUTPUT->header();
         echo $OUTPUT->heading('No autorizado: ' . ($diag->result ?? ''));
         echo $OUTPUT->footer();
@@ -84,12 +83,10 @@ try {
     $param3 = optional_param('param3', null, PARAM_ALPHANUMEXT);
 
     $urltogo = local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3);
-    if ($urltogo != null) {
-        $urltogo = $CFG->wwwroot;
-    }
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading('Redirigiendo: ' . $urltogo->out(false));
     // Redirect or show a redirection page.
     redirect($urltogo, 'Identificando usuario en destino', 3);
-
 } catch (moodle_exception $e) {
     header('HTTP/1.0 400 Bad Request: ' . $e->getMessage());
 }
