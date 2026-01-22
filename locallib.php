@@ -200,9 +200,10 @@ function local_appcrue_get_apikey_param($required = false): string {
  * From that JSON response we extract the value configured in idp_user_json_path.
  *
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
+ * @param bool $degug if true, enables debugging output.
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
-function local_appcrue_validate_token($token) {
+function local_appcrue_validate_token($token, $debug = false): array {
     if (empty($token)) {
         return [false, (object)['code' => 401, 'result' => 'Token is empty']];
     }
@@ -257,16 +258,23 @@ function local_appcrue_validate_token($token) {
         $matchvalue = local_appcrue_get_json_node($result, $jsonpath);
         if ($matchvalue == false) {
             $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
-            debugging($returnstatus->result, DEBUG_NORMAL);
+            if ($debug) {
+                debugging($returnstatus->result, DEBUG_NORMAL);
+            }
         }
     } else if ($statuscode == 401) {
         $returnstatus->result = "Permission denied for the token: {$token}";
         // Do not break the output: debugging($returnstatus->result, DEBUG_NORMAL);.
+        if ($debug) {
+            debugging($returnstatus->result, DEBUG_NORMAL);
+        }
         $matchvalue = false;
     } else {
         $matchvalue = false;
         $returnstatus->result = "IDP returned status code: {$statuscode}";
-        debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
+        if ($debug) {
+            debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
+        }
     }
     return [$matchvalue, $returnstatus];
 }
