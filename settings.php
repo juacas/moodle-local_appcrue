@@ -389,6 +389,13 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_files_help', 'local_appcrue'),
         false
     ));
+    // Include legacy course files.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/includelegacyfiles',
+        get_string('lmsappcrue:include_legacy_files', 'local_appcrue'),
+        get_string('lmsappcrue:include_legacy_files_help', 'local_appcrue'),
+        false
+    ));
     // LMS AppCRUE assignments endpoint.
     $settings->add(new admin_setting_heading(
         'local_appcrue_lms_assignments_header',
