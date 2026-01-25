@@ -98,22 +98,23 @@ class files_service extends appcrue_service {
             }
 
             // 2) Files in the course's "legacy" area.
-            $coursecontext = \context_course::instance($course->id);
+            if (get_config('local_appcrue', 'includelegacyfiles')) {
+                $coursecontext = \context_course::instance($course->id);
 
-            $legacyfiles = $fs->get_area_files(
-                $coursecontext->id,
-                'course',
-                'legacy',
-                0,
-                'filename',
-                false
-            );
+                $legacyfiles = $fs->get_area_files(
+                    $coursecontext->id,
+                    'course',
+                    'legacy',
+                    0,
+                    'filename',
+                    false
+                );
 
-            foreach ($legacyfiles as $f) {
-                $files[] = $this->format_file($course, $f, $CFG);
+                foreach ($legacyfiles as $f) {
+                    $files[] = $this->format_file($course, $f, $CFG);
+                }
             }
         }
-
         return $files;
     }
 
