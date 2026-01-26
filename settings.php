@@ -231,6 +231,13 @@ if ($hassiteconfig) {
         '%-{course}-{group}-%',
         PARAM_RAW_TRIMMED
     ));
+    // Select whether to follow metacourses.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/follow_metacourses',
+        get_string('autologin:follow_metacourses', 'local_appcrue'),
+        get_string('autologin:follow_metacourses_help', 'local_appcrue'),
+        false
+    ));
     $settings->add(new admin_setting_configtextarea(
         'local_appcrue/pattern_lib',
         get_string('pattern_lib', 'local_appcrue'),

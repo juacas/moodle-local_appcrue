@@ -423,7 +423,6 @@ function local_appcrue_get_json_node($text, $jsonpath) {
  * @return \moodle_url
  */
 function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
-    global $DB;
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
     } else if ($pattern !== null) {
@@ -443,7 +442,7 @@ function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, 
                 [$token, $course, $group, $year, $param1, $param2, $param3],
                 $selectedpattern
             );
-            return new moodle_url($url);
+                return new moodle_url($url);
         } else {
             throw new moodle_exception('invalidrequest');
         }
@@ -451,8 +450,17 @@ function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, 
         // Get courserecord.
         $courserecord = local_appcrue_find_course($course, $group, $year, $param1, $param2, $param3);
         if ($courserecord) {
-            // Check if it is metalinked to any parent "META" course.
-            $metaid = $DB->get_record('enrol', ['customint1' => $courserecord->id, 'enrol' => 'meta'], 'courseid');
+            $metaid = false;
+            if (get_config('local_appcrue', 'follow_metacourses')) {
+                // Check if it is metalinked to any parent "META" course.
+                global $DB;
+                $metas = $DB->get_records('enrol', ['customint1' => $courserecord->id, 'enrol' => 'meta'], 'courseid');
+                // If there is more than one "father" course, do not follow anyone.
+                if (count($metas) == 1) {
+                    $meta = array_shift($metas);
+                    $metaid = $meta->courseid;
+                }
+            }
             if ($metaid) {
                 return new moodle_url("/course/view.php", ["id" => $metaid->courseid]);
             } else {

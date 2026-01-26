@@ -35,7 +35,12 @@ $string['autologin:deep_url_token_mark_bearer'] = 'Token de la universidad en el
 $string['autologin:deep_url_token_mark_disabled'] = 'Sin URLs de autologin';
 $string['autologin:deep_url_token_mark_help'] = 'La marca de token a usar en las URLs profundas: "token" indica a la app usar el token en la URL como parámetro de consulta. "bearer" indica a la app usar el token en el header Authorization.';
 $string['autologin:deep_url_token_mark_token'] = 'Token de la universidad en el parámetro de consulta de la URL';
+$string['autologin:follow_metacourses'] = 'Seguir metacursos';
+$string['autologin:follow_metacourses_help'] = 'Si está habilitado, al redirigir a cursos por patrón, se seguirán los metacursos para ir al curso "padre" donde el usuario está meta-inscrito. Si el curso está meta-enrolado en más de un curso padre, no se realizará ninguna redirección.';
+$string['autologin:loggedasguest'] = 'Ha iniciado sesión como invitado en {$a->sitename} desde la aplicación. Esto usualmente significa que su token no era válido, por lo que tiene acceso limitado al sitio. Pulse el enlace siguiente para continuar.';
+$string['autologin:loggedasuser'] = 'Ha iniciado sesión como {$a->fullname} en {$a->sitename} desde la aplicación.';
 $string['autologin:notauthenticated'] = 'Redirección no autorizada. Intente cerrar y reabrir la sesión en la aplicación y vuelva a intentarlo. Si el problema persiste, contacte al administrador del sitio.';
+$string['autologin:redirecting'] = 'Redirigiendo al sitio...';
 $string['autologin:use_redirection_page'] = 'Usar una página de redirección en lugar de HTTP 303';
 $string['autologin:use_redirection_page_help'] = 'Si está habilitado, autologin realizará la redirección mediante una página de redirección en lugar de una redirección HTTP 303.' .
     ' Marque esta opción si su servidor tiene problemas para reconocer nuevas sesiones en las redirecciones.';
@@ -65,7 +70,7 @@ $string['calendarheader'] = 'Calendario del usuario';
 $string['calendarheader_help'] = 'Integración del calendario del usuario en AppCrue por la API heredada (basada en token) o la LMS-AppCRUE (basada en clave API).';
 $string['continue_not_allowed'] = 'fallback=continue no permitido';
 $string['course_pattern'] = 'Patrón SQL para buscar un curso';
-$string['course_pattern_help'] = 'El patrón SQL se usará para buscar un curso usando el campo "idnumber" y los parámetros de solicitud "course, group, param1, param2, param3" (no necesariamente IDs de Moodle).';
+$string['course_pattern_help'] = 'El patrón SQL se usará para buscar un curso en el campo "idnumber" y los parámetros de solicitud "course, group, param1, param2, param3" (no necesariamente IDs de Moodle).';
 $string['enable_autologin'] = 'Habilitar autologin';
 $string['enable_autologin_help'] = 'El servicio de autologin toma el token de un usuario, lo verifica, inicia sesión al usuario y redirecciona a una URL interna.';
 $string['enable_avatar'] = 'Habilitar servicio de avatar';
