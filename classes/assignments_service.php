@@ -88,8 +88,18 @@ class assignments_service extends appcrue_service {
                 if (!$cm->uservisible || !in_array("mod_" . $cm->modname, $supportedmods)) {
                     continue;
                 }
+                // Find grade item for this module. If there's no grade item, skip it.
+                $gradeitems = \grade_item::fetch_all([
+                    'itemmodule'   => $cm->modname,
+                    'iteminstance' => $cm->instance,
+                    'courseid'     => $course->id,
+                ]);
+                if (!$gradeitems) {
+                    // No grade item found for this activity — skip it.
+                    continue;
+                }
 
-                // Get the assignment record.
+                // Get the assignment instance record.
                 $record  = $DB->get_record($cm->modname, ['id' => $cm->instance], '*', MUST_EXIST);
                 // TODO: Implement access dates from a secondary table if different than the main one.
                 $assignments[] = $this->format_activity($course, $cm, $record);
@@ -117,12 +127,15 @@ class assignments_service extends appcrue_service {
             ['context' => context_module::instance($cm->id)]
         );
         $description = html_to_text($description, 0, false);
+        // Build url.
+        $url = new \moodle_url('/mod/' . $cm->modname . '/view.php', ['id' => $cm->id]);
+        $url = local_appcrue_create_deep_url($url->out(), $this->token, $this->tokenmark);
         $data = [
             'course_title' => $course->fullname,
             'title'        => $title,
             'description'  => $description,
             'type'         => $cm->modname,
-            'html_url'     => (new \moodle_url('/mod/' . $cm->modname . '/view.php', ['id' => $cm->id]))->out(false),
+            'html_url'     => $url,
             'due_at'       => null,
         ];
         if (isset($this->assignmentsdates['mod_' . $cm->modname])) {
