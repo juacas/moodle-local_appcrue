@@ -18,6 +18,15 @@
 
 /**
  * Auto-login end-point, a user can be fully authenticated in the site providing a valid token.
+ * The token is validated and resolved by the Identity Provider for AppCrue or by an external system using
+ * a REST endpoint.
+ * The user is redirected to a target URL after login.
+ * The target URL is built from parameters in the request:
+ * - urltogo: a relative URL in the Moodle site. Static URL.
+ * - course search: finds the course executing a customizable SQL query against mdl_course.idnumber field. Supports
+ * parameters: course, group), param1, param2.
+ * - pattern: Use a list of configurable patterns to create URLs using parameters course, group, param1, param2.
+ *
  *
  * @package    local_appcrue
  * @copyright  2021 Juan Pblo de Castro
@@ -53,11 +62,28 @@ try {
         echo $OUTPUT->error_text($diag->result);
         echo $OUTPUT->box_end();
         echo $OUTPUT->footer();
+        // Log event.
+        \local_appcrue\event\autologin_failed::create([
+            'other' => [
+                'ipaddress' => \local_appcrue\network_security_helper::getremoteaddr(),
+                'token' => $token,
+                'diagnosis' => $diag->result,
+                ],
+        ])->trigger();
+        header('HTTP/1.1 401 Unauthorized');
         die();
     }
 
     if ($user == null && $fallback == 'logout') {
         require_logout();
+        // Event log.
+        \local_appcrue\event\autologin_failed::create([
+            'other' => [
+                'ipaddress' => network_security_helper::getremoteaddr(),
+                'token' => $token,
+                'diagnosis' => $diag->result,
+                ],
+        ])->trigger();
     } else if ($user == null && $fallback == 'continue') {
         // Do nothing with session.
         // If there is no session log in as guest to view the course page.
@@ -66,11 +92,21 @@ try {
             complete_user_login($user);
             \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
         }
+        // Event log.
+        \local_appcrue\event\autologin_failed::create([
+            'other' => [
+                'ipaddress' => network_security_helper::getremoteaddr(),
+                'token' => $token,
+                'diagnosis' => $diag->result . ' Continuing as guest or current user.',
+                ],
+        ])->trigger();
     } else if ($user != null) {
         // Token validated, now require an active user: not guest, not suspended.
         core_user::require_active_user($user, true, true);
         complete_user_login($user);
         \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
+        // Event log.
+        \local_appcrue\event\autologin_login::create(['userid' => $user->id])->trigger();
     }
 
     // Get parameters to apply the redirection rules.

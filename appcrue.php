@@ -47,6 +47,11 @@ try {
     // Check network restrictions.
     $networkhelper = new \local_appcrue\network_security_helper();
     if (!$networkhelper->is_request_in_list()) {
+        // Trigger errored IP attempted access from disallowed IP for debugging purposes.
+        $event = \local_appcrue\event\unauthorized_ip_failed::create([
+            'other' => ['ipaddress' => $networkhelper->getremoteaddr()],
+        ]);
+        $event->trigger();
         @header('HTTP/1.1 403 Forbidden');
         die();
     }

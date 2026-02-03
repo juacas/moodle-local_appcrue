@@ -25,6 +25,7 @@
  */
 
 use local_appcrue\appcrue_service;
+use local_appcrue\network_security_helper;
 
 // Compatibility class aliases for Moodle 4.1.
 // Some classes have been renamed in Moodle 4.2 and later versions.
@@ -98,6 +99,15 @@ function local_appcrue_is_apikey_valid($apikey): bool {
         return true;
     } else {
         // Register invalid apikey for easy configuration of first-time setups or recovery of lost keys.
+        $event = \local_appcrue\event\bad_apikey_failed::create(
+            [
+                'other' => [
+                'attempted_apikey' => $apikey,
+                'ipaddress' => network_security_helper::getremoteaddr(),
+                ],
+            ]
+        );
+        $event->trigger();
         set_config('api_key_attempt', $apikey, 'local_appcrue'); // Clear any previous attempt.
         return false;
     }
@@ -134,6 +144,9 @@ function local_appcrue_get_user_by_token($token) {
 }
 /**
  * Get token from the request.
+ * Token is looked for in (in order):
+ * - the 'token' parameter.
+ * - the 'Authorization' header as a Bearer token.
  * If the token is not present, it throws an exception if $required is true.
  * @param bool $required
  * @return string the token from the request.
