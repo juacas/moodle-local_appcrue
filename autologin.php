@@ -95,7 +95,7 @@ try {
         // Event log.
         \local_appcrue\event\autologin_failed::create([
             'other' => [
-                'ipaddress' => network_security_helper::getremoteaddr(),
+                'ipaddress' => \local_appcrue\network_security_helper::getremoteaddr(),
                 'token' => $token,
                 'diagnosis' => $diag->result . ' Continuing as guest or current user.',
                 ],
