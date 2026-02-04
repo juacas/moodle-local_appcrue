@@ -45,7 +45,7 @@ if ($hassiteconfig) {
     );
 
     // API KEY for directa access without token.
-    // Generate a deafult as an example.
+    // Generate a default one as an example.
     if (!get_config('local_appcrue', 'api_key')) {
         $defaultkey = bin2hex(random_bytes(16));
     } else {
@@ -99,25 +99,59 @@ if ($hassiteconfig) {
     $settings->add(
         new admin_setting_heading(
             'local_appcrue/idp_header',
-            get_string('idpheader', 'local_appcrue'),
-            get_string('idpheader_help', 'local_appcrue')
+            get_string('idp:header', 'local_appcrue'),
+            get_string('idp:header_help', 'local_appcrue')
         )
     );
     // IdP configuration.
+    // By default use AppCRUE IdP service.
+
+    // Use custom IdP.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/use_custom_idp',
+        get_string('idp:use_custom_idp', 'local_appcrue'),
+        get_string('idp:use_custom_idp_help', 'local_appcrue'),
+        false
+    ));
+    // Appcrue AppId.
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/appcrue_appid',
+        get_string('idp:client_id', 'local_appcrue'),
+        get_string('idp:client_id_help', 'local_appcrue'),
+        'MoodleAppCrue',
+        PARAM_ALPHANUMEXT
+    ));
+    $settings->hide_if('local_appcrue/appcrue_appid', 'local_appcrue/use_custom_idp', 'eq', 1);
+    // Appcrue API Token.
+    $settings->add(new admin_setting_configtext(
+        'local_appcrue/appcrue_apptoken',
+        get_string('idp:client_secret', 'local_appcrue'),
+        get_string('idp:client_secret_help', 'local_appcrue'),
+        '',
+        PARAM_ALPHANUMEXT
+    ));
+    $settings->hide_if('local_appcrue/appcrue_apptoken', 'local_appcrue/use_custom_idp', 'eq', 1);
+
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_token_url',
-        get_string('idp_token_url', 'local_appcrue'),
-        get_string('idp_token_url_help', 'local_appcrue'),
+        get_string('idp:token_url', 'local_appcrue'),
+        get_string('idp:token_url_help', 'local_appcrue'),
         'https://idp.uva.es/api/adas/oauth2/tokendata',
         PARAM_URL
     ));
+    // Hide if not using custom IdP.
+    $settings->hide_if('local_appcrue/idp_token_url', 'local_appcrue/use_custom_idp', 'eq', 0);
+
+    // Select mapping field from json.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/idp_user_json_path',
-        get_string('idp_user_json_path', 'local_appcrue'),
-        get_string('idp_user_json_path_help', 'local_appcrue'),
-        '.USUARIO_MOODLE',
+        get_string('idp:user_json_path', 'local_appcrue'),
+        get_string('idp:user_json_path_help', 'local_appcrue'),
+        '.username',
         PARAM_RAW_TRIMMED
     ));
+
+    // Select mapping field in user's profile.
     $fields = get_user_fieldnames();
     require_once($CFG->dirroot . '/user/profile/lib.php');
     $customfields = profile_get_custom_fields();
@@ -153,29 +187,56 @@ if ($hassiteconfig) {
         false
     ));
     // Select "bearer" or "token" mark in deep urls.
-    $settings->add(new admin_setting_configselect(
+    $tokenmarksetting = new admin_setting_configselect(
         'local_appcrue/deep_url_token_mark',
         get_string('autologin:deep_url_token_mark', 'local_appcrue'),
         get_string('autologin:deep_url_token_mark_help', 'local_appcrue'),
         'bearer',
         [
             '' => get_string('autologin:deep_url_token_mark_disabled', 'local_appcrue'),
+            'appcrue_bearer' => get_string('autologin:deep_url_token_mark_appcruebearer', 'local_appcrue'),
+            'appcrue_token' => get_string('autologin:deep_url_token_mark_appcruetoken', 'local_appcrue'),
             'bearer' => get_string('autologin:deep_url_token_mark_bearer', 'local_appcrue'),
             'token' => get_string('autologin:deep_url_token_mark_token', 'local_appcrue'),
         ]
-    ));
+    );
+    // Add validation rule: bearer and token can be used only if custom IdP is not used.
+    $tokenmarksetting->set_validate_function(function ($value) {
+        // If custom IdP is enabled, disallow the generic 'bearer'/'token' marks.
+        if (get_config('local_appcrue', 'use_custom_idp') == false && in_array($value, ['bearer', 'token'], true)) {
+            return get_string('autologin:err_deepurltokenmark_customidp', 'local_appcrue');
+        }
+        return "";
+    });
+    $settings->add($tokenmarksetting);
+
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/allow_continue',
         get_string('allow_continue', 'local_appcrue'),
         get_string('allow_continue_help', 'local_appcrue'),
         true
     ));
+    // Check for forcing page redirection.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/use_redirection_page',
+        get_string('autologin:use_redirection_page', 'local_appcrue'),
+        get_string('autologin:use_redirection_page_help', 'local_appcrue'),
+        false
+    ));
+
     $settings->add(new admin_setting_configtext(
         'local_appcrue/course_pattern',
         get_string('course_pattern', 'local_appcrue'),
         get_string('course_pattern_help', 'local_appcrue'),
         '%-{course}-{group}-%',
         PARAM_RAW_TRIMMED
+    ));
+    // Select whether to follow metacourses.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/follow_metacourses',
+        get_string('autologin:follow_metacourses', 'local_appcrue'),
+        get_string('autologin:follow_metacourses_help', 'local_appcrue'),
+        false
     ));
     $settings->add(new admin_setting_configtextarea(
         'local_appcrue/pattern_lib',

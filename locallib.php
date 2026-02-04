@@ -25,6 +25,7 @@
  */
 
 use local_appcrue\appcrue_service;
+use local_appcrue\network_security_helper;
 
 // Compatibility class aliases for Moodle 4.1.
 // Some classes have been renamed in Moodle 4.2 and later versions.
@@ -98,6 +99,15 @@ function local_appcrue_is_apikey_valid($apikey): bool {
         return true;
     } else {
         // Register invalid apikey for easy configuration of first-time setups or recovery of lost keys.
+        $event = \local_appcrue\event\bad_apikey_failed::create(
+            [
+                'other' => [
+                'attempted_apikey' => $apikey,
+                'ipaddress' => network_security_helper::getremoteaddr(),
+                ],
+            ]
+        );
+        $event->trigger();
         set_config('api_key_attempt', $apikey, 'local_appcrue'); // Clear any previous attempt.
         return false;
     }
@@ -116,7 +126,7 @@ function local_appcrue_get_user_by_token($token) {
     $returnstatus->code = $tokenstatus->code;
     $returnstatus->result = $tokenstatus->result;
     // Get user.
-    if ($returnstatus->code == 401) {
+    if ($returnstatus->code != 200) {
         $user = null;
         $returnstatus->status = 'error';
     } else {
@@ -134,6 +144,9 @@ function local_appcrue_get_user_by_token($token) {
 }
 /**
  * Get token from the request.
+ * Token is looked for in (in order):
+ * - the 'token' parameter.
+ * - the 'Authorization' header as a Bearer token.
  * If the token is not present, it throws an exception if $required is true.
  * @param bool $required
  * @return string the token from the request.
@@ -181,10 +194,29 @@ function local_appcrue_get_apikey_param($required = false): string {
 
 /**
  * Validate token and return the matchvalue.
+ * If the token resolutionservice is appcrue endpoint: https://appuniversitaria.universia.net/api/external/v3/users/info
+ * With POST body:
+ *  {
+ *           "import_token" : "university_id_code",
+ *           "token" : "university_api_token",
+ *           "user_token" : "appcrue_user_token"
+ *       }
+ * That returns:
+ * {
+ *       "id": 123456,
+ *       "username": "the_user_name",
+ *       "email": "email@sample.com",
+ *       "document_type": "DNI",
+ *       "document": "11111111H",
+ *       "nia": "123456789"
+ *  }
+ * From that JSON response we extract the value configured in idp_user_json_path.
+ *
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
+ * @param bool $degug if true, enables debugging output.
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
-function local_appcrue_validate_token($token) {
+function local_appcrue_validate_token($token, $debug = false): array {
     if (empty($token)) {
         return [false, (object)['code' => 401, 'result' => 'Token is empty']];
     }
@@ -193,20 +225,45 @@ function local_appcrue_validate_token($token) {
     global $CFG;
     // Load curl class.
     require_once($CFG->dirroot . '/lib/filelib.php');
-    // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
-    $idpurl = get_config('local_appcrue', 'idp_token_url');
-    $curl = new \curl();
-    $options = [
-        'CURLOPT_RETURNTRANSFER' => true,
-        'CURLOPT_CONNECTTIMEOUT' => 5,
-        'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
-    ];
-    $curl->setHeader(["Authorization: Bearer $token"]);
-    $result = $curl->get($idpurl, null, $options);
-    $statuscode = $curl->get_info()['http_code'];
-    // Debugging info for response.
-    $returnstatus->code = $statuscode;
-    $returnstatus->result = $result;
+    // Check if custom or default idp server.
+    if (get_config('local_appcrue', 'use_custom_idp') == false) {
+        // Default AppCRUE userdata endpoint.
+        $idpurl = 'https://appuniversitaria.universia.net/api/external/v3/users/info';
+        // Prepare curl POST request.
+        $curl = new \curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_CONNECTTIMEOUT' => 5,
+            'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
+        ];
+        $postdata = json_encode([
+            'import_code' => get_config('local_appcrue', 'appcrue_appid'),
+            'token' => get_config('local_appcrue', 'appcrue_apptoken'),
+            'user_token' => $token,
+        ]);
+        $curl->setHeader(["Content-Type: application/json"]);
+        $result = $curl->post($idpurl, $postdata, $options);
+        $statuscode = $curl->get_info()['http_code'];
+        // Debugging info for response.
+        $returnstatus->code = $statuscode;
+        $returnstatus->result = $result;
+    } else {
+        // Custom IDP server.
+        // The idp service for checking the token i.e. 'https://idp.uva.es/api/adas/oauth2/tokendata'.
+        $idpurl = get_config('local_appcrue', 'idp_token_url');
+        $curl = new \curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_CONNECTTIMEOUT' => 5,
+            'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
+        ];
+        $curl->setHeader(["Authorization: Bearer $token"]);
+        $result = $curl->get($idpurl, null, $options);
+        $statuscode = $curl->get_info()['http_code'];
+        // Debugging info for response.
+        $returnstatus->code = $statuscode;
+        $returnstatus->result = $result;
+    }
 
     // Extract a matchvalue of the token from the idp.
     if ($statuscode == 200) {
@@ -214,14 +271,23 @@ function local_appcrue_validate_token($token) {
         $matchvalue = local_appcrue_get_json_node($result, $jsonpath);
         if ($matchvalue == false) {
             $returnstatus->result = "Path {$jsonpath} not found in: {$result}";
-            debugging($returnstatus->result, DEBUG_NORMAL);
+            if ($debug) {
+                debugging($returnstatus->result, DEBUG_NORMAL);
+            }
         }
     } else if ($statuscode == 401) {
         $returnstatus->result = "Permission denied for the token: {$token}";
         // Do not break the output: debugging($returnstatus->result, DEBUG_NORMAL);.
+        if ($debug) {
+            debugging($returnstatus->result, DEBUG_NORMAL);
+        }
         $matchvalue = false;
     } else {
-        debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
+        $matchvalue = false;
+        $returnstatus->result = "IDP returned status code: {$statuscode}";
+        if ($debug) {
+            debugging("IDP problem: $statuscode", DEBUG_MINIMAL);
+        }
     }
     return [$matchvalue, $returnstatus];
 }
@@ -233,6 +299,9 @@ function local_appcrue_validate_token($token) {
  */
 function appcrue_find_user($fieldname, $matchvalue) {
     global $DB;
+    if (empty($matchvalue)) {
+        return false;
+    }
     // First check in standard fieldnames.
     $fields = get_user_fieldnames();
     if (array_search($fieldname, $fields) !== false) {
@@ -271,11 +340,12 @@ function appcrue_find_user($fieldname, $matchvalue) {
  * If tokenmark and token are not provided, the url is returned as is.
  * @param string $url the url to be enveloped.
  * @param string|null $token the token to be used.
- * @param string|null $tokenmark the mark to be used in the url if $token is nos provided. Can be 'bearer' or 'token'.
+ * @param string|null $tokenmark the mark to be used in the url if $token is nos provided.
+ *                               Can be bearer|token|appcrue_bearer|appcrue_token
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
-function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer', $fallback = 'continue') {
+function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcrue_bearer', $fallback = 'continue') {
     $params = [];
     if (!$token && !$tokenmark) {
         return $url; // No token, no mark, return the original URL.
@@ -286,10 +356,20 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'bearer
     if ($token) {
         $params['token'] = $token;
     }
-    if ($tokenmark == 'bearer') {
-        $tokenmarksufix = '&<bearer>';
-    } else if ($tokenmark == 'token') {
-        $tokenmarksufix = '&token=<token>';
+
+    switch ($tokenmark) {
+        case 'token':
+            $tokenmarksufix = '&token=<token>';
+            break;
+        case 'bearer':
+            $tokenmarksufix = '&<bearer>';
+            break;
+        case 'appcrue_bearer':
+            $tokenmarksufix = '&<appcrue_bearer>';
+            break;
+        case 'appcrue_token':
+            $tokenmarksufix = '&token=<appcrue_token>';
+            break;
     }
 
     $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
@@ -356,7 +436,6 @@ function local_appcrue_get_json_node($text, $jsonpath) {
  * @return \moodle_url
  */
 function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
-    global $DB;
     if ($urltogo !== null) {
         return new moodle_url($urltogo);
     } else if ($pattern !== null) {
@@ -376,7 +455,7 @@ function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, 
                 [$token, $course, $group, $year, $param1, $param2, $param3],
                 $selectedpattern
             );
-            return new moodle_url($url);
+                return new moodle_url($url);
         } else {
             throw new moodle_exception('invalidrequest');
         }
@@ -384,8 +463,17 @@ function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, 
         // Get courserecord.
         $courserecord = local_appcrue_find_course($course, $group, $year, $param1, $param2, $param3);
         if ($courserecord) {
-            // Check if it is metalinked to any parent "META" course.
-            $metaid = $DB->get_record('enrol', ['customint1' => $courserecord->id, 'enrol' => 'meta'], 'courseid');
+            $metaid = false;
+            if (get_config('local_appcrue', 'follow_metacourses')) {
+                // Check if it is metalinked to any parent "META" course.
+                global $DB;
+                $metas = $DB->get_records('enrol', ['customint1' => $courserecord->id, 'enrol' => 'meta'], 'courseid');
+                // If there is more than one "father" course, do not follow anyone.
+                if (count($metas) == 1) {
+                    $meta = array_shift($metas);
+                    $metaid = $meta->courseid;
+                }
+            }
             if ($metaid) {
                 return new moodle_url("/course/view.php", ["id" => $metaid->courseid]);
             } else {

@@ -200,7 +200,11 @@ class forums_service extends appcrue_service {
                     }
 
                     $rootposts = self::build_post_tree($postmap);
-
+                    $deepdiscussionurl = local_appcrue_create_deep_url(
+                        $discussionurl->out(),
+                        $this->token,
+                        $this->tokenmark
+                    );
                     // Forum and discussion data are combined here for output structure.
                     $forumoutput[] = [
                         'course_title' => (string) ($course->fullname ?? ''),
@@ -208,7 +212,7 @@ class forums_service extends appcrue_service {
                         'description'  => (string) $forumdescription,
                         'lock_at'      => $forum->assesstimefinish != "0" ? $forum->assesstimefinish : null,
                         'todo_date'    => $forum->assesstimestart != "0" ? $forum->assesstimestart : null,
-                        'html_url'     => (string) ($discussionurl->out(false) ?? ''),
+                        'html_url'     => (string) ($deepdiscussionurl ?? ''),
                         'topic_title'  => (string) ($discussion->name ?? ''),
                         'posted_at'    => (string) isset($discussion->created) ? $discussion->created : time(),
                         'unread_count' => (string) isset($discussion->replies) ? $discussion->replies : '0',

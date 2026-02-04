@@ -70,7 +70,7 @@ class grades_service extends appcrue_service {
 
                 $grades[] = [
                     'courseid' => $course->id,
-                    'coursename' => $course->fullname,
+                    'coursename' => format_string($course->fullname),
                     'itemname' => html_entity_decode(strip_tags($item->get_name()), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'itemtype' => $item->itemtype,
                     'graderaw' => $grade->rawgrade,

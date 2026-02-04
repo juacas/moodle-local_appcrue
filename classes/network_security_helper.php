@@ -33,9 +33,15 @@ class network_security_helper extends curl_security_helper {
      */
     public function is_request_in_list() {
         // Get request remote client address behind proxy.
-        $remoteaddr = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+        $remoteaddr = self::getremoteaddr();
         $isinlist = $this->address_explicitly_blocked($remoteaddr);
         return $isinlist;
+    }
+    /**
+     * Find the remote address of the caller bypassing proxys.
+     */
+    public static function getremoteaddr() {
+        return $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
     }
     /**
      * Overrides to return the configured hosts, as defined in the 'api_authorized_networks' setting.
