@@ -225,6 +225,77 @@ Notes and examples
 
 For detailed step-by-step installation, git-based installation, and examples, see the rest of this README and the `LMS AppCrue Configuración` guide bundled with the plugin.
 
+## Troubleshooting installation
+
+### 1. LMS connection diagnosis
+IMPORTANT: Before running any tests, make sure the latest versions of the local_appcrue and message_appcrue plugins are installed.
+Be sure to have a valid user in Moodle with the same email as the AppCRUE user. The user must be enrolled in at least one course with content (assignments, messages, grades, etc.) to see data in the App.
+Be sure to enable the services you want to expose in the plugin configuration page.
+
+#### 1.1 Pre-diagnosis (from AppCRUE Backend side)
+After registering an LMS in the backend, confirm that the microservices can reach the LMS endpoint.
+
+Possible cause of failure: No connectivity between the microservices layer and the Moodle server.
+- Check that the LMS URL configured in the backend includes the trailing "/". The microservices layer should handle this character, but path handling issues have been observed.
+- If you receive 500, timeout, or similar errors, review the WAF and firewalls at the university.
+- HTTP 400, 401, 403, and 404 responses are part of the API when no API key is supplied, the request payload is invalid, or the service is disabled.
+
+#### 1.2 University: Connectivity available, automatic key setup
+If there is connectivity between UNIVERSIA and the Moodle server but the keys are not configured, the plugin administration page should display diagnostic messages.
+
+<img src="pix/autoconfig.png" alt="AppCRUE diagnostics" style="max-width:600px;"/>
+
+(1) Warning: No API key configured. Enable checkbox 3 to allow automatic key setup.
+(2) Info: Last key renewal at [timestamp].
+
+Checklist:
+1) Do the warning messages (1) appear? Enable checkbox 3, save the configuration, trigger a request from the app, reload the browser, and confirm that message 1 disappears. Message 2 should display the timestamp of the latest action. If nothing changes, review the LMS URL and the IP filters defined in UNIVERSIA.
+2) Do you see a timestamped key renewal message similar to (2)? If no message appears, review the LMS URL and the IP filters configured with UNIVERSIA.
+3) If steps 1 and 2 are correct, review the activation status of the services you want to expose in each configuration section. Each API can be disabled individually and they ship disabled by default.
+
+#### 1.3 University: No connectivity
+
+Symptoms:
+- App requests do not return LMS data.
+- The administration page does not show any of the diagnostics listed above.
+
+Diagnosis: There is no connectivity between UNIVERSIA and Moodle.
+
+**Test 1: Server and plugin**
+1) Leave the default IP list unchanged.
+2) From any browser, load https://ServidorMoodle/local/appcrue/appcrue.php/forums
+3) The response should be "403 Forbidden".
+This confirms the plugin is installed and Moodle is serving requests.
+
+**Test 2: local_appcrue plugin**
+1) Add 10.0.0.1/0 (allow all IP addresses) to the allowed IP list.
+2) Load https://ServidorMoodle/local/appcrue/appcrue.php/forums
+3) Confirm you receive HTTP 400 with the following JSON payload:
+```
+{
+  "success": false,
+  "error": {
+    "code": 2,
+    "message": "Missing token and API key",
+    "timestamp": 1770108919
+  }
+}
+```
+If this test succeeds, the plugin is operating correctly.
+
+**Test 3: IP filtering**
+1) Add 10.0.0.1/0 (allow all IP addresses) to the allowed IP list.
+2) Load any LMS widget in the App.
+3) Check whether the diagnostic messages described in section 1.2 appear.
+If this test succeeds, the issue lies in the local Moodle installation. Possible causes:
+- A firewall blocking outbound connections from Moodle (common on staging environments but not acceptable in production).
+- A firewall or reverse proxy that does not include the X-FORWARDED-FOR header, preventing the API from determining the request origin and applying IP filtering.
+
+**Test 4: User data**
+LMS widgets will not display data (or will return errors) if the AppCRUE user is not present in the LMS.
+Verify that a user with the same email as the AppCRUE profile exists in Moodle, is enrolled in a course, and has content to show (assignments, messages, grades, etc.).
+
+
 ## What is AppCRUE?
 
 AppCRUE (https://tic.crue.org/app-crue/) is a mobile app developed by CRUE (Conference of Rectors of Spanish Universities) and Santander Bank. It is used by:
