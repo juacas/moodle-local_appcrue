@@ -25,10 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version      = 2026020401;
+$plugin->version      = 2026020402;
 $plugin->requires     = 2022112802;   // Moodle 4.1.
 $plugin->component    = 'local_appcrue';
 $plugin->maturity     = MATURITY_STABLE;
-$plugin->release      = 'v2.0.3b';
+$plugin->release      = 'v2.0.3c';
 $plugin->dependencies = [
 ];
