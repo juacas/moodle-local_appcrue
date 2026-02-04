@@ -1,6 +1,10 @@
 
 AppCRUE — Release notes
 =======================
+v2.0.3 — 2026-03-15
+- Autologin redirector to navigate users to deep links after token-based authentication.
+- Improved documentation for LMS connection diagnosis and autologin setup.
+- Minor bug fixes and code improvements.
 
 v2.0.2 — 2026-01-12
 - Fix API key extraction from headers to handle different casing and server variables.

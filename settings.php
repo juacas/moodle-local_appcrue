@@ -187,16 +187,19 @@ if ($hassiteconfig) {
         false
     ));
     // Select "bearer" or "token" mark in deep urls.
+    // Note: As february 2026, Android and iOS CustomTabs only support "token" mark.
     $tokenmarksetting = new admin_setting_configselect(
         'local_appcrue/deep_url_token_mark',
         get_string('autologin:deep_url_token_mark', 'local_appcrue'),
         get_string('autologin:deep_url_token_mark_help', 'local_appcrue'),
-        'bearer',
+        'appcrue_token',
         [
             '' => get_string('autologin:deep_url_token_mark_disabled', 'local_appcrue'),
-            'appcrue_bearer' => get_string('autologin:deep_url_token_mark_appcruebearer', 'local_appcrue'),
+            // phpcs:ignore
+            // Temporally disabled: 'appcrue_bearer' => get_string('autologin:deep_url_token_mark_appcruebearer', 'local_appcrue'),
             'appcrue_token' => get_string('autologin:deep_url_token_mark_appcruetoken', 'local_appcrue'),
-            'bearer' => get_string('autologin:deep_url_token_mark_bearer', 'local_appcrue'),
+            // phpcs:ignore
+            // Temporally disabled: 'bearer' => get_string('autologin:deep_url_token_mark_bearer', 'local_appcrue'),
             'token' => get_string('autologin:deep_url_token_mark_token', 'local_appcrue'),
         ]
     );
