@@ -139,11 +139,16 @@ $string['lmsappcrue:grades_help'] = 'Exponer las calificaciones del usuario a AP
 $string['lmsappcrue:header'] = 'Integración de Widgets LMS-AppCRUE';
 $string['lmsappcrue:header_help'] = 'Configuración del servicio de integración de Widgets LMS-AppCRUE. La API LMS-AppCRUE solo es llamada desde el backend de AppCRUE usando una clave API pre-compartida.';
 $string['lmsappcrue:include_legacy_files'] = 'Incluir archivos heredados del curso';
-$string['lmsappcrue:include_legacy_files_help'] = 'Si está habilitado, los archivos del curso almacenados en el área heredada del curso serán incluidos en el endpoint de archivos. Estos archivos serán devueltos junto con los archivos de recursos y carpetas a todos los usuarios. Puede ser un riesgo de seguridad si los archivos heredados no se gestionan adecuadamente.';
+$string['lmsappcrue:include_legacy_files_help'] = 'Si está habilitado, los archivos del curso almacenados en el área heredada del curso serán incluidos en el endpoint de archivos. ' .
+        'Estos archivos serán devueltos junto con los archivos de recursos y carpetas a todos los usuarios. Puede ser un riesgo de seguridad si los archivos heredados no se gestionan adecuadamente.';
 $string['lmsappcrue:internalerror'] = 'Error interno';
 $string['lmsappcrue:invalidtimerange'] = 'Rango de tiempo inválido';
 $string['lmsappcrue:match_user_by'] = 'Campo para hacer coincidencia del perfil del usuario';
 $string['lmsappcrue:match_user_by_help'] = 'El parámetro userid en la solicitud se usa para hacer coincidir el perfil del usuario. El valor de este campo se usa para hacer coincidir el perfil del usuario.';
+$string['lmsappcrue:show_total_grade_as_final'] = 'Mostrar calificación total como calificación final';
+$string['lmsappcrue:show_total_grade_as_final_help'] = 'Si está habilitado, la calificación total del curso se reportará como calificación final en el endpoint de calificaciones. ' .
+        'Esto es útil cuando la calificación total en Moodle no es fiable debido al uso de categorías de calificación con métodos de agregación que no encajan bien con el sistema de calificaciones de AppCRUE. ' .
+        'Cuando está habilitado, el itemtype de la calificación total del curso se reportará como "mod" en lugar de "course" para ser mostrado correctamente por AppCRUE como una calificación regular.';
 $string['lmsappcrue:use_user_param'] = 'Parámetro de usuario para buscar.';
 $string['lmsappcrue:use_user_param_help'] = 'Appcrue envía los parámetros "username" y "email" en la solicitud. El valor de este parámetro se usa para buscar en el perfil del usuario por el campo de seleccion en "match_user_by".';
 $string['match_user_by'] = 'Campo para hacer coincidencia del perfil del usuario';

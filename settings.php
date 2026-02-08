@@ -414,6 +414,15 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
         false
     ));
+
+    // Select to show total grade as final or not-final grade.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_show_total_grade_as_final',
+        get_string('lmsappcrue:show_total_grade_as_final', 'local_appcrue'),
+        get_string('lmsappcrue:show_total_grade_as_final_help', 'local_appcrue'),
+        true
+    ));
+
     // LMS AppCRUE forums section.
     $settings->add(
         new admin_setting_heading(
