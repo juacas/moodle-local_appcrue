@@ -24,8 +24,7 @@
 namespace local_appcrue;
 
 use context_module;
-use core_availability\info_module;
-
+use grade_item;
 /**
  * Class assignments_service
  */
@@ -74,7 +73,8 @@ class assignments_service extends appcrue_service {
      * @return array
      */
     public function get_items() {
-        global $DB;
+        global $DB, $CFG;
+        require_once($CFG->libdir . '/gradelib.php');
 
         $courses = enrol_get_users_courses($this->user->id, true);
         $assignments = [];
@@ -89,7 +89,7 @@ class assignments_service extends appcrue_service {
                     continue;
                 }
                 // Find grade item for this module. If there's no grade item, skip it.
-                $gradeitems = \grade_item::fetch_all([
+                $gradeitems = grade_item::fetch_all([
                     'itemmodule'   => $cm->modname,
                     'iteminstance' => $cm->instance,
                     'courseid'     => $course->id,

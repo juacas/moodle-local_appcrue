@@ -67,12 +67,22 @@ class grades_service extends appcrue_service {
                 if (is_null($grade->finalgrade)) {
                     continue; // No grade available yet.
                 }
+                // Report the grade as finalgrade if the setting to show total grade as final is enabled
+                // and this item is the course total.
+                if (
+                    get_config('local_appcrue', 'lmsappcrue_show_total_grade_as_final')
+                    && $item->itemtype === 'course'
+                ) {
+                    $itemtype = 'category';
+                } else {
+                    $itemtype = $item->itemtype;
+                }
 
                 $grades[] = [
                     'courseid' => $course->id,
                     'coursename' => format_string($course->fullname),
                     'itemname' => html_entity_decode(strip_tags($item->get_name()), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'itemtype' => $item->itemtype,
+                    'itemtype' => $itemtype,
                     'graderaw' => $grade->rawgrade,
                     'finalgrade' => $grade->finalgrade,
                     'gradeformatted' => html_entity_decode(

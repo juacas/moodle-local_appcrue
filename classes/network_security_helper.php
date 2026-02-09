@@ -32,16 +32,20 @@ class network_security_helper extends curl_security_helper {
      * Check if caller is in the list.
      */
     public function is_request_in_list() {
-        // Get request remote client address behind proxy.
+        // Get request remote client address respecting Moodle proxy configuration.
         $remoteaddr = self::getremoteaddr();
+        if ($remoteaddr === '') {
+            return false;
+        }
         $isinlist = $this->address_explicitly_blocked($remoteaddr);
         return $isinlist;
     }
     /**
-     * Find the remote address of the caller bypassing proxys.
+     * Retrieve the remote address using Moodle's proxy-aware helper.
      */
     public static function getremoteaddr() {
-        return $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+        $address = \getremoteaddr('');
+        return is_string($address) ? $address : '';
     }
     /**
      * Overrides to return the configured hosts, as defined in the 'api_authorized_networks' setting.

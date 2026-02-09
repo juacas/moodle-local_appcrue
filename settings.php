@@ -32,6 +32,15 @@ if ($hassiteconfig) {
     global $CFG;
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
+    /**
+     * AppCRUE release information.
+     */
+    $installedversion = get_config('local_appcrue', 'version');
+    $settings->add(new admin_setting_description(
+        'local_appcrue/releaseinfo',
+        get_string('pluginname', 'local_appcrue'),
+        get_string('welcome_message', 'local_appcrue', ['installedversion' => $installedversion])
+    ));
     // Switch to activate autoconfiguration mode of the APIKey.
     // If activated  the next apikey request will set the api_key.
     // After a new API key is stored, the switch will be disabled.
@@ -57,16 +66,17 @@ if ($hassiteconfig) {
     $apikeyhelp = get_string('lmsappcrue:api_key_help', 'local_appcrue');
     if ($attemptkey) {
         $warning = get_string('lmsappcrue:api_key_warning', 'local_appcrue', $attemptkey);
-        $apikeyhelp .= "<p>" .
+        $apikeyhelp .= '<div class="alert alert-danger">' .
                        $warning .
-                       "</p>";
+                       '</div>';
         core\notification::error($warning);
     }
     $rotatedate = get_config('local_appcrue', 'api_key_last_rotation');
     if ($rotatedate) {
-        $apikeyhelp .= "<p>" .
+        // Bootstrap success notification about API key rotation with the date of the last rotation.
+        $apikeyhelp .= '<div class="alert alert-success">' .
                        get_string('lmsappcrue:api_key_rotated', 'local_appcrue', userdate($rotatedate)) .
-                       "</p>";
+                       "</div>";
     }
 
     // API Key configuration.
@@ -107,7 +117,7 @@ if ($hassiteconfig) {
     // IdP configuration.
     // By default use AppCRUE IdP service.
 
-    // Use custom IdP.
+    // Offer to use custom IdP.
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/use_custom_idp',
         get_string('idp:use_custom_idp', 'local_appcrue'),
@@ -171,7 +181,6 @@ if ($hassiteconfig) {
         'id',
         $userfields
     ));
-
 
     // Autologin.
     $settings->add(
@@ -315,7 +324,19 @@ if ($hassiteconfig) {
             get_string('lmsappcrue:header_help', 'local_appcrue')
         )
     );
-    // Select mapping field.
+    // Select appcrue field to search the user.
+    $paramoptions = [
+        'email' => get_string('email'),
+        'username' => get_string('username'),
+    ];
+    $settings->add(new admin_setting_configselect(
+        'local_appcrue/lmsappcrue_use_user_param',
+        get_string('lmsappcrue:use_user_param', 'local_appcrue'),
+        get_string('lmsappcrue:use_user_param_help', 'local_appcrue'),
+        'email',
+        $paramoptions
+    ));
+    // Select Moodle's mapping field.
     $settings->add(new admin_setting_configselect(
         'local_appcrue/lmsappcrue_match_user_by',
         get_string('lmsappcrue:match_user_by', 'local_appcrue'),
@@ -403,6 +424,15 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
         false
     ));
+
+    // Select to show total grade as final or not-final grade.
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/lmsappcrue_show_total_grade_as_final',
+        get_string('lmsappcrue:show_total_grade_as_final', 'local_appcrue'),
+        get_string('lmsappcrue:show_total_grade_as_final_help', 'local_appcrue'),
+        true
+    ));
+
     // LMS AppCRUE forums section.
     $settings->add(
         new admin_setting_heading(

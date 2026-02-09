@@ -85,12 +85,12 @@ $string['event_bad_apikey_failed_name'] = 'Bad API Key Attempt';
 $string['event_unauthorized_ip_failed_desc'] = 'Access from non-whitelisted IP address {$a->ipaddress}';
 $string['event_unauthorized_ip_failed_name'] = 'Unauthorized IP Access Attempt';
     'Mark this option if your server has issues with recognizing new sessions in redirects.';
-$string['idp:client_id'] = 'Client ID for the IDP';
-$string['idp:client_id_help'] = 'Client ID for the IDP to invoke the user token service. It is "import_code" in AppCrue.';
-$string['idp:client_secret'] = 'Client secret for the IDP';
-$string['idp:client_secret_help'] = 'Client secret for the IDP to invoke the user token service. It is "token" in AppCrue.';
+$string['idp:client_id'] = 'import_code of the external API AppCRUE';
+$string['idp:client_id_help'] = 'External API "import_code" provided AppCrue. Used to invoke the user token service.';
+$string['idp:client_secret'] = 'Token of the external API AppCRUE';
+$string['idp:client_secret_help'] = 'External API "token" provided by AppCrue. Used to invoke the user token service.';
 $string['idp:header'] = 'Verification of tokens';
-$string['idp:header_help'] = 'AppCrue token verification service configuration. This functionality is for institutions that use an OAuth IdP.';
+$string['idp:header_help'] = 'AppCrue token verification configuration. This functionality is only for institutions that use autologin links. ';
 $string['idp:token_url'] = 'Endpoint for token resolution';
 $string['idp:token_url_help'] = 'URL of the IDP service to resolve user identity from the token.';
 $string['idp:url'] = 'URL of the IDP';
@@ -143,8 +143,12 @@ $string['lmsappcrue:include_legacy_files'] = 'Include legacy course files';
 $string['lmsappcrue:include_legacy_files_help'] = 'If enabled, course files stored in the legacy course area will be included in the files endpoint. This files will be returned along with files from resources and folders to all users. It may be a security risk if legacy files are not properly managed.';
 $string['lmsappcrue:internalerror'] = 'Internal error';
 $string['lmsappcrue:invalidtimerange'] = 'Invalid time range';
-$string['lmsappcrue:match_user_by'] = 'Field for matching the email in user\'s profile';
-$string['lmsappcrue:match_user_by_help'] = 'The email parameter in the request is used to match the user\'s profile. Do not change this setting unless you have another field with a secondary email.';
+$string['lmsappcrue:match_user_by'] = 'Field for matching user\'s profile';
+$string['lmsappcrue:match_user_by_help'] = 'The parameter in the request is used to match the user\'s profile. This value selects what user profile field is used to match the user\'s profile.';
+$string['lmsappcrue:show_total_grade_as_final'] = 'Show total grade as final grade';
+$string['lmsappcrue:show_total_grade_as_final_help'] = 'If enabled, the total grade of the course will be reported as final grade in the grades endpoint. This is useful when the total grade in Moodle is not reliable due to the use of grade categories with aggregation methods that do not fit well with the grading system of AppCRUE. When enabled, the itemtype of the course total grade will be reported as "mod" instead of "course" to be properly shown by AppCRUE as a regular grade.';
+$string['lmsappcrue:use_user_param'] = 'Use user parameter for matching';
+$string['lmsappcrue:use_user_param_help'] = 'Appcrue sends "username" and "email" parameters in the request. The value of this parameter is used to match the user\'s profile selected in the "match_user_by" setting.';
 $string['match_user_by'] = 'Field for matching user\'s profile';
 $string['match_user_by_help'] = 'The authorization token returns an identification that needs to be matched to a user field.';
 $string['missingtoken'] = 'Missing token';
@@ -164,15 +168,17 @@ $string['privacy:metadata'] = 'The "AppCrue connection services" plugin does not
 
 $string['sitemapheader'] = 'Sitemap service';
 $string['sitemapheader_help'] = 'Generates a JSON structure of categories and courses with many options. This can be used for feeding navigation widget in AppCRUE.';
-$string['welcome_message'] = '<h3>Welcome to AppCrue connection services!</h3>' .
-    '<p>This plugin allows the integration of Moodle with AppCrue mobile applications. ' .
+$string['welcome_message'] = '<p>You are using version {$a->installedversion} of the plugin.</p>' .
+    '<p>This plugin allows the integration of Moodle with AppCrue mobile application. ' .
     'It provides services for autologin, avatar retrieval, sitemap generation, and LMS-AppCrue API integration.</p>' .
     '<p>Please configure the plugin settings to connect your Moodle site with AppCrue services.</p>' .
     '<h3>Autoconfiguring LMS-AppCrue API</h3>' .
+    '<div class="alert alert-danger">Never enable the autoconfig setting if you are not sure about the security of your network or if you are not expecting to receive requests from AppCrue servers, as it may allow unauthorized access to your Moodle site.</div>' .
     '<p>To autoconfigure the LMS-AppCrue API integration, please follow these steps:</p>' .
     '<ol>' .
     '<li>Ensure that your Moodle site is registered with UNIVERSIA and accessible from the AppCrue servers.</li>' .
     '<li>Enable the "Enable AppCRUE autoconfig procedure" setting in the plugin configuration.</li>' .
     '<li>From the AppCrue mobile app, click on any widget with Moodle information to initiate connection to your Moodle site.</li>' .
     '<li>The plugin will automatically add the official AppCrue server IPs, enable the key rotation service, and store the first API key received from AppCrue.</li>' .
+    '<li>The autoconfig setting will be automatically disabled after the first successful configuration to prevent unwanted changes. You can re-enable it if you need to reset the configuration.</li>' .
     '</ol>';

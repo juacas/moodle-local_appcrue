@@ -46,11 +46,14 @@ if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) 
 function local_appcrue_get_user_from_request(): array {
     // Get apikey.
     $apikey = local_appcrue_get_apikey_param(required: false);
-    // Accept both 'studentemail' and 'user' parameter for backward compatibility.
-    $iduser = optional_param('studentemail', '', PARAM_RAW);
-    if (empty($iduser)) {
-        $iduser = optional_param('user', '', PARAM_RAW);
+    // Accept both 'studentemail' and 'user' parameter according to setting 'local_appcrue/lmsappcrue_use_user_param'.
+    $useuserparam = get_config('local_appcrue', 'lmsappcrue_use_user_param');
+    if ($useuserparam == 'email') {
+        $iduser = optional_param('studentemail', '', PARAM_RAW);
+    } else if ($useuserparam == 'username') {
+        $iduser = optional_param('username', '', PARAM_RAW);
     }
+
     $token = local_appcrue_get_token_param(required: false);
     $user = null;
     // Reporting object.

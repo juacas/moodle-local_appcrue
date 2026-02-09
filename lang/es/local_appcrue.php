@@ -85,12 +85,12 @@ $string['event_bad_apikey_failed_desc'] = 'Intento con clave API no válida {$a-
 $string['event_bad_apikey_failed_name'] = 'Intento con clave API no válida';
 $string['event_unauthorized_ip_failed_desc'] = 'Acceso bloqueado desde una dirección IP no permitida {$a->ipaddress}';
 $string['event_unauthorized_ip_failed_name'] = 'Intento de acceso con IP no autorizada';
-$string['idp:client_id'] = 'Client ID para el IDP';
-$string['idp:client_id_help'] = 'Client ID para el IDP para invocar el servicio de token de usuario. Es "import_code" en AppCrue.';
-$string['idp:client_secret'] = 'Client secret para el IDP';
-$string['idp:client_secret_help'] = 'Client secret para el IDP para invocar el servicio de token de usuario. Es "token" en AppCrue.';
+$string['idp:client_id'] = 'import_code del API Externa AppCRUE';
+$string['idp:client_id_help'] = '"import_code" del API Externa proporcionado por AppCRUE. Se usa para invocar el servicio de token de usuario.';
+$string['idp:client_secret'] = 'Token del API Externa AppCRUE';
+$string['idp:client_secret_help'] = '"Token" del API Externa proporcionado por AppCRUE. Se usa para invocar el servicio de token de usuario.';
 $string['idp:header'] = 'Verificación de tokens';
-$string['idp:header_help'] = 'Configuración del servicio de verificación de tokens de AppCrue. Esta funcionalidad es para instituciones que usan un IdP OAuth.';
+$string['idp:header_help'] = 'Configuración del servicio de verificación de tokens de AppCrue. Esta funcionalidad es para instituciones que usan la funcionalidad de enlaces con autologin.';
 $string['idp:token_url'] = 'Endpoint para resolución de token';
 $string['idp:token_url_help'] = 'URL del servicio IDP para resolver la identidad del usuario desde el token.';
 $string['idp:url'] = 'URL del IDP';
@@ -139,11 +139,18 @@ $string['lmsappcrue:grades_help'] = 'Exponer las calificaciones del usuario a AP
 $string['lmsappcrue:header'] = 'Integración de Widgets LMS-AppCRUE';
 $string['lmsappcrue:header_help'] = 'Configuración del servicio de integración de Widgets LMS-AppCRUE. La API LMS-AppCRUE solo es llamada desde el backend de AppCRUE usando una clave API pre-compartida.';
 $string['lmsappcrue:include_legacy_files'] = 'Incluir archivos heredados del curso';
-$string['lmsappcrue:include_legacy_files_help'] = 'Si está habilitado, los archivos del curso almacenados en el área heredada del curso serán incluidos en el endpoint de archivos. Estos archivos serán devueltos junto con los archivos de recursos y carpetas a todos los usuarios. Puede ser un riesgo de seguridad si los archivos heredados no se gestionan adecuadamente.';
+$string['lmsappcrue:include_legacy_files_help'] = 'Si está habilitado, los archivos del curso almacenados en el área heredada del curso serán incluidos en el endpoint de archivos. ' .
+        'Estos archivos serán devueltos junto con los archivos de recursos y carpetas a todos los usuarios. Puede ser un riesgo de seguridad si los archivos heredados no se gestionan adecuadamente.';
 $string['lmsappcrue:internalerror'] = 'Error interno';
 $string['lmsappcrue:invalidtimerange'] = 'Rango de tiempo inválido';
-$string['lmsappcrue:match_user_by'] = 'Campo donde buscar el email en el perfil del usuario';
-$string['lmsappcrue:match_user_by_help'] = 'Se busca el usuario usando el parámetro studentemail en el campo especificado del perfil del usuario. No es necesario cambiar este valor a menos que el campo de email del perfil del usuario no sea el mismo que en AppCRUE o se guarde en algún campo personalizado.';
+$string['lmsappcrue:match_user_by'] = 'Campo para hacer coincidencia del perfil del usuario';
+$string['lmsappcrue:match_user_by_help'] = 'El parámetro userid en la solicitud se usa para hacer coincidir el perfil del usuario. El valor de este campo se usa para hacer coincidir el perfil del usuario.';
+$string['lmsappcrue:show_total_grade_as_final'] = 'Mostrar calificación total como calificación final';
+$string['lmsappcrue:show_total_grade_as_final_help'] = 'Si está habilitado, la calificación total del curso se reportará como calificación final en el endpoint de calificaciones. ' .
+        'Esto es útil cuando la calificación total en Moodle no es fiable debido al uso de categorías de calificación con métodos de agregación que no encajan bien con el sistema de calificaciones de AppCRUE. ' .
+        'Cuando está habilitado, el itemtype de la calificación total del curso se reportará como "mod" en lugar de "course" para ser mostrado correctamente por AppCRUE como una calificación regular.';
+$string['lmsappcrue:use_user_param'] = 'Parámetro de usuario para buscar.';
+$string['lmsappcrue:use_user_param_help'] = 'Appcrue envía los parámetros "username" y "email" en la solicitud. El valor de este parámetro se usa para buscar en el perfil del usuario por el campo de seleccion en "match_user_by".';
 $string['match_user_by'] = 'Campo para hacer coincidencia del perfil del usuario';
 $string['match_user_by_help'] = 'El token de autorización devuelve una identificación que necesita ser emparejada con un campo de usuario.';
 $string['missingtoken'] = 'Token faltante';
@@ -162,15 +169,17 @@ $string['pluginname'] = 'Servicios de conexión AppCrue';
 $string['privacy:metadata'] = 'El plugin "Servicios de conexión AppCrue" no almacena ningún dato personal.';
 $string['sitemapheader'] = 'Servicio de mapa de sitio';
 $string['sitemapheader_help'] = 'Genera una estructura JSON de categorías y cursos con muchas opciones. Esto puede ser usado para alimentar el widget de navegación en AppCRUE.';
-$string['welcome_message'] = '<h3>Bienvenido a los servicios de conexión de AppCrue!</h3>' .
+$string['welcome_message'] = '<p>Estás usando la versión {$a->installedversion} del plugin.</p>' .
     '<p>Este plugin permite la integración de Moodle con las aplicaciones móviles de AppCrue. ' .
     'Proporciona servicios para autologin, recuperación de avatar, generación de mapas de sitio e integración de la API LMS-AppCrue.</p>' .
     '<p>Por favor, configure los ajustes del plugin para conectar su sitio Moodle con los servicios de AppCrue.</p>' .
     '<h3>Autoconfiguración de la API LMS-AppCrue</h3>' .
+    '<div class="alert alert-danger">Nunca habilite la configuración de autoconfiguración si no está seguro sobre la seguridad de su red o si no espera recibir solicitudes desde los servidores de AppCrue, ya que podría permitir el acceso no autorizado a su sitio Moodle.</div>' .
     '<p>Para autoconfigurar la integración de la API LMS-AppCrue, siga estos pasos:</p>' .
     '<ol>' .
     '<li>Asegúrese de que su sitio Moodle esté registrado en UNIVERSIA y sea accesible desde los servidores de AppCrue.</li>' .
     '<li>Habilite la configuración "Habilitar procedimiento de autoconfiguración de AppCRUE" en la configuración del plugin.</li>' .
     '<li>Desde la aplicación móvil AppCrue, inicie una petición de un widget con información de Moodle.</li>' .
     '<li>El plugin agregará automáticamente las IP oficiales de los servidores de AppCrue, habilitará el servicio de rotación de claves y almacenará la primera clave API recibida de AppCrue.</li>' .
+    '<li>La configuración de autoconfiguración se deshabilitará automáticamente después de la primera configuración exitosa para evitar cambios no deseados. Puede volver a habilitarla si necesita restablecer la configuración.</li>' .
     '</ol>';
