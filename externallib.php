@@ -257,6 +257,7 @@ class local_appcrue_external extends external_api {
         $result = self::validate_parameters(self::notify_grade_parameters(), $params);
         $context = context_system::instance();
         self::validate_context($context); // phpcs:ignore PHP0406 let exceptions work
+        // phpcs:ignore
         // TODO: Find a way to integrate final grades into gradebook.
 
         // Find user.
@@ -303,6 +304,7 @@ class local_appcrue_external extends external_api {
      * @since Moodle 2.2
      */
     public static function notify_grade_returns() {
+        // phpcs:ignore
         // TODO: Customize return type.
         return self::send_instant_message_returns();
     }

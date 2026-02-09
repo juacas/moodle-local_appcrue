@@ -101,7 +101,6 @@ class assignments_service extends appcrue_service {
 
                 // Get the assignment instance record.
                 $record  = $DB->get_record($cm->modname, ['id' => $cm->instance], '*', MUST_EXIST);
-                // TODO: Implement access dates from a secondary table if different than the main one.
                 $assignments[] = $this->format_activity($course, $cm, $record);
             }
         }

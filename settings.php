@@ -32,9 +32,7 @@ if ($hassiteconfig) {
     global $CFG;
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
-    /**
-     * AppCRUE release information.
-     */
+    // AppCRUE release information and tips for autoconfig feature.
     $installedversion = get_config('local_appcrue', 'version');
     $settings->add(new admin_setting_description(
         'local_appcrue/releaseinfo',

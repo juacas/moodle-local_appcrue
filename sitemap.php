@@ -151,6 +151,7 @@ if ($sitemap == false) {
         $cache->set($key . '_created', time());
     }
 }
+// phpcs:ignore
 // TODO: substitute current token with bearer mark if caching at server is a problem.
 // Change simple URLs by DeepURLs.
 $tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
