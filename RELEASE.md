@@ -1,6 +1,12 @@
 
 AppCRUE — Release notes
 =======================
+v2.0.4 — 2026-06-09
+- Setting for showing total grade as final grade in AppCRUE, with itemtype adjustment for better compatibility.
+- Setting for using user parameters for matching, allowing more flexible user identification.
+- Updated documentation to reflect new settings and features.
+- Fix: gradelib was not loaded in some cases, causing errors in assignments endpoint for some users.
+
 v2.0.3 — 2026-03-15
 - Autologin redirector to navigate users to deep links after token-based authentication.
 - Improved documentation for LMS connection diagnosis and autologin setup.
