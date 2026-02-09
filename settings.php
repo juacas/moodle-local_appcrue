@@ -32,6 +32,15 @@ if ($hassiteconfig) {
     global $CFG;
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
+    /**
+     * AppCRUE release information.
+     */
+    $installedversion = get_config('local_appcrue', 'version');
+    $settings->add(new admin_setting_description(
+        'local_appcrue/releaseinfo',
+        get_string('pluginname', 'local_appcrue'),
+        get_string('welcome_message', 'local_appcrue', ['installedversion' => $installedversion])
+    ));
     // Switch to activate autoconfiguration mode of the APIKey.
     // If activated  the next apikey request will set the api_key.
     // After a new API key is stored, the switch will be disabled.

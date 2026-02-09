@@ -168,15 +168,17 @@ $string['privacy:metadata'] = 'The "AppCrue connection services" plugin does not
 
 $string['sitemapheader'] = 'Sitemap service';
 $string['sitemapheader_help'] = 'Generates a JSON structure of categories and courses with many options. This can be used for feeding navigation widget in AppCRUE.';
-$string['welcome_message'] = '<h3>Welcome to AppCrue connection services!</h3>' .
-    '<p>This plugin allows the integration of Moodle with AppCrue mobile applications. ' .
+$string['welcome_message'] = '<p>You are using version {$a->installedversion} of the plugin.</p>' .
+    '<p>This plugin allows the integration of Moodle with AppCrue mobile application. ' .
     'It provides services for autologin, avatar retrieval, sitemap generation, and LMS-AppCrue API integration.</p>' .
     '<p>Please configure the plugin settings to connect your Moodle site with AppCrue services.</p>' .
     '<h3>Autoconfiguring LMS-AppCrue API</h3>' .
+    '<div class="alert alert-danger">Never enable the autoconfig setting if you are not sure about the security of your network or if you are not expecting to receive requests from AppCrue servers, as it may allow unauthorized access to your Moodle site.</div>' .
     '<p>To autoconfigure the LMS-AppCrue API integration, please follow these steps:</p>' .
     '<ol>' .
     '<li>Ensure that your Moodle site is registered with UNIVERSIA and accessible from the AppCrue servers.</li>' .
     '<li>Enable the "Enable AppCRUE autoconfig procedure" setting in the plugin configuration.</li>' .
     '<li>From the AppCrue mobile app, click on any widget with Moodle information to initiate connection to your Moodle site.</li>' .
     '<li>The plugin will automatically add the official AppCrue server IPs, enable the key rotation service, and store the first API key received from AppCrue.</li>' .
+    '<li>The autoconfig setting will be automatically disabled after the first successful configuration to prevent unwanted changes. You can re-enable it if you need to reset the configuration.</li>' .
     '</ol>';

@@ -169,15 +169,17 @@ $string['pluginname'] = 'Servicios de conexión AppCrue';
 $string['privacy:metadata'] = 'El plugin "Servicios de conexión AppCrue" no almacena ningún dato personal.';
 $string['sitemapheader'] = 'Servicio de mapa de sitio';
 $string['sitemapheader_help'] = 'Genera una estructura JSON de categorías y cursos con muchas opciones. Esto puede ser usado para alimentar el widget de navegación en AppCRUE.';
-$string['welcome_message'] = '<h3>Bienvenido a los servicios de conexión de AppCrue!</h3>' .
+$string['welcome_message'] = '<p>Estás usando la versión {$a->installedversion} del plugin.</p>' .
     '<p>Este plugin permite la integración de Moodle con las aplicaciones móviles de AppCrue. ' .
     'Proporciona servicios para autologin, recuperación de avatar, generación de mapas de sitio e integración de la API LMS-AppCrue.</p>' .
     '<p>Por favor, configure los ajustes del plugin para conectar su sitio Moodle con los servicios de AppCrue.</p>' .
     '<h3>Autoconfiguración de la API LMS-AppCrue</h3>' .
+    '<div class="alert alert-danger">Nunca habilite la configuración de autoconfiguración si no está seguro sobre la seguridad de su red o si no espera recibir solicitudes desde los servidores de AppCrue, ya que podría permitir el acceso no autorizado a su sitio Moodle.</div>' .
     '<p>Para autoconfigurar la integración de la API LMS-AppCrue, siga estos pasos:</p>' .
     '<ol>' .
     '<li>Asegúrese de que su sitio Moodle esté registrado en UNIVERSIA y sea accesible desde los servidores de AppCrue.</li>' .
     '<li>Habilite la configuración "Habilitar procedimiento de autoconfiguración de AppCRUE" en la configuración del plugin.</li>' .
     '<li>Desde la aplicación móvil AppCrue, inicie una petición de un widget con información de Moodle.</li>' .
     '<li>El plugin agregará automáticamente las IP oficiales de los servidores de AppCrue, habilitará el servicio de rotación de claves y almacenará la primera clave API recibida de AppCrue.</li>' .
+    '<li>La configuración de autoconfiguración se deshabilitará automáticamente después de la primera configuración exitosa para evitar cambios no deseados. Puede volver a habilitarla si necesita restablecer la configuración.</li>' .
     '</ol>';
