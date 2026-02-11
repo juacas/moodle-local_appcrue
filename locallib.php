@@ -343,12 +343,12 @@ function appcrue_find_user($fieldname, $matchvalue) {
  * If tokenmark and token are not provided, the url is returned as is.
  * @param string $url the url to be enveloped.
  * @param string|null $token the token to be used.
- * @param string|null $tokenmark the mark to be used in the url if $token is nos provided.
+ * @param string|null $tokenmark the mark to be used in the url if $token is not provided.
  *                               Can be bearer|token|appcrue_bearer|appcrue_token
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
-function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcrue_bearer', $fallback = 'continue') {
+function local_appcrue_create_deep_url(string $url, $token = null, $tokenmark = 'appcrue_token', $fallback = 'continue') {
     $params = [];
     if (!$token && !$tokenmark) {
         return $url; // No token, no mark, return the original URL.
@@ -358,21 +358,21 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcru
     $tokenmarksufix = '';
     if ($token) {
         $params['token'] = $token;
-    }
-
-    switch ($tokenmark) {
-        case 'token':
-            $tokenmarksufix = '&token=<token>';
-            break;
-        case 'bearer':
-            $tokenmarksufix = '&<bearer>';
-            break;
-        case 'appcrue_bearer':
-            $tokenmarksufix = '&<appcrue_bearer>';
-            break;
-        case 'appcrue_token':
-            $tokenmarksufix = '&token=<appcrue_token>';
-            break;
+    } else {
+        switch ($tokenmark) {
+            case 'token':
+                $tokenmarksufix = '&token=<token>';
+                break;
+            case 'bearer':
+                $tokenmarksufix = '&<bearer>';
+                break;
+            case 'appcrue_bearer':
+                $tokenmarksufix = '&<appcrue_bearer>';
+                break;
+            case 'appcrue_token':
+                $tokenmarksufix = '&token=<appcrue_token>';
+                break;
+        }
     }
 
     $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
@@ -385,6 +385,9 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcru
  * @param string $tokenmark the token mark to use: bearer or token.
  */
 function local_appcrue_filter_urls($node, $token, $tokenmark) {
+    if ($token == '' && $tokenmark == '') {
+        return;
+    }
     if (isset($node->url)) {
         $node->url = local_appcrue_create_deep_url($node->url, $token, $tokenmark);
     }

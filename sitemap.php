@@ -37,17 +37,20 @@ if (!get_config('local_appcrue', 'enable_sitemap')) {
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }
+// Deprecated: user token is no longer used, but it is still accepted for compatibility with old versions of the app.
+// User's token in the request is incompatible with caching. <appcrue_token> and <token> are replaced on the fly by native apps.
 $token = optional_param('token', '', PARAM_RAW);
 $category = optional_param('category', 0, PARAM_INT);
 $includecourses = optional_param('courses', false, PARAM_BOOL);
 $hiddencats = optional_param_array('hidden', [], PARAM_INT);
 $urlsonlyonends = optional_param('endurls', true, PARAM_BOOL);
+$tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
 
 $PAGE->set_context(null);
 header('Content-Type: text/json; charset=utf-8');
 
 $key = false; // Disable cache.
-$sitemap = false; // Force calculation on map.
+$sitemap = false; // Sitemap retreived from cache.
 
 if (get_config('local_appcrue', 'cache_sitemap')) {
     $cache = cache::make('local_appcrue', 'sitemaps');
@@ -85,12 +88,12 @@ if ($sitemap == false) {
         $navegable = new stdClass();
         $navegable->name = $cat->name;
         $navegable->description = format_text($cat->description, FORMAT_HTML);
-        $navegable->id = $cat->id;
+        $navegable->id = (int) $cat->id;
         // URL.
         $url = new moodle_url('/course/index.php', ['categoryid' => $cat->id]);
         $navegable->url = $url->out();
-        $catindex[$cat->id] = $navegable;
-        if ($cat->id == $category) {
+        $catindex[$navegable->id] = $navegable;
+        if ($navegable->id == $category) {
             $navegableroot = $navegable;
         }
     }
@@ -99,7 +102,7 @@ if ($sitemap == false) {
         if ($catid != 0) {
             // Get navegable parent.
             $category = $categories[$catid];
-            $parentid = $category->parent;
+            $parentid = (int) $category->parent;
 
             $parent = $catindex[$parentid] ?? null;
             $ishidden = array_search($catid, $hiddencats) !== false;
@@ -138,6 +141,8 @@ if ($sitemap == false) {
             }
         }
     }
+    // Create deep URLs if token mark is set.
+    local_appcrue_filter_urls($navegableroot, $token, $tokenmark);
 
     if (debugging()) {
         $navegableroot->debug = new stdClass();
@@ -145,18 +150,11 @@ if ($sitemap == false) {
         $navegableroot->debug->errors = $errors;
         $navegableroot->updated = userdate(time());
     }
-    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
+    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($key) {
         $cache->set($key, $sitemap);
         $cache->set($key . '_created', time());
     }
 }
 // phpcs:ignore
-// TODO: substitute current token with bearer mark if caching at server is a problem.
-// Change simple URLs by DeepURLs.
-$tokenmark = get_config('local_appcrue', 'deep_url_token_mark');
-$navegableroot = json_decode($sitemap);
-local_appcrue_filter_urls($navegableroot, $token, $tokenmark);
-$sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
 echo $sitemap;
