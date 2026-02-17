@@ -68,7 +68,7 @@ function local_appcrue_get_user_from_request(): array {
         // API Key mode.
         if (local_appcrue_is_apikey_valid($apikey)) {
             $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
-            $user = appcrue_find_user($fieldname, $iduser);
+            $user = local_appcrue_find_user($fieldname, $iduser);
         } else {
             $diag->code = 401;
             $diag->message = 'Invalid API Key';
@@ -136,7 +136,7 @@ function local_appcrue_get_user_by_token($token) {
         $returnstatus->status = 'validated';
         // JPC: Refactor this block as function.
         $fieldname = get_config('local_appcrue', 'match_user_by');
-        $user = appcrue_find_user($fieldname, $matchvalue);
+        $user = local_appcrue_find_user($fieldname, $matchvalue);
         if (!$user) {
             $returnstatus->code = 404; // 404 Not found.
         } else {
@@ -300,7 +300,7 @@ function local_appcrue_validate_token($token, $debug = false): array {
  * @param string $matchvalue the value to search for.
  * @return stdClass|false user structure
  */
-function appcrue_find_user($fieldname, $matchvalue) {
+function local_appcrue_find_user($fieldname, $matchvalue) {
     global $DB;
     if (empty($matchvalue)) {
         return false;

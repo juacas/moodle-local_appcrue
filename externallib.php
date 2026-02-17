@@ -107,7 +107,7 @@ class local_appcrue_external extends external_api {
         foreach ($messages as $key => $message) {
             if (isset($message['touserkey'])) {
                 $receiver = $message['touserkey'];
-                $touser = appcrue_find_user($field, $receiver);
+                $touser = local_appcrue_find_user($field, $receiver);
                 if ($touser) {
                     $messages[$key]['touserid'] = $touser->id;
                     unset($messages[$key]['touserkey']); // Clean the parameters.
@@ -263,10 +263,10 @@ class local_appcrue_external extends external_api {
         // Find user.
         if ($idusuario) {
             $fieldname = get_config('local_appcrue', 'match_user_by');
-            $userto = appcrue_find_user($fieldname, $idusuario);
+            $userto = local_appcrue_find_user($fieldname, $idusuario);
         }
         if ($userto == false) {
-            $userto = appcrue_find_user('email', $useremail);
+            $userto = local_appcrue_find_user('email', $useremail);
         }
         if ($userto == false) {
             return [
