@@ -384,16 +384,17 @@ function local_appcrue_create_deep_url(string $url, $token = null, $tokenmark = 
  * @param string $token the authorization token.
  * @param string $tokenmark the token mark to use: bearer or token.
  */
-function local_appcrue_filter_urls($node, $token, $tokenmark) {
+function local_appcrue_filter_sitemap_urls($node, $token, $tokenmark) {
     if ($token == '' && $tokenmark == '') {
         return;
     }
     if (isset($node->url)) {
         $node->url = local_appcrue_create_deep_url($node->url, $token, $tokenmark);
+        $node->destinyType = 'customTab';
     }
     if (isset($node->navegable)) {
         foreach ($node->navegable as $child) {
-            local_appcrue_filter_urls($child, $token, $tokenmark);
+            local_appcrue_filter_sitemap_urls($child, $token, $tokenmark);
         }
     }
 }

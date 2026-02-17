@@ -92,6 +92,7 @@ if ($sitemap == false) {
         // URL.
         $url = new moodle_url('/course/index.php', ['categoryid' => $cat->id]);
         $navegable->url = $url->out();
+
         $catindex[$navegable->id] = $navegable;
         if ($navegable->id == $category) {
             $navegableroot = $navegable;
@@ -134,6 +135,7 @@ if ($sitemap == false) {
                 $coursenav->description = content_to_text($course->summary, false);
                 $url = new moodle_url('/course/view.php', ['id' => $course->id]);
                 $coursenav->url = $url->out();
+
                 $nav->navegable[] = $coursenav;
                 if ($urlsonlyonends) {
                     unset($nav->url);
@@ -142,19 +144,23 @@ if ($sitemap == false) {
         }
     }
     // Create deep URLs if token mark is set.
-    local_appcrue_filter_urls($navegableroot, $token, $tokenmark);
-
+    local_appcrue_filter_sitemap_urls($navegableroot, $token, $tokenmark);
     if (debugging()) {
         $navegableroot->debug = new stdClass();
         $navegableroot->debug->token = $token;
         $navegableroot->debug->errors = $errors;
-        $navegableroot->updated = userdate(time());
+        $navegableroot->debug->updated = userdate(time());
     }
     $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($key) {
         $cache->set($key, $sitemap);
         $cache->set($key . '_created', time());
     }
+}
+if (debugging()) {
+    $navegableroot = json_decode($sitemap);
+    $navegableroot->debug->cached = $timecache ? userdate($timecache) : 'uncached';
+    $sitemap = json_encode($navegableroot, JSON_HEX_QUOT | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 // phpcs:ignore
 echo $sitemap;
