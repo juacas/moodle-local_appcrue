@@ -378,6 +378,18 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:calendar:enable_calendar_help', 'local_appcrue'),
         defaultsetting: false
     ));
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_calendar_timewindow_before',
+        get_string('lmsappcrue:calendar:timewindow_before', 'local_appcrue'),
+        get_string('lmsappcrue:calendar:timewindow_before_help', 'local_appcrue'),
+        30 * DAYSECS
+    ));
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_calendar_timewindow_after',
+        get_string('lmsappcrue:calendar:timewindow_after', 'local_appcrue'),
+        get_string('lmsappcrue:calendar:timewindow_after_help', 'local_appcrue'),
+        120 * DAYSECS
+    ));
 
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/calendar_share_site_events',
