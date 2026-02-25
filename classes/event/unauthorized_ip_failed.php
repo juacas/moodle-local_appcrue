@@ -52,6 +52,10 @@ class unauthorized_ip_failed extends \core\event\base {
     public static function get_name() {
         return get_string('event_unauthorized_ip_failed_name', 'local_appcrue');
     }
+    /**
+     * No other mappings.
+     * @return bool
+     */
     public static function get_other_mapping() {
         return false;
     }

@@ -68,7 +68,7 @@ function local_appcrue_get_user_from_request(): array {
         // API Key mode.
         if (local_appcrue_is_apikey_valid($apikey)) {
             $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
-            $user = appcrue_find_user($fieldname, $iduser);
+            $user = local_appcrue_find_user($fieldname, $iduser);
         } else {
             $diag->code = 401;
             $diag->message = 'Invalid API Key';
@@ -136,7 +136,7 @@ function local_appcrue_get_user_by_token($token) {
         $returnstatus->status = 'validated';
         // JPC: Refactor this block as function.
         $fieldname = get_config('local_appcrue', 'match_user_by');
-        $user = appcrue_find_user($fieldname, $matchvalue);
+        $user = local_appcrue_find_user($fieldname, $matchvalue);
         if (!$user) {
             $returnstatus->code = 404; // 404 Not found.
         } else {
@@ -300,7 +300,7 @@ function local_appcrue_validate_token($token, $debug = false): array {
  * @param string $matchvalue the value to search for.
  * @return stdClass|false user structure
  */
-function appcrue_find_user($fieldname, $matchvalue) {
+function local_appcrue_find_user($fieldname, $matchvalue) {
     global $DB;
     if (empty($matchvalue)) {
         return false;
@@ -343,12 +343,12 @@ function appcrue_find_user($fieldname, $matchvalue) {
  * If tokenmark and token are not provided, the url is returned as is.
  * @param string $url the url to be enveloped.
  * @param string|null $token the token to be used.
- * @param string|null $tokenmark the mark to be used in the url if $token is nos provided.
+ * @param string|null $tokenmark the mark to be used in the url if $token is not provided.
  *                               Can be bearer|token|appcrue_bearer|appcrue_token
  * @param string $fallback the behaviour desired if token validation fails.
  * @return string the enveloped url.
  */
-function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcrue_bearer', $fallback = 'continue') {
+function local_appcrue_create_deep_url(string $url, $token = null, $tokenmark = 'appcrue_token', $fallback = 'continue') {
     $params = [];
     if (!$token && !$tokenmark) {
         return $url; // No token, no mark, return the original URL.
@@ -358,21 +358,21 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcru
     $tokenmarksufix = '';
     if ($token) {
         $params['token'] = $token;
-    }
-
-    switch ($tokenmark) {
-        case 'token':
-            $tokenmarksufix = '&token=<token>';
-            break;
-        case 'bearer':
-            $tokenmarksufix = '&<bearer>';
-            break;
-        case 'appcrue_bearer':
-            $tokenmarksufix = '&<appcrue_bearer>';
-            break;
-        case 'appcrue_token':
-            $tokenmarksufix = '&token=<appcrue_token>';
-            break;
+    } else {
+        switch ($tokenmark) {
+            case 'token':
+                $tokenmarksufix = '&token=<token>';
+                break;
+            case 'bearer':
+                $tokenmarksufix = '&<bearer>';
+                break;
+            case 'appcrue_bearer':
+                $tokenmarksufix = '&<appcrue_bearer>';
+                break;
+            case 'appcrue_token':
+                $tokenmarksufix = '&token=<appcrue_token>';
+                break;
+        }
     }
 
     $deepurl = new moodle_url('/local/appcrue/autologin.php', $params);
@@ -384,13 +384,17 @@ function local_appcrue_create_deep_url(string $url, $token, $tokenmark = 'appcru
  * @param string $token the authorization token.
  * @param string $tokenmark the token mark to use: bearer or token.
  */
-function local_appcrue_filter_urls($node, $token, $tokenmark) {
+function local_appcrue_filter_sitemap_urls($node, $token, $tokenmark) {
+    if ($token == '' && $tokenmark == '') {
+        return;
+    }
     if (isset($node->url)) {
         $node->url = local_appcrue_create_deep_url($node->url, $token, $tokenmark);
+        $node->destinyType = 'customTab';
     }
     if (isset($node->navegable)) {
         foreach ($node->navegable as $child) {
-            local_appcrue_filter_urls($child, $token, $tokenmark);
+            local_appcrue_filter_sitemap_urls($child, $token, $tokenmark);
         }
     }
 }

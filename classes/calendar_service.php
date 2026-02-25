@@ -81,19 +81,19 @@ class calendar_service extends appcrue_service {
      */
     public static function get_events(stdClass $user, int $timestart, int $timeend, int $limitnum = 0): array {
         global $DB;
+        $timewindowbefore = (int)get_config('local_appcrue', 'lmsappcrue_calendar_timewindow_before');
+        $timewindowafter = (int)get_config('local_appcrue', 'lmsappcrue_calendar_timewindow_after');
         // Validate time range if both are provided.
         if ($timestart > 0 && $timeend > 0 && $timestart > $timeend) {
             throw new \Exception("Invalid time range Start: {$timestart} > End: {$timeend}", 404);
         }
         // Limit time spans.
-        if ($timestart == 0 && $timeend == 0) {
-            $timestart = time() - 30 * DAYSECS;
-            $timeend = $timestart + 60 * DAYSECS;
+        $now = time();
+        if ($timestart == 0) {
+            $timestart = $now - $timewindowbefore;
         }
-        if ($timestart <= 0 && $timeend > 0) {
-            $timestart = $timeend - 60 * DAYSECS;
-        } else if ($timestart > 0 && $timeend <= 0) {
-            $timeend = $timestart + 60 * DAYSECS;
+        if ($timeend == 0) {
+            $timeend = $now + $timewindowafter;
         }
 
         // Get groups and courses for the user, according to the plugin config.

@@ -160,6 +160,7 @@ class forums_service extends appcrue_service {
                         continue;
                     }
                     // Skip discussions not for this group.
+                    // phpcs:ignore
                     // TODO: check capability "see all posts".
                     if ($discussion->groupid && $discussion->groupid != -1 && !isset($groups[$discussion->groupid])) {
                         continue;
