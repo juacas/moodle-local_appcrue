@@ -369,14 +369,14 @@ if ($hassiteconfig) {
         'local_appcrue/enable_usercalendar',
         get_string('calendar:enable_calendar', 'local_appcrue'),
         get_string('calendar:enable_calendar_help', 'local_appcrue'),
-        false
+        true
     ));
     // Enable LMS AppCRUE calendar endpoint.
     $settings->add(new admin_setting_configcheckbox(
         'local_appcrue/lmsappcrue_enable_calendar',
         get_string('lmsappcrue:calendar:enable_calendar', 'local_appcrue'),
         get_string('lmsappcrue:calendar:enable_calendar_help', 'local_appcrue'),
-        defaultsetting: false
+        true
     ));
     $settings->add(new admin_setting_configduration(
         'local_appcrue/lmsappcrue_calendar_timewindow_before',
@@ -431,7 +431,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_grades',
         get_string('lmsappcrue:enable_grades', 'local_appcrue'),
         get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
-        false
+        true
     ));
 
     // Select to show total grade as final or not-final grade.
@@ -455,7 +455,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_forums',
         get_string('lmsappcrue:enable_forums', 'local_appcrue'),
         get_string('lmsappcrue:enable_forums_help', 'local_appcrue'),
-        false
+        true
     ));
     // Time window for forums.
     $settings->add(new admin_setting_configduration(
@@ -476,7 +476,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_announcements',
         get_string('lmsappcrue:enable_announcements', 'local_appcrue'),
         get_string('lmsappcrue:enable_announcements_help', 'local_appcrue'),
-        false
+        true
     ));
     // LMS AppCRUE files section.
     $settings->add(
@@ -491,7 +491,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_files',
         get_string('lmsappcrue:enable_files', 'local_appcrue'),
         get_string('lmsappcrue:enable_files_help', 'local_appcrue'),
-        false
+        true
     ));
     // Include legacy course files.
     $settings->add(new admin_setting_configcheckbox(
@@ -510,7 +510,7 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_enable_assignments',
         get_string('lmsappcrue:enable_assignments', 'local_appcrue'),
         get_string('lmsappcrue:enable_assignments_help', 'local_appcrue'),
-        false
+        true
     ));
     // Mapping activities types to start dates.
     $settingstartdate = new admin_setting_configtextarea(
