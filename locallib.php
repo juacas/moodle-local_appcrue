@@ -158,8 +158,9 @@ function local_appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
      // Try to extract a Bearer token.
     $headers = getallheaders();
-    if (isset($headers['Authorization'])) {
-        $auth = $headers['Authorization'];
+    $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
+    if (isset($headers['authorization']) ) {
+        $auth = $headers['authorization'];
         if (preg_match('/^Bearer\s+(.*)$/', $auth, $matches)) {
             $token = $matches[1];
         }
@@ -181,12 +182,9 @@ function local_appcrue_get_apikey_param($required = false): string {
     if (empty($apikey)) {
         // Try to extract an API key from the headers.
         $headers = getallheaders();
-        if (isset($_SERVER['HTTP_X_API_KEY'])) {
-            $apikey = $_SERVER['HTTP_X_API_KEY'];
-        } else if (isset($headers['X-API-KEY'])) {
-            $apikey = $headers['X-API-KEY'];
-        } else if (isset($headers['X-Api-Key'])) {
-            $apikey = $headers['X-Api-Key'];
+        $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
+        if (isset($headers['x-api-key'])) {
+            $apikey = $headers['x-api-key'];
         }
     }
     if ($required && empty($apikey)) {

@@ -56,6 +56,7 @@ try {
     [$user, $diag] = local_appcrue_get_user_by_token($token);
     if ($user == null && $fallback == 'error') {
         // Set status code 401 and show error.
+        header('HTTP/1.1 401 Unauthorized');
         echo $OUTPUT->header();
         echo $OUTPUT->box_start('generalbox centerpara');
         echo html_writer::tag('p', get_string('autologin:notauthenticated', 'local_appcrue'));
@@ -70,7 +71,6 @@ try {
                 'diagnosis' => $diag->result,
                 ],
         ])->trigger();
-        header('HTTP/1.1 401 Unauthorized');
         die();
     }
 
