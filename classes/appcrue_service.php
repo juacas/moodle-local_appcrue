@@ -216,7 +216,7 @@ abstract class appcrue_service {
             self::INVALID_API_KEY => 401,
             // Bad request for missing token.
             self::MISSING_WS_TOKEN => 400,
-            self::USER_NOT_ENROLLED => 403,
+            self::USER_NOT_ENROLLED => 404,
             self::JSON_DECODE_ERROR => 400,
             self::INVALID_PARAMETER => 400,
             self::UNKNOWN_ENDPOINT => 404,

@@ -33,13 +33,13 @@ require_once($CFG->libdir . '/filelib.php');
 require_once('locallib.php');
 
 if (!get_config('local_appcrue', 'enable_sitemap')) {
-    header('HTTP/1.1 405 Method Not Allowed');
+    header('HTTP/1.1 404 Not found.');
     die();
     // Better act as a service don't throw new moodle_exception('servicedonotexist', 'error').
 }
-// Deprecated: user token is no longer used, but it is still accepted for compatibility with old versions of the app.
+// Deprecated: user token is no longer used, but it is still accepted and ignored for compatibility with old versions of the app.
 // User's token in the request is incompatible with caching. <appcrue_token> and <token> are replaced on the fly by native apps.
-$token = optional_param('token', '', PARAM_RAW);
+$token = '';
 $category = optional_param('category', 0, PARAM_INT);
 $includecourses = optional_param('courses', false, PARAM_BOOL);
 $hiddencats = optional_param_array('hidden', [], PARAM_INT);
@@ -144,7 +144,7 @@ if ($sitemap == false) {
         }
     }
     // Create deep URLs if token mark is set.
-    local_appcrue_filter_sitemap_urls($navegableroot, $token, $tokenmark);
+    local_appcrue_filter_sitemap_urls($navegableroot, null, $tokenmark);
     if (debugging()) {
         $navegableroot->debug = new stdClass();
         $navegableroot->debug->token = $token;
