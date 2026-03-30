@@ -163,7 +163,7 @@ class calendar_service extends appcrue_service {
                 $params['course'] = $event->courseid;
             }
             $url = new moodle_url("/calendar/view.php", $params);
-            $eventurl = $url->out(false);
+            $eventurl = $url->out_as_local_url();
         }
         // Convert the url to a redirected url with token.
         $eventurl = local_appcrue_create_deep_url($eventurl, $token, $tokenmark);

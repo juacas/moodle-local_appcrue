@@ -143,7 +143,7 @@ function local_appcrue_get_user_by_token($token) {
         $user = local_appcrue_find_user($fieldname, $matchvalue);
         if (!$user) {
             $returnstatus->code = 404; // 404 Not found.
-            
+
         } else {
             $returnstatus->code = 200; // 200 OK.
         }
