@@ -1,6 +1,10 @@
 
 AppCRUE — Release notes
 =======================
+v2.0.6 - 2026-04-26
+- Support and use relative urls in LMS endpoints when using autologin to avoid using autologin urls.
+- Support case insensitive headers.
+
 v2.0.5 - 2026-02-25
 - Enables LMS endpoints by default in the AppCRUE local plugin. AdministersCalling these features are now enabled out-of-the-box instead of requiring manual configuration, making the AppCRUE LMS integration more accessible by default.
 
