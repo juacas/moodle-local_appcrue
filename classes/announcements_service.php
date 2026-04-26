@@ -109,7 +109,7 @@ class announcements_service extends appcrue_service {
                     );
 
                     $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
-                    $discussionurl = local_appcrue_create_deep_url($discussionurl->out(), $this->token, $this->tokenmark);
+                    $discussionurl = local_appcrue_create_deep_url($discussionurl->out_as_local_url(), $this->token, $this->tokenmark);
 
                     $author = \core_user::get_user($post->userid);
 

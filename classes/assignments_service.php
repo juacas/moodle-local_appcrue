@@ -128,7 +128,7 @@ class assignments_service extends appcrue_service {
         $description = html_to_text($description, 0, false);
         // Build url.
         $url = new \moodle_url('/mod/' . $cm->modname . '/view.php', ['id' => $cm->id]);
-        $url = local_appcrue_create_deep_url($url->out(), $this->token, $this->tokenmark);
+        $url = local_appcrue_create_deep_url($url->out_as_local_url(), $this->token, $this->tokenmark);
         $data = [
             'course_title' => $course->fullname,
             'title'        => $title,

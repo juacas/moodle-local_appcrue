@@ -46,19 +46,13 @@ if (class_exists(cache_store::class) && !class_exists(core_cache\store::class)) 
 function local_appcrue_get_user_from_request(): array {
     // Get apikey.
     $apikey = local_appcrue_get_apikey_param(required: false);
-    // Accept both 'studentemail' and 'user' parameter according to setting 'local_appcrue/lmsappcrue_use_user_param'.
-    $useuserparam = get_config('local_appcrue', 'lmsappcrue_use_user_param');
-    if ($useuserparam == 'email') {
-        $iduser = optional_param('studentemail', '', PARAM_RAW);
-    } else if ($useuserparam == 'username') {
-        $iduser = optional_param('username', '', PARAM_RAW);
-    }
 
     $token = local_appcrue_get_token_param(required: false);
     $user = null;
     // Reporting object.
     $diag = new stdClass();
     $diag->code = 200;
+
     $diag->message = 'OK';
     if ($token) {
          // User token mode.
@@ -67,6 +61,16 @@ function local_appcrue_get_user_from_request(): array {
         // If there is an apikey, we use it to get the user.
         // API Key mode.
         if (local_appcrue_is_apikey_valid($apikey)) {
+            // Accept both 'studentemail' and 'username' parameter according to setting 'local_appcrue/lmsappcrue_use_user_param'.
+            $useuserparam = get_config('local_appcrue', 'lmsappcrue_use_user_param');
+            if ($useuserparam == 'email') {
+                $iduser = optional_param('studentemail', '', PARAM_RAW);
+            } else if ($useuserparam == 'username') {
+                $iduser = optional_param('username', '', PARAM_RAW);
+            }
+            if (empty($iduser)) {
+                throw new Exception('Missing user identifier parameter', appcrue_service::INVALID_PARAMETER);
+            }
             $fieldname = get_config('local_appcrue', 'lmsappcrue_match_user_by');
             $user = local_appcrue_find_user($fieldname, $iduser);
         } else {
@@ -139,6 +143,7 @@ function local_appcrue_get_user_by_token($token) {
         $user = local_appcrue_find_user($fieldname, $matchvalue);
         if (!$user) {
             $returnstatus->code = 404; // 404 Not found.
+
         } else {
             $returnstatus->code = 200; // 200 OK.
         }
@@ -158,8 +163,9 @@ function local_appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
      // Try to extract a Bearer token.
     $headers = getallheaders();
-    if (isset($headers['Authorization'])) {
-        $auth = $headers['Authorization'];
+    $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
+    if (isset($headers['authorization']) ) {
+        $auth = $headers['authorization'];
         if (preg_match('/^Bearer\s+(.*)$/', $auth, $matches)) {
             $token = $matches[1];
         }
@@ -181,12 +187,9 @@ function local_appcrue_get_apikey_param($required = false): string {
     if (empty($apikey)) {
         // Try to extract an API key from the headers.
         $headers = getallheaders();
-        if (isset($_SERVER['HTTP_X_API_KEY'])) {
-            $apikey = $_SERVER['HTTP_X_API_KEY'];
-        } else if (isset($headers['X-API-KEY'])) {
-            $apikey = $headers['X-API-KEY'];
-        } else if (isset($headers['X-Api-Key'])) {
-            $apikey = $headers['X-Api-Key'];
+        $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
+        if (isset($headers['x-api-key'])) {
+            $apikey = $headers['x-api-key'];
         }
     }
     if ($required && empty($apikey)) {

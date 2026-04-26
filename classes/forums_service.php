@@ -137,7 +137,7 @@ class forums_service extends appcrue_service {
             if (!$discussions) {
                 // Create a link to the forum..
                 $forumurl = new \moodle_url('/mod/forum/view.php', ['id' => $cm->id]);
-                $forumurl = local_appcrue_create_deep_url($forumurl->out(), $this->token, $this->tokenmark);
+                $forumurl = local_appcrue_create_deep_url($forumurl->out_as_local_url(), $this->token, $this->tokenmark);
                 // Forum without discussions, report with a fake topic with no posts.
                  $forumoutput[] = [
                         'course_title' => (string) ($course->fullname ?? ''),
@@ -182,10 +182,10 @@ class forums_service extends appcrue_service {
                         $permalink = clone($discussionurl);
                         $permalink->set_anchor('p' . $post->id);
                         // Deep link.
-                        $permalink = local_appcrue_create_deep_url($permalink->out(), $this->token, $this->tokenmark);
+                        $permalink = local_appcrue_create_deep_url($permalink->out_as_local_url(), $this->token, $this->tokenmark);
                         // Get Reply to link.
                         $replylink = new \moodle_url('/mod/forum/post.php', ['reply' => $post->id]);
-                        $replylink = local_appcrue_create_deep_url($replylink->out(), $this->token, $this->tokenmark);
+                        $replylink = local_appcrue_create_deep_url($replylink->out_as_local_url(), $this->token, $this->tokenmark);
 
                         $postmap[$post->id] = [
                             'id'           => (string)$post->id,
@@ -202,7 +202,7 @@ class forums_service extends appcrue_service {
 
                     $rootposts = self::build_post_tree($postmap);
                     $deepdiscussionurl = local_appcrue_create_deep_url(
-                        $discussionurl->out(),
+                        $discussionurl->out_as_local_url(),
                         $this->token,
                         $this->tokenmark
                     );
