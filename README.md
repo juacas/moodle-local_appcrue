@@ -218,6 +218,16 @@ Token / IdP validation (for token-based endpoints)
 - Configure which Moodle profile field holds the external identifier.
 - Optionally set OAuth client id/secret and token endpoint if using an OAuth IdP.
 
+## Tests
+
+This plugin includes a dedicated PHPUnit suite named `local_appcrue_testsuite` in:
+`local/appcrue/phpunit.xml.dist`
+
+Run only this plugin suite:
+```bash
+vendor/bin/phpunit -c local/appcrue/phpunit.xml.dist --testsuite local_appcrue_testsuite
+```
+
 Notes and examples
 - To allow any network for API calls use `0.0.0.0/0`; leaving authorized networks empty blocks access.
 - Example sitemap and calendar JSON responses are in this README (see above).
