@@ -26,6 +26,26 @@ use grade_grade;
  */
 class grades_service extends appcrue_service {
     /**
+     * timestart for filtering grades. No grade older than this.
+     * @var int|null
+     */
+    public ?int $timestart = null;
+
+    /**
+     * Read and normalize request params for grades endpoint.
+     */
+    public function configure_from_request() {
+        $requesttimestart = optional_param('timestart', 0, PARAM_INT);
+        $timewindow = (int)(get_config('local_appcrue', 'lmsappcrue_grades_timewindow') ?? 0);
+        if ($timewindow <= 0) {
+            $this->timestart = 0; // If timewindow is not set or invalid, include all grades regardless of time.
+        } else {
+            $defaulttimestart = time() - max(0, $timewindow);
+            $this->timestart = max($requesttimestart, $defaulttimestart);
+        }
+    }
+
+    /**
      * Get data response.
      */
     public function get_data_response() {
@@ -66,6 +86,9 @@ class grades_service extends appcrue_service {
 
                 if (is_null($grade->finalgrade)) {
                     continue; // No grade available yet.
+                }
+                if ($this->timestart && $grade->timemodified > 0 && $grade->timemodified < $this->timestart) {
+                    continue;
                 }
                 // Report the grade as finalgrade if the setting to show total grade as final is enabled
                 // and this item is the course total.
