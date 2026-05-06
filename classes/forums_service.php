@@ -140,13 +140,13 @@ class forums_service extends appcrue_service {
                 $forumurl = local_appcrue_create_deep_url($forumurl->out_as_local_url(), $this->token, $this->tokenmark);
                 // Forum without discussions, report with a fake topic with no posts.
                  $forumoutput[] = [
-                        'course_title' => (string) ($course->fullname ?? ''),
-                        'forum_name'   => (string) ($forum->name ?? ''),
-                        'description'  => (string) $forumdescription,
+                        'course_title' => (string) (format_string($course->fullname) ?? ''),
+                        'forum_name'   => (string) (format_string($forum->name) ?? ''),
+                        'description'  => (string) format_text($forumdescription),
                         'lock_at'      => $forum->cutoffdate != "0" ? $forum->cutoffdate : null,
                         'todo_date'    => $forum->duedate != "0" ? $forum->duedate : null,
                         'html_url'     => $forumurl,
-                        'topic_title'  => (string) ($forum->name ?? ''),
+                        'topic_title'  => (string) (format_string($forum->name) ?? ''),
                         'posted_at'    => isset($forum->timemodified) ? (int)$forum->timemodified : time(),
                         'unread_count' => '0',
                         'replies'      => [],
@@ -176,6 +176,12 @@ class forums_service extends appcrue_service {
                             'mod_forum',
                             'post',
                             $post->id
+                        );
+                        // Apply filters to the message.
+                        $message = format_string(
+                            $message,
+                            $post->messageformat,
+                            ['context' => $context],
                         );
                         $message = html_entity_decode(strip_tags($message ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
                         // Get a permalink to post.
@@ -208,13 +214,13 @@ class forums_service extends appcrue_service {
                     );
                     // Forum and discussion data are combined here for output structure.
                     $forumoutput[] = [
-                        'course_title' => (string) ($course->fullname ?? ''),
-                        'forum_name'   => (string) ($forum->name ?? ''),
-                        'description'  => (string) $forumdescription,
+                        'course_title' => (string) (format_string($course->fullname) ?? ''),
+                        'forum_name'   => (string) (format_string($forum->name) ?? ''),
+                        'description'  => (string) format_text($forumdescription),
                         'lock_at'      => $forum->assesstimefinish != "0" ? $forum->assesstimefinish : null,
                         'todo_date'    => $forum->assesstimestart != "0" ? $forum->assesstimestart : null,
                         'html_url'     => (string) ($deepdiscussionurl ?? ''),
-                        'topic_title'  => (string) ($discussion->name ?? ''),
+                        'topic_title'  => (string) (format_string($discussion->name) ?? ''),
                         'posted_at'    => (string) isset($discussion->created) ? $discussion->created : time(),
                         'unread_count' => (string) isset($discussion->replies) ? $discussion->replies : '0',
                         'replies'      => $rootposts,
