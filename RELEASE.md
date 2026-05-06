@@ -1,6 +1,10 @@
 
 AppCRUE — Release notes
 =======================
+v2.0.7 - 2026-05-06
+- Add time-windows for all LMS services.
+- Format forum fields to allow multilang plugins.
+
 v2.0.6 - 2026-04-26
 - Support and use relative urls in LMS endpoints when using autologin to avoid using autologin urls.
 - Support case insensitive headers.
