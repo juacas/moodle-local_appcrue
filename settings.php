@@ -433,6 +433,14 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_grades_help', 'local_appcrue'),
         true
     ));
+    // Time window for grades.
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_grades_timewindow',
+        get_string('lmsappcrue:grades_timewindow', 'local_appcrue'),
+        get_string('lmsappcrue:grades_timewindow_help', 'local_appcrue'),
+        DAYSECS * 365, // Default one year.
+        DAYSECS
+    ));
 
     // Select to show total grade as final or not-final grade.
     $settings->add(new admin_setting_configcheckbox(
@@ -462,8 +470,8 @@ if ($hassiteconfig) {
         'local_appcrue/lmsappcrue_forums_timewindow',
         get_string('lmsappcrue:forums_timewindow', 'local_appcrue'),
         get_string('lmsappcrue:forums_timewindow_help', 'local_appcrue'),
-        WEEKSECS * 4 * 6, // Default 6 months.
-        WEEKSECS * 4
+        DAYSECS * 365, // Default one year.
+        DAYSECS
     ));
     // Enable LMS AppCRUE announcements endpoint.
     $settings->add(new admin_setting_heading(
@@ -477,6 +485,14 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_announcements', 'local_appcrue'),
         get_string('lmsappcrue:enable_announcements_help', 'local_appcrue'),
         true
+    ));
+    // Time window for announcements.
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_announcements_timewindow',
+        get_string('lmsappcrue:announcements_timewindow', 'local_appcrue'),
+        get_string('lmsappcrue:announcements_timewindow_help', 'local_appcrue'),
+        DAYSECS * 365, // Default one year.
+        DAYSECS
     ));
     // LMS AppCRUE files section.
     $settings->add(
@@ -492,6 +508,14 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_files', 'local_appcrue'),
         get_string('lmsappcrue:enable_files_help', 'local_appcrue'),
         true
+    ));
+    // Time window for files.
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_files_timewindow',
+        get_string('lmsappcrue:files_timewindow', 'local_appcrue'),
+        get_string('lmsappcrue:files_timewindow_help', 'local_appcrue'),
+        DAYSECS * 365, // Default one year.
+        DAYSECS
     ));
     // Include legacy course files.
     $settings->add(new admin_setting_configcheckbox(
@@ -511,6 +535,14 @@ if ($hassiteconfig) {
         get_string('lmsappcrue:enable_assignments', 'local_appcrue'),
         get_string('lmsappcrue:enable_assignments_help', 'local_appcrue'),
         true
+    ));
+    // Time window for assignments.
+    $settings->add(new admin_setting_configduration(
+        'local_appcrue/lmsappcrue_assignments_timewindow',
+        get_string('lmsappcrue:assignments_timewindow', 'local_appcrue'),
+        get_string('lmsappcrue:assignments_timewindow_help', 'local_appcrue'),
+        DAYSECS * 365, // Default one year.
+        DAYSECS
     ));
     // Mapping activities types to start dates.
     $settingstartdate = new admin_setting_configtextarea(

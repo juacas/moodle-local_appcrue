@@ -32,6 +32,11 @@ class assignments_service extends appcrue_service {
     /** @var array Map of assignment types to their date fields. */
     private $assignmentsdates;
     /**
+     * timestart for filtering assignments. No assignment older than this.
+     * @var int|null
+     */
+    public ?int $timestart = null;
+    /**
      * Constructor.
      * Load the assignments:dates map.
      * Each line in the map is in format mod_activityname|table|datestart|duedate
@@ -57,7 +62,19 @@ class assignments_service extends appcrue_service {
         }
     }
 
-
+    /**
+     * Read and normalize request params for assignments endpoint.
+     */
+    public function configure_from_request() {
+        $requesttimestart = optional_param('timestart', 0, PARAM_INT);
+        $timewindow = (int)(get_config('local_appcrue', 'lmsappcrue_assignments_timewindow') ?? 0);
+        if ($timewindow <= 0) {
+            $this->timestart = null; // If timewindow is not set or invalid, include all assignments regardless of time.
+        } else {
+            $defaulttimestart = time() - max(0, $timewindow);
+            $this->timestart = max($requesttimestart, $defaulttimestart);
+        }
+    }
     /**
      * Get data response.
      */
@@ -101,7 +118,13 @@ class assignments_service extends appcrue_service {
 
                 // Get the assignment instance record.
                 $record  = $DB->get_record($cm->modname, ['id' => $cm->instance], '*', MUST_EXIST);
-                $assignments[] = $this->format_activity($course, $cm, $record);
+                // Get assignment structure.
+                $assignmentinfo = $this->format_activity($course, $cm, $record);
+                if ($this->timestart && isset($assignmentinfo['due_at']) && $assignmentinfo['due_at'] < $this->timestart) {
+                    // If the assignment due date is older than timestart, skip it.
+                    continue;
+                }
+                $assignments[] = $assignmentinfo;
             }
         }
 
