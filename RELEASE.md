@@ -1,53 +1,7 @@
-
-AppCRUE — Release notes
-=======================
-v2.0.7 - 2026-05-06
-- Add time-windows for all LMS services.
-- Format forum fields to allow multilang plugins.
-
-v2.0.6 - 2026-04-26
-- Support and use relative urls in LMS endpoints when using autologin to avoid using autologin urls.
-- Support case insensitive headers.
-
-v2.0.5 - 2026-02-25
-- Enables LMS endpoints by default in the AppCRUE local plugin. AdministersCalling these features are now enabled out-of-the-box instead of requiring manual configuration, making the AppCRUE LMS integration more accessible by default.
-
-v2.0.4
-- Setting for showing total grade as final grade in AppCRUE, with itemtype adjustment for better compatibility.
-- Setting for using user parameters for matching, allowing more flexible user identification.
-- Updated documentation to reflect new settings and features.
-- Fix: gradelib was not loaded in some cases, causing errors in assignments endpoint for some users.
-
-v2.0.3
-- Autologin redirector to navigate users to deep links after token-based authentication.
-- Improved documentation for LMS connection diagnosis and autologin setup.
-- Minor bug fixes and code improvements.
-
-v2.0.2 — 2026-01-12
-- Fix API key extraction from headers to handle different casing and server variables.
-
-v2.0.1 — 2025-11-05
-- 2025-10-30 — Add API key support in header `X-API-KEY` and adjust HTTP status handling.
-- 2025-10-24 — Auto configuration mode added.
-
-v2.0.0 — 2025-10-17
-- Official AppCRUE integration and platform-ready improvements.
-- Enforced IP filtering for API endpoints and improved redirect handling to avoid MFA issues.
-- Added file and assignment services, assignment dates mapping and related settings.
-- PHPCS fixes, documentation and GitHub Actions CI added.
-
-v1.0.0 — 2025-08-19
-- Stable 1.0.0 release: API key support and key-rotation endpoint.
-- Define `AJAX_SCRIPT` constant and other reliability fixes.
-
-v0.1.4 — 2022-10-28
-- Configurable default field name for webservices and several small improvements.
-
-v0.1.3 — 2022-05-31
-- Log token errors; fixes to `notifygrades` message format.
-
-v0.0.8 — 2021-10-08
-- Early stable features: user calendar support, messaging web services, grade notifications.
+## Release Notes for Appcrue Plugin
+### Version 2.0.3 (2024-05-28)
+#### Changes and Improvements
+- Set default value for 'match_user_by' setting to 'username' instead of defaulting to first user field 'auth'. This change ensures that the plugin will match users based on their username by default, which is a more common and user-friendly approach.
 
 Other notes
 - Full commit history is available in the repository. To view the complete git log run:

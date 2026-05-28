@@ -176,7 +176,7 @@ if ($hassiteconfig) {
         'local_appcrue/match_user_by',
         get_string('match_user_by', 'local_appcrue'),
         get_string('match_user_by_help', 'local_appcrue'),
-        'id',
+        'username',
         $userfields
     ));
 
