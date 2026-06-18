@@ -321,6 +321,9 @@ You should have received a copy of the GNU General Public License along with thi
 
 AppCRUE — Release notes
 =======================
+v2.0.9 - 2026-06-18
+- Change order of network restrictions check.
+
 v2.0.8 - 2026-05-28
 - Set default value for 'match_user_by' setting to 'username' instead of defaulting to first user field 'auth'. This change ensures that the plugin will match users based on their username by default, which is a more common and user-friendly approach.
 
