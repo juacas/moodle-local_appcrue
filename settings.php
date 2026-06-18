@@ -102,7 +102,7 @@ if ($hassiteconfig) {
             'local_appcrue/lmsappcrue_enable_keyrotation',
             get_string('lmsappcrue:enable_api_key_rotation', 'local_appcrue'),
             get_string('lmsappcrue:enable_api_key_rotation_help', 'local_appcrue'),
-            false
+            true
         )
     );
     $settings->add(
@@ -232,7 +232,7 @@ if ($hassiteconfig) {
         'local_appcrue/use_redirection_page',
         get_string('autologin:use_redirection_page', 'local_appcrue'),
         get_string('autologin:use_redirection_page_help', 'local_appcrue'),
-        false
+        true
     ));
 
     $settings->add(new admin_setting_configtext(
