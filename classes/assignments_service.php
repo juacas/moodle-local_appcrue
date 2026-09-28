@@ -141,19 +141,20 @@ class assignments_service extends appcrue_service {
      */
     protected function format_activity($course, $cm, $record) {
         // Format description and title applying filters and removing HTML tags.
-        $title = format_string($record->name ?? $cm->name);
+        $context = context_module::instance($cm->id);
+        $title = self::format_string_for_context($record->name ?? $cm->name, $context);
         $title = html_to_text($title, 0, false);
         $description = format_text(
             $record->intro ?? '',
             $record->introformat ?? FORMAT_MOODLE,
-            ['context' => context_module::instance($cm->id)]
+            ['context' => $context]
         );
         $description = html_to_text($description, 0, false);
         // Build url.
         $url = new \moodle_url('/mod/' . $cm->modname . '/view.php', ['id' => $cm->id]);
         $url = local_appcrue_create_deep_url($url->out_as_local_url(), $this->token, $this->tokenmark);
         $data = [
-            'course_title' => $course->fullname,
+            'course_title' => self::format_course_name($course),
             'title'        => $title,
             'description'  => $description,
             'type'         => $cm->modname,

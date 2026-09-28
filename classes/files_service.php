@@ -158,7 +158,7 @@ class files_service extends appcrue_service {
      */
     private function format_file($course, $f, $CFG) {
         return [
-            'course_title' => $course->fullname,
+            'course_title' => self::format_course_name($course),
             'file_name'    => $f->get_filename(),
             'created_at'   => $f->get_timecreated(),
             'content_type' => $f->get_mimetype(),

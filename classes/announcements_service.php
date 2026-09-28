@@ -148,10 +148,10 @@ class announcements_service extends appcrue_service {
 
                     $results[] = [
                         'courseid' => $course->id,
-                        'coursefullname' => $course->fullname,
+                        'coursefullname' => self::format_course_name($course),
                         'forumid' => $forum->id,
-                        'forumname' => $forum->name,
-                        'subject' => format_string($post->subject),
+                        'forumname' => self::format_string_for_context($forum->name, $context),
+                        'subject' => self::format_string_for_context($post->subject, $context),
                         'message' => $plaintext,
                         'author' => fullname($author),
                         'timecreated' => (int)$post->created,

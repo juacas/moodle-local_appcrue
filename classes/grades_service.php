@@ -103,8 +103,15 @@ class grades_service extends appcrue_service {
 
                 $grades[] = [
                     'courseid' => $course->id,
-                    'coursename' => format_string($course->fullname),
-                    'itemname' => html_entity_decode(strip_tags($item->get_name()), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'coursename' => self::format_course_name($course),
+                    'itemname' => html_entity_decode(
+                        strip_tags(self::format_string_for_context(
+                            $item->get_name(),
+                            \context_course::instance($course->id)
+                        )),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
+                    ),
                     'itemtype' => $itemtype,
                     'graderaw' => $grade->rawgrade,
                     'finalgrade' => $grade->finalgrade,
@@ -115,7 +122,15 @@ class grades_service extends appcrue_service {
                     ),
                     'gradeisoverridden' => $grade->overridden ? 'TRUE' : 'FALSE',
                     'gradedategraded' => $grade->timemodified != "0" ? $grade->timemodified : null,
-                    'feedback' => html_entity_decode(strip_tags($grade->feedback ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'feedback' => html_entity_decode(
+                        strip_tags(format_text(
+                            $grade->feedback ?? '',
+                            $grade->feedbackformat ?? FORMAT_MOODLE,
+                            ['context' => \context_course::instance($course->id)]
+                        )),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
+                    ),
                     'userid' => $this->user->id,
                 ];
             }
