@@ -44,6 +44,7 @@ final class keyrotation_service_test extends \advanced_testcase {
         $before = time();
 
         keyrotation_service::rotate_key('oldapikey', 'newapikey');
+        $this->assertDebuggingCalled('API key updated from oldapikey to newapikey', DEBUG_NORMAL);
         $after = time();
 
         $this->assertSame('newapikey', get_config('local_appcrue', 'api_key'));

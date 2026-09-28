@@ -143,7 +143,6 @@ function local_appcrue_get_user_by_token($token) {
         $user = local_appcrue_find_user($fieldname, $matchvalue);
         if (!$user) {
             $returnstatus->code = 404; // 404 Not found.
-
         } else {
             $returnstatus->code = 200; // 200 OK.
         }
@@ -161,10 +160,10 @@ function local_appcrue_get_user_by_token($token) {
  */
 function local_appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
-     // Try to extract a Bearer token.
+    // Try to extract a Bearer token.
     $headers = getallheaders();
     $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
-    if (isset($headers['authorization']) ) {
+    if (isset($headers['authorization'])) {
         $auth = $headers['authorization'];
         if (preg_match('/^Bearer\s+(.*)$/', $auth, $matches)) {
             $token = $matches[1];

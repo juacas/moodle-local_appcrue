@@ -33,7 +33,7 @@ class network_security_helper extends curl_security_helper {
      */
     public function is_request_in_list() {
         // Get request remote client address respecting Moodle proxy configuration.
-        $remoteaddr = self::getremoteaddr();
+        $remoteaddr = static::getremoteaddr();
         if ($remoteaddr === '') {
             return false;
         }
@@ -57,11 +57,11 @@ class network_security_helper extends curl_security_helper {
         if (empty($hosts)) {
             return [];
         }
-        return array_filter(
+        return array_values(array_filter(
             array_map('trim', explode("\n", $hosts)),
             function ($entry) {
                 return !empty($entry);
             }
-        );
+        ));
     }
 }

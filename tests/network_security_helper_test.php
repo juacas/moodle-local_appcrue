@@ -72,7 +72,7 @@ final class network_security_helper_test extends \advanced_testcase {
         set_config('api_authorized_networks', "192.168.123.1\n10.0.1.1/16", 'local_appcrue');
         $this->assertTrue($helper->is_request_in_list());
         set_config('api_authorized_networks', "192.168.123/0.1\n10.0.1.1", 'local_appcrue');
-        $this->assertTrue($helper->is_request_in_list());
+        $this->assertFalse($helper->is_request_in_list());
     }
 }
 
