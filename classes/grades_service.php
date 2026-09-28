@@ -26,6 +26,26 @@ use grade_grade;
  */
 class grades_service extends appcrue_service {
     /**
+     * timestart for filtering grades. No grade older than this.
+     * @var int|null
+     */
+    public ?int $timestart = null;
+
+    /**
+     * Read and normalize request params for grades endpoint.
+     */
+    public function configure_from_request() {
+        $requesttimestart = optional_param('timestart', 0, PARAM_INT);
+        $timewindow = (int)(get_config('local_appcrue', 'lmsappcrue_grades_timewindow') ?? 0);
+        if ($timewindow <= 0) {
+            $this->timestart = 0; // If timewindow is not set or invalid, include all grades regardless of time.
+        } else {
+            $defaulttimestart = time() - max(0, $timewindow);
+            $this->timestart = max($requesttimestart, $defaulttimestart);
+        }
+    }
+
+    /**
      * Get data response.
      */
     public function get_data_response() {
@@ -67,6 +87,9 @@ class grades_service extends appcrue_service {
                 if (is_null($grade->finalgrade)) {
                     continue; // No grade available yet.
                 }
+                if ($this->timestart && $grade->timemodified > 0 && $grade->timemodified < $this->timestart) {
+                    continue;
+                }
                 // Report the grade as finalgrade if the setting to show total grade as final is enabled
                 // and this item is the course total.
                 if (
@@ -80,8 +103,15 @@ class grades_service extends appcrue_service {
 
                 $grades[] = [
                     'courseid' => $course->id,
-                    'coursename' => format_string($course->fullname),
-                    'itemname' => html_entity_decode(strip_tags($item->get_name()), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'coursename' => self::format_course_name($course),
+                    'itemname' => html_entity_decode(
+                        strip_tags(self::format_string_for_context(
+                            $item->get_name(),
+                            \context_course::instance($course->id)
+                        )),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
+                    ),
                     'itemtype' => $itemtype,
                     'graderaw' => $grade->rawgrade,
                     'finalgrade' => $grade->finalgrade,
@@ -92,7 +122,15 @@ class grades_service extends appcrue_service {
                     ),
                     'gradeisoverridden' => $grade->overridden ? 'TRUE' : 'FALSE',
                     'gradedategraded' => $grade->timemodified != "0" ? $grade->timemodified : null,
-                    'feedback' => html_entity_decode(strip_tags($grade->feedback ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'feedback' => html_entity_decode(
+                        strip_tags(format_text(
+                            $grade->feedback ?? '',
+                            $grade->feedbackformat ?? FORMAT_MOODLE,
+                            ['context' => \context_course::instance($course->id)]
+                        )),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
+                    ),
                     'userid' => $this->user->id,
                 ];
             }

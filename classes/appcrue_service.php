@@ -114,6 +114,35 @@ abstract class appcrue_service {
      */
     public function configure_from_request() {
     }
+
+    /**
+     * Format a string using the filters enabled for a specific context.
+     *
+     * The AppCrue endpoints run outside the normal Moodle page context.  Passing
+     * the context explicitly is therefore required for filters such as
+     * multilang to use the language and filter settings of the requested user.
+     *
+     * @param string|null $text Text to format.
+     * @param \core\context $context Context where the text is displayed.
+     * @param bool $striplinks Whether links should be removed.
+     * @return string The filtered string.
+     */
+    public static function format_string_for_context(?string $text, \core\context $context, bool $striplinks = true): string {
+        return format_string($text ?? '', $striplinks, ['context' => $context]);
+    }
+
+    /**
+     * Format a course name using the course context.
+     *
+     * @param \stdClass $course Course record.
+     * @return string The filtered course name.
+     */
+    public static function format_course_name(\stdClass $course): string {
+        return self::format_string_for_context(
+            $course->fullname ?? '',
+            \context_course::instance($course->id)
+        );
+    }
     /**
      * Check autoconfig mode.
      * If autoconfig mode is enabled, ensure appcrue IPs are in the allowed network list

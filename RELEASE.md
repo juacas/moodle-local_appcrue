@@ -1,36 +1,13 @@
+## Release Notes for Appcrue Plugin
+### Version 2.0.10 (2026-09-28)
+#### Fixes and Improvements
+- Apply the filters enabled for the requested user context to course names, activity titles, forum names and discussion titles, announcement fields, calendar event text, and grade item names returned by the JSON endpoints.
+- Set the current language when impersonating a requested user so multilang text is resolved correctly.
+- Preserve the correct text format and filtering context when returning forum messages and grade feedback.
 
-AppCRUE — Release notes
-=======================
-v2.0.3 — 2026-03-15
-- Autologin redirector to navigate users to deep links after token-based authentication.
-- Improved documentation for LMS connection diagnosis and autologin setup.
-- Minor bug fixes and code improvements.
-
-v2.0.2 — 2026-01-12
-- Fix API key extraction from headers to handle different casing and server variables.
-
-v2.0.1 — 2025-11-05
-- 2025-10-30 — Add API key support in header `X-API-KEY` and adjust HTTP status handling.
-- 2025-10-24 — Auto configuration mode added.
-
-v2.0.0 — 2025-10-17
-- Official AppCRUE integration and platform-ready improvements.
-- Enforced IP filtering for API endpoints and improved redirect handling to avoid MFA issues.
-- Added file and assignment services, assignment dates mapping and related settings.
-- PHPCS fixes, documentation and GitHub Actions CI added.
-
-v1.0.0 — 2025-08-19
-- Stable 1.0.0 release: API key support and key-rotation endpoint.
-- Define `AJAX_SCRIPT` constant and other reliability fixes.
-
-v0.1.4 — 2022-10-28
-- Configurable default field name for webservices and several small improvements.
-
-v0.1.3 — 2022-05-31
-- Log token errors; fixes to `notifygrades` message format.
-
-v0.0.8 — 2021-10-08
-- Early stable features: user calendar support, messaging web services, grade notifications.
+### Version 2.0.9 (2026-06-18)
+#### Changes and Improvements
+- Change order of network restrictions check.
 
 Other notes
 - Full commit history is available in the repository. To view the complete git log run:
@@ -38,4 +15,3 @@ Other notes
 	git -C local/appcrue log --oneline --decorate --graph
 
 Contributors (from git commits): Juan Pablo de Castro (and variants), Alberto Otero Mato, AlbertoOM71, and others.
-

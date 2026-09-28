@@ -26,6 +26,26 @@ use context_module;
  */
 class announcements_service extends appcrue_service {
     /**
+     * timestart for filtering announcements. No announcement older than this.
+     * @var int|null
+     */
+    public ?int $timestart = null;
+
+    /**
+     * Read and normalize request params for announcements endpoint.
+     */
+    public function configure_from_request() {
+        $requesttimestart = optional_param('timestart', 0, PARAM_INT);
+        $timewindow = (int)(get_config('local_appcrue', 'lmsappcrue_announcements_timewindow') ?? 0);
+        if ($timewindow <= 0) {
+            $this->timestart = 0; // If timewindow is not set or invalid, include all announcements regardless of time.
+        } else {
+            $defaulttimestart = time() - max(0, $timewindow);
+            $this->timestart = max($requesttimestart, $defaulttimestart);
+        }
+    }
+
+    /**
      * Get data response.
      */
     public function get_data_response() {
@@ -77,6 +97,11 @@ class announcements_service extends appcrue_service {
                 $discussions = forum_get_discussions($cm, 'd.timemodified DESC', false, -1, 10);
 
                 foreach ($discussions as $discussion) {
+                    // Skip discussions older than the configured/requested time range.
+                    if ($this->timestart && $discussion->timemodified < $this->timestart) {
+                        continue;
+                    }
+
                     // Filtrado por grupos: si la actividad está en SEPARATEGROUPS y el usuario no tiene accessall,
                     // y la discusión tiene groupid distinto de -1, entonces sólo ver si el usuario pertenece.
                     if ($groupmode == SEPARATEGROUPS && !$accessall && !empty($discussion->groupid) && $discussion->groupid != -1) {
@@ -86,7 +111,11 @@ class announcements_service extends appcrue_service {
                     }
 
                     // Obtener primer post (anuncio principal).
-                    $posts = forum_get_all_discussion_posts($discussion->discussion, 'created ASC', $tracking);
+                    $posts = forum_get_all_discussion_posts(
+                        $discussion->discussion,
+                        'created ASC',
+                        $tracking
+                    );
                     $post = reset($posts);
                     if (!$post) {
                         continue;
@@ -109,16 +138,20 @@ class announcements_service extends appcrue_service {
                     );
 
                     $discussionurl = new \moodle_url('/mod/forum/discuss.php', ['d' => $discussion->discussion]);
-                    $discussionurl = local_appcrue_create_deep_url($discussionurl->out_as_local_url(), $this->token, $this->tokenmark);
+                    $discussionurl = local_appcrue_create_deep_url(
+                        $discussionurl->out_as_local_url(),
+                        $this->token,
+                        $this->tokenmark
+                    );
 
                     $author = \core_user::get_user($post->userid);
 
                     $results[] = [
                         'courseid' => $course->id,
-                        'coursefullname' => $course->fullname,
+                        'coursefullname' => self::format_course_name($course),
                         'forumid' => $forum->id,
-                        'forumname' => $forum->name,
-                        'subject' => format_string($post->subject),
+                        'forumname' => self::format_string_for_context($forum->name, $context),
+                        'subject' => self::format_string_for_context($post->subject, $context),
                         'message' => $plaintext,
                         'author' => fullname($author),
                         'timecreated' => (int)$post->created,

@@ -30,6 +30,26 @@ use core_availability\info_module;
  */
 class files_service extends appcrue_service {
     /**
+     * timestart for filtering files. No file older than this.
+     * @var int|null
+     */
+    public ?int $timestart = null;
+
+    /**
+     * Read and normalize request params for files endpoint.
+     */
+    public function configure_from_request() {
+        $requesttimestart = optional_param('timestart', 0, PARAM_INT);
+        $timewindow = (int)(get_config('local_appcrue', 'lmsappcrue_files_timewindow') ?? 0);
+        if ($timewindow <= 0) {
+            $this->timestart = 0; // If timewindow is not set or invalid, include all files regardless of time.
+        } else {
+            $defaulttimestart = time() - max(0, $timewindow);
+            $this->timestart = max($requesttimestart, $defaulttimestart);
+        }
+    }
+
+    /**
      * Get data response.
      */
     public function get_data_response() {
@@ -76,6 +96,9 @@ class files_service extends appcrue_service {
                     );
 
                     foreach ($storedfiles as $f) {
+                        if ($this->timestart && $f->get_timecreated() < $this->timestart) {
+                            continue;
+                        }
                         $files[] = $this->format_file($course, $f, $CFG);
                     }
                 }
@@ -92,6 +115,9 @@ class files_service extends appcrue_service {
                     );
 
                     foreach ($storedfiles as $f) {
+                        if ($this->timestart && $f->get_timecreated() < $this->timestart) {
+                            continue;
+                        }
                         $files[] = $this->format_file($course, $f, $CFG);
                     }
                 }
@@ -111,6 +137,9 @@ class files_service extends appcrue_service {
                 );
 
                 foreach ($legacyfiles as $f) {
+                    if ($this->timestart && $f->get_timecreated() < $this->timestart) {
+                        continue;
+                    }
                     $files[] = $this->format_file($course, $f, $CFG);
                 }
             }
@@ -129,7 +158,7 @@ class files_service extends appcrue_service {
      */
     private function format_file($course, $f, $CFG) {
         return [
-            'course_title' => $course->fullname,
+            'course_title' => self::format_course_name($course),
             'file_name'    => $f->get_filename(),
             'created_at'   => $f->get_timecreated(),
             'content_type' => $f->get_mimetype(),

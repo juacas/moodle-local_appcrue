@@ -42,19 +42,19 @@ header('X-Content-Type-Options: nosniff');
 $PAGE->set_context(null);
 
 try {
-    // Check autoconfig mode.
-    appcrue_service::check_autoconfig_mode();
     // Check network restrictions.
     $networkhelper = new \local_appcrue\network_security_helper();
     if (!$networkhelper->is_request_in_list()) {
         // Trigger errored IP attempted access from disallowed IP for debugging purposes.
         $event = \local_appcrue\event\unauthorized_ip_failed::create([
             'other' => ['ipaddress' => $networkhelper->getremoteaddr()],
-        ]);
-        $event->trigger();
-        @header('HTTP/1.1 403 Forbidden');
-        die();
+            ]);
+            $event->trigger();
+            @header('HTTP/1.1 403 Forbidden');
+            die();
     }
+    // Check autoconfig mode.
+    appcrue_service::check_autoconfig_mode();
 
     $endpoint = appcrue_service::instance_from_request();
     // Check if the endpoint is enabled.

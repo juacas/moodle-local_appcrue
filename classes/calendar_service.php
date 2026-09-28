@@ -213,11 +213,10 @@ class calendar_service extends appcrue_service {
                 }
                 $eventitem = new stdClass();
                 $eventitem->id = $event->id;
-                $eventitem->title = format_text($event->name, FORMAT_HTML);
-
                 $calendarevt = new calendar_event($event); // To use moodle calendar event services.
                 // Get context via magic method because get_context is protected. Moodle core use it extensively.
                 $eventcontext = $calendarevt->context; // phpcs:ignore PHP6602
+                $eventitem->title = format_text($event->name, FORMAT_HTML, ['context' => $eventcontext]);
                 // Format the description text.
                 $description = format_text($calendarevt->description, $calendarevt->format, ['context' => $eventcontext]);
                 // Then convert it to plain text, since it's the only format allowed for the event description property.
@@ -271,7 +270,7 @@ class calendar_service extends appcrue_service {
             // Then convert it to plain text, since it's the only format allowed for the event description property.
             // We use html_to_text in order to convert <br> and <p> tags to new line characters for descriptions in HTML format.
             $description = html_to_text($description, 0);
-            $name = format_text($event->name, FORMAT_HTML);
+            $name = format_text($event->name, FORMAT_HTML, ['context' => $eventcontext]);
 
             $events[] = [
                 'name'          => $name,
@@ -280,8 +279,8 @@ class calendar_service extends appcrue_service {
                 'timestart'     => $event->timestart,
                 'timesort'      => $event->timestart + ($event->timeduration ?? 0),
                 'description'   => $description,
-                'fullname'      => $course ? $course->fullname : '',
-                'location'      => $event->location ?? '',
+                'fullname'      => $course ? self::format_course_name($course) : '',
+                'location'      => self::format_string_for_context($event->location ?? '', $eventcontext),
                 'url'           => $eventurl,
                 'nameauthor'    => $nameauthor,
             ];

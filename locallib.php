@@ -564,8 +564,8 @@ function local_appcrue_config_user($user, $impersonate = true, string $lang = ''
     if ($lang != '') {
         // Set the language for the user.
         force_current_language($lang);
-    } else if ($USER->id != $user->id) {
-        // Set the language for the user.
+    } else if (!empty($user->lang)) {
+        // Set the language for the requested user, including when impersonating.
         force_current_language($user->lang);
     }
     return $previoususer;
