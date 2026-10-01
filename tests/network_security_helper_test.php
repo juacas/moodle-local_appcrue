@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing -- PHP attributes keep PHPUnit 11 coverage metadata without PHPUnit 11 docblock deprecations.
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,6 +25,8 @@
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/network_security_helper_test_fixture.php');
 
 /**
  * Tests for network_security_helper.
@@ -80,26 +83,5 @@ final class network_security_helper_test extends \advanced_testcase {
         $this->assertTrue($helper->is_request_in_list());
         set_config('api_authorized_networks', "192.168.123/0.1\n10.0.1.1", 'local_appcrue');
         $this->assertFalse($helper->is_request_in_list());
-    }
-}
-
-/**
- * Small testing subclass exposing protected behavior.
- */
-class network_security_helper_exposed extends network_security_helper {
-    /**
-     * Public wrapper for protected get_blocked_hosts().
-     *
-     * @return array
-     */
-    public function get_blocked_hosts_for_test(): array {
-        return $this->get_blocked_hosts();
-    }
-    /**
-     * Override to avoid using the real remote address in tests.
-     * Returns 10.0.0.22 for testing purposes.
-     */
-    public static function getremoteaddr() {
-        return '10.0.0.22';
     }
 }

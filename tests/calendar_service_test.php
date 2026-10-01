@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing -- PHP attributes keep PHPUnit 11 coverage metadata without PHPUnit 11 docblock deprecations.
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -29,6 +30,7 @@ global $CFG;
 require_once($CFG->dirroot . '/local/appcrue/locallib.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 require_once(__DIR__ . '/appcrue_test_base.php');
+require_once(__DIR__ . '/fixtures/calendar_service_test_fixture.php');
 
 /**
  * Tests for the calendar service and both calendar response formats.
@@ -189,34 +191,5 @@ final class calendar_service_test extends appcrue_test_base {
 
         $this->assertStringContainsString('/local/appcrue/autologin.php', $url);
         $this->assertStringEndsWith('&<bearer>', $url);
-    }
-}
-
-/**
- * Request-independent calendar service double.
- */
-class calendar_service_test_double extends calendar_service {
-    /**
-     * Avoid authentication while testing service methods.
-     */
-    public function __construct() {
-    }
-
-    /**
-     * Expose request configuration for testing.
-     */
-    public function configure_for_test(): void {
-        $this->configure_from_request();
-    }
-
-    /**
-     * Expose LMS event formatting for testing.
-     *
-     * @param array $events Events.
-     * @param \stdClass $user User.
-     * @return array Formatted events.
-     */
-    public function format_events_for_lmsappcrue_for_test(array $events, \stdClass $user): array {
-        return $this->format_events_for_lmsappcrue($events, $user);
     }
 }

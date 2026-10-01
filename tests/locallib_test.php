@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing -- PHP attributes keep PHPUnit 11 coverage metadata without PHPUnit 11 docblock deprecations.
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -36,11 +37,27 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_json_node')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_user_from_request')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_request_headers')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_is_apikey_valid')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_config_user')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_filter_sitemap_urls')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_event_type')]
 final class locallib_test extends appcrue_test_base {
+    /**
+     * Request headers are read from CGI variables when getallheaders is unavailable.
+     */
+    public function test_get_request_headers_reads_cli_server_variables(): void {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer cli-token';
+        $_SERVER['HTTP_X_API_KEY'] = 'cli-api-key';
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+
+        $headers = local_appcrue_get_request_headers();
+
+        $this->assertSame('Bearer cli-token', $headers['authorization']);
+        $this->assertSame('cli-api-key', $headers['x-api-key']);
+        $this->assertSame('application/json', $headers['content-type']);
+    }
+
     /**
      * JSON path traversal supports nested objects and takes the first array item.
      */

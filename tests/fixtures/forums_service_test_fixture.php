@@ -15,20 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version file.
+ * Test fixtures for local_appcrue.
  *
- * @package    local_appcrue
- * @copyright  2021 University of Valladolid, Spain & Altia Consultores S.L.
- * @author     Juan Pablo de Castro <juanpablo.decastro@uva.es>, Alberto Otero <alberto.otero@altia.es>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package local_appcrue
+ * @copyright 2026
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace local_appcrue;
 
-defined('MOODLE_INTERNAL') || die();
 
-$plugin->version      = 2026100100;
-$plugin->requires     = 2024100700;   // Moodle 4.5.
-$plugin->component    = 'local_appcrue';
-$plugin->maturity     = MATURITY_STABLE;
-$plugin->release      = 'v2.0.10';
-$plugin->dependencies = [
-];
+/**
+ * Request-independent forums service double.
+ */
+class forums_service_test_double extends forums_service {
+    /**
+     * Avoid authentication while testing service methods.
+     */
+    public function __construct() {
+    }
+}

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing -- PHP attributes keep PHPUnit 11 coverage metadata without PHPUnit 11 docblock deprecations.
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -29,6 +30,7 @@ global $CFG;
 require_once($CFG->dirroot . '/local/appcrue/locallib.php');
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 require_once(__DIR__ . '/appcrue_test_base.php');
+require_once(__DIR__ . '/fixtures/forums_service_test_fixture.php');
 
 /**
  * Tests for the forums JSON service.
@@ -142,16 +144,5 @@ final class forums_service_test extends appcrue_test_base {
         $this->assertSame(0, $count);
         $this->assertSame([], $items[0]['replies']);
         $this->assertSame('Empty forum', $items[0]['topic_title']);
-    }
-}
-
-/**
- * Request-independent forums service double.
- */
-class forums_service_test_double extends forums_service {
-    /**
-     * Avoid authentication while testing service methods.
-     */
-    public function __construct() {
     }
 }

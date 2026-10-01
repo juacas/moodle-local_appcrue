@@ -161,8 +161,7 @@ function local_appcrue_get_user_by_token($token) {
 function local_appcrue_get_token_param($required = false): string {
     $token = optional_param('token', '', PARAM_TEXT);
     // Try to extract a Bearer token.
-    $headers = getallheaders();
-    $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
+    $headers = local_appcrue_get_request_headers();
     if (isset($headers['authorization'])) {
         $auth = $headers['authorization'];
         if (preg_match('/^Bearer\s+(.*)$/', $auth, $matches)) {
@@ -185,8 +184,7 @@ function local_appcrue_get_apikey_param($required = false): string {
     $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
     if (empty($apikey)) {
         // Try to extract an API key from the headers.
-        $headers = getallheaders();
-        $headers = array_change_key_case($headers, CASE_LOWER); // Normalize header keys to lowercase.
+        $headers = local_appcrue_get_request_headers();
         if (isset($headers['x-api-key'])) {
             $apikey = $headers['x-api-key'];
         }
@@ -195,6 +193,34 @@ function local_appcrue_get_apikey_param($required = false): string {
         throw new Exception('Missing API Key', appcrue_service::INVALID_API_KEY);
     }
     return $apikey;
+}
+
+/**
+ * Get request headers in lowercase, including under CLI SAPIs without getallheaders().
+ *
+ * @return array<string, string> Request headers.
+ */
+function local_appcrue_get_request_headers(): array {
+    if (function_exists('getallheaders')) {
+        return array_change_key_case((array)getallheaders(), CASE_LOWER);
+    }
+
+    $headers = [];
+    foreach ($_SERVER as $key => $value) {
+        if (strpos($key, 'HTTP_') === 0) {
+            $name = str_replace('_', '-', substr($key, 5));
+            $headers[strtolower($name)] = $value;
+        }
+    }
+
+    // These two headers use CGI variables without the HTTP_ prefix.
+    foreach (['CONTENT_TYPE' => 'content-type', 'CONTENT_LENGTH' => 'content-length'] as $key => $name) {
+        if (isset($_SERVER[$key])) {
+            $headers[$name] = $_SERVER[$key];
+        }
+    }
+
+    return $headers;
 }
 
 /**

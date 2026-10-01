@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing -- PHP attributes keep PHPUnit 11 coverage metadata without PHPUnit 11 docblock deprecations.
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -26,6 +27,7 @@ namespace local_appcrue;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/appcrue_test_base.php');
+require_once(__DIR__ . '/fixtures/announcements_service_test_fixture.php');
 
 /**
  * Tests for the announcements JSON service.
@@ -126,23 +128,5 @@ final class announcements_service_test extends appcrue_test_base {
         [, $count] = $service->get_items();
 
         $this->assertSame(0, $count);
-    }
-}
-
-/**
- * Request-independent announcements service double.
- */
-class announcements_service_test_double extends announcements_service {
-    /**
-     * Avoid authentication while testing service methods.
-     */
-    public function __construct() {
-    }
-
-    /**
-     * Expose request configuration for testing.
-     */
-    public function configure_for_test(): void {
-        $this->configure_from_request();
     }
 }

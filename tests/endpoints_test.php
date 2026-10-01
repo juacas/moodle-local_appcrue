@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable moodle.PHPUnit.TestCaseCovers.Missing -- PHP attributes keep PHPUnit 11 coverage metadata without PHPUnit 11 docblock deprecations.
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -39,50 +40,32 @@ require_once(__DIR__ . '/appcrue_test_base.php');
 final class endpoints_test extends appcrue_test_base {
     /**
      * Every dynamic REST service resolves to the expected implementation class.
-     *
-     * @param string $endpoint Endpoint name.
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('dynamic_endpoint_provider')]
-    public function test_dynamic_endpoint_resolves_to_service(string $endpoint): void {
+    public function test_dynamic_endpoint_resolves_to_service(): void {
         $user = self::getDataGenerator()->create_user(['username' => 'endpoint_user']);
         set_config('api_key', 'endpointkey', 'local_appcrue');
         set_config('lmsappcrue_match_user_by', 'username', 'local_appcrue');
         set_config('lmsappcrue_use_user_param', 'username', 'local_appcrue');
-        set_config("lmsappcrue_enable_{$endpoint}", '1', 'local_appcrue');
-        $request = [
-            'file' => $endpoint,
-            'apikey' => 'endpointkey',
-            'username' => $user->username,
-        ];
-        if ($endpoint === 'keyrotation') {
-            set_config('enable_api_rotation', 1, 'local_appcrue');
-            $request['newapikey'] = 'newendpointkey';
+        foreach (['calendar', 'forums', 'files', 'grades', 'announcements', 'assignments', 'keyrotation'] as $endpoint) {
+            set_config("lmsappcrue_enable_{$endpoint}", '1', 'local_appcrue');
+            $request = [
+                'file' => $endpoint,
+                'apikey' => 'endpointkey',
+                'username' => $user->username,
+            ];
+            if ($endpoint === 'keyrotation') {
+                set_config('enable_api_rotation', 1, 'local_appcrue');
+                $request['newapikey'] = 'newendpointkey';
+            }
+            $this->set_request_parameters($request);
+
+            $service = appcrue_service::instance_from_request();
+
+            $this->assertInstanceOf("local_appcrue\\{$endpoint}_service", $service);
+            if ($endpoint !== 'keyrotation') {
+                $this->assertSame($user->id, $service->user->id ?? null);
+            }
         }
-        $this->set_request_parameters($request);
-
-        $service = appcrue_service::instance_from_request();
-
-        $this->assertInstanceOf("local_appcrue\\{$endpoint}_service", $service);
-        if ($endpoint !== 'keyrotation') {
-            $this->assertSame($user->id, $service->user->id ?? null);
-        }
-    }
-
-    /**
-     * All public dynamic endpoints in the plugin.
-     *
-     * @return array<string[]>
-     */
-    public static function dynamic_endpoint_provider(): array {
-        return [
-            ['calendar'],
-            ['forums'],
-            ['files'],
-            ['grades'],
-            ['announcements'],
-            ['assignments'],
-            ['keyrotation'],
-        ];
     }
 
     /**
