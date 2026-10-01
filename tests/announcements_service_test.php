@@ -5,7 +5,22 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Tests for announcements responses.
+ *
+ * @package    local_appcrue
+ * @copyright  2026
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
@@ -62,18 +77,33 @@ final class announcements_service_test extends appcrue_test_base {
 
         $this->assertSame(1, $count);
         $this->assertCount(1, $items);
-        $this->assertSame('Course EN', $items[0]['coursefullname']);
-        $this->assertSame('Announcements EN', $items[0]['forumname']);
-        $this->assertSame('Subject EN', $items[0]['subject']);
-        $this->assertSame('Message EN', trim($items[0]['message']));
+        $this->assertSame(
+            $this->expected_multilang_text('Course EN', '{mlang en}Course EN{mlang}{mlang es}Curso ES{mlang}'),
+            $items[0]['coursefullname']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Announcements EN', '{mlang en}Announcements EN{mlang}{mlang es}Anuncios ES{mlang}'),
+            $items[0]['forumname']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Subject EN', '{mlang en}Subject EN{mlang}{mlang es}Asunto ES{mlang}'),
+            $items[0]['subject']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Message EN', '{mlang en}Message EN{mlang}{mlang es}Mensaje ES{mlang}'),
+            trim($items[0]['message'])
+        );
         $this->assertSame($discussion->course, $items[0]['courseid']);
-        $this->assertStringNotContainsString('{mlang', json_encode($items[0]));
+        if ($this->has_multilang2_filter()) {
+            $this->assertStringNotContainsString('{mlang', json_encode($items[0]));
+        }
     }
 
     /**
      * Announcements older than the configured/requested threshold are excluded.
      */
     public function test_get_items_applies_timestart(): void {
+        global $DB;
         $fixture = $this->create_enrolled_user_course();
         $this->setUser($fixture['user']);
         $forum = self::getDataGenerator()->create_module('forum', [
@@ -86,9 +116,9 @@ final class announcements_service_test extends appcrue_test_base {
             'userid' => $fixture['user']->id,
         ]);
         $oldtime = time() - 1000;
-        $discussionrecord = $GLOBALS['DB']->get_record('forum_discussions', ['id' => $discussion->id], '*', MUST_EXIST);
+        $discussionrecord = $DB->get_record('forum_discussions', ['id' => $discussion->id], '*', MUST_EXIST);
         $discussionrecord->timemodified = $oldtime;
-        $GLOBALS['DB']->update_record('forum_discussions', $discussionrecord);
+        $DB->update_record('forum_discussions', $discussionrecord);
         $service = new announcements_service_test_double();
         $service->user = $fixture['user'];
         $service->timestart = time() - 100;

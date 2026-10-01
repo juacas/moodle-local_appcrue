@@ -14,9 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * PHPUnit coverage for the appcrue service.
+ *
+ * @package    local_appcrue
+ * @copyright  2026
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/testable_service.php');
 
 /**
  * Tests for appcrue_service behavior.
@@ -80,33 +90,5 @@ final class appcrue_service_test extends \advanced_testcase {
 
         set_config($configkey, '1', 'local_appcrue');
         $this->assertTrue($service->is_enabled());
-    }
-}
-
-/**
- * Lightweight test double to avoid request-dependent constructor logic.
- */
-class testable_service extends appcrue_service {
-    /**
-     * @var array
-     */
-    private array $items;
-
-    /**
-     * Constructor.
-     *
-     * @param array $items items returned by get_items().
-     */
-    public function __construct(array $items) {
-        $this->items = $items;
-    }
-
-    /**
-     * Return fixture items.
-     *
-     * @return array
-     */
-    public function get_items(): array {
-        return $this->items;
     }
 }

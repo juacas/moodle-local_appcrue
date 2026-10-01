@@ -203,8 +203,10 @@ if ($hassiteconfig) {
     );
     $autologinsetting->set_updatedcallback([\local_appcrue\mfa_helper::class, 'update_autologin_exclusion']);
     $settings->add($autologinsetting);
-    if (get_config('tool_mfa', 'enabled') && get_config('local_appcrue', 'enable_autologin')
-            && \local_appcrue\mfa_helper::has_autologin_exclusion()) {
+    if (
+        get_config('tool_mfa', 'enabled') && get_config('local_appcrue', 'enable_autologin')
+        && \local_appcrue\mfa_helper::has_autologin_exclusion()
+    ) {
         $mfaurl = new moodle_url('/admin/search.php', ['query' => 'redir_exclusions']);
         $settings->add(new admin_setting_description(
             'local_appcrue/autologin_mfa_notice',

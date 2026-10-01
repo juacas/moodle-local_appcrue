@@ -51,7 +51,7 @@ try {
     } else {
         $userpicture = new user_picture($user);
         $userpicture->size = 1;
-        // TODO: Get the file directly without making an HTTP request.
+            // Later, get the file directly without making an HTTP request.
         $url = $userpicture->get_url($PAGE);
         $curl = new curl();
         $result = $curl->get($url);

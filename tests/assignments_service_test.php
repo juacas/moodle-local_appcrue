@@ -5,7 +5,22 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Tests for the assignments JSON service.
+ *
+ * @package    local_appcrue
+ * @copyright  2026
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
@@ -51,6 +66,7 @@ final class assignments_service_test extends appcrue_test_base {
      * Activity formatting applies the module and course contexts to multilang text.
      */
     public function test_format_activity_filters_title_description_and_course_name(): void {
+        global $DB;
         $this->use_language('en');
         $course = self::getDataGenerator()->create_course([
             'fullname' => '{mlang en}Course EN{mlang}{mlang es}Curso ES{mlang}',
@@ -63,7 +79,7 @@ final class assignments_service_test extends appcrue_test_base {
             'duedate' => time() + 3600,
         ]);
         $cm = get_fast_modinfo($course)->get_cm($assign->cmid);
-        $record = $GLOBALS['DB']->get_record('assign', ['id' => $assign->id], '*', MUST_EXIST);
+        $record = $DB->get_record('assign', ['id' => $assign->id], '*', MUST_EXIST);
         $service = new assignments_service_test_double();
         $this->set_service_property($service, 'assignmentsdates', [
             'mod_assign' => ['table' => 'assign', 'duedate' => 'duedate', 'cutoffdate' => 'cutoffdate'],
@@ -71,9 +87,21 @@ final class assignments_service_test extends appcrue_test_base {
 
         $result = $service->format_activity_for_test($course, $cm, $record);
 
-        $this->assertSame('Course EN', $result['course_title']);
-        $this->assertSame('Assignment EN', $result['title']);
-        $this->assertSame('Description EN', $result['description']);
+        $this->assertSame(
+
+            $this->expected_multilang_text('Course EN', '{mlang en}Course EN{mlang}{mlang es}Curso ES{mlang}'),
+
+            $result['course_title']
+
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Assignment EN', '{mlang en}Assignment EN{mlang}{mlang es}Tarea ES{mlang}'),
+            $result['title']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Description EN', '{mlang en}Description EN{mlang}{mlang es}Descripción ES{mlang}'),
+            $result['description']
+        );
         $this->assertSame($record->duedate, $result['due_at']);
         $this->assertSame('assign', $result['type']);
     }
@@ -103,7 +131,10 @@ final class assignments_service_test extends appcrue_test_base {
 
         $this->assertCount(1, $items);
         $this->assertSame($assign->cmid, (int)(new \moodle_url($items[0]['html_url']))->get_param('id'));
-        $this->assertSame('Assignment EN', $items[0]['title']);
+        $this->assertSame(
+            $this->expected_multilang_text('Assignment EN', '{mlang en}Assignment EN{mlang}{mlang es}Tarea ES{mlang}'),
+            $items[0]['title']
+        );
     }
 }
 

@@ -25,7 +25,9 @@ namespace local_appcrue;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(mfa_helper::class)]
 final class mfa_helper_test extends \advanced_testcase {
-    /** Enabling autologin preserves other exclusions and does not add duplicates. */
+    /**
+     * Enabling autologin preserves other exclusions and does not add duplicates.
+     */
     public function test_enable_preserves_other_exclusions(): void {
         $this->resetAfterTest(true);
         set_config('enable_autologin', 1, 'local_appcrue');
@@ -41,7 +43,9 @@ final class mfa_helper_test extends \advanced_testcase {
         $this->assertTrue(mfa_helper::has_autologin_exclusion());
     }
 
-    /** Disabling removes all exact matches, including surrounding whitespace. */
+    /**
+     * Disabling removes all exact matches, including surrounding whitespace.
+     */
     public function test_disable_removes_only_autologin(): void {
         $this->resetAfterTest(true);
         set_config('enable_autologin', 0, 'local_appcrue');
@@ -57,7 +61,9 @@ final class mfa_helper_test extends \advanced_testcase {
         $this->assertFalse(mfa_helper::has_autologin_exclusion());
     }
 
-    /** Missing exclusions can be enabled and disabled, leaving an empty list. */
+    /**
+     * Missing exclusions can be enabled and disabled, leaving an empty list.
+     */
     public function test_empty_exclusions(): void {
         $this->resetAfterTest(true);
         unset_config('redir_exclusions', 'tool_mfa');

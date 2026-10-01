@@ -5,7 +5,22 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Tests for calendar services.
+ *
+ * @package    local_appcrue
+ * @copyright  2026
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
@@ -96,9 +111,17 @@ final class calendar_service_test extends appcrue_test_base {
         );
         $this->assertCount(1, $output->calendar[0]->events);
         $formatted = $output->calendar[0]->events[0];
-        $this->assertStringContainsString('Exam EN', $formatted->title);
-        $this->assertStringNotContainsString('{mlang', $formatted->title);
-        $this->assertSame('Description EN', trim($formatted->description));
+        $this->assertStringContainsString(
+            $this->expected_multilang_text('Exam EN', '{mlang en}Exam EN{mlang}{mlang es}Examen ES{mlang}'),
+            $formatted->title
+        );
+        if ($this->has_multilang2_filter()) {
+            $this->assertStringNotContainsString('{mlang', $formatted->title);
+        }
+        $this->assertSame(
+            $this->expected_multilang_text('Description EN', '{mlang en}Description EN{mlang}{mlang es}Descripción ES{mlang}'),
+            trim($formatted->description)
+        );
         $this->assertSame($eventtime, $formatted->startsAt);
         $this->assertSame($eventtime + 3600, $formatted->endsAt);
     }
@@ -132,11 +155,25 @@ final class calendar_service_test extends appcrue_test_base {
         $items = $service->format_events_for_lmsappcrue_for_test([$event], $fixture['user']);
 
         $this->assertCount(1, $items);
-        $this->assertStringContainsString('Event EN', $items[0]['name']);
-        $this->assertStringNotContainsString('{mlang', $items[0]['name']);
-        $this->assertSame('Description EN', trim($items[0]['description']));
-        $this->assertSame('Course EN', $items[0]['fullname']);
-        $this->assertSame('Location EN', $items[0]['location']);
+        $this->assertStringContainsString(
+            $this->expected_multilang_text('Event EN', '{mlang en}Event EN{mlang}{mlang es}Evento ES{mlang}'),
+            $items[0]['name']
+        );
+        if ($this->has_multilang2_filter()) {
+            $this->assertStringNotContainsString('{mlang', $items[0]['name']);
+        }
+        $this->assertSame(
+            $this->expected_multilang_text('Description EN', '{mlang en}Description EN{mlang}{mlang es}Descripción ES{mlang}'),
+            trim($items[0]['description'])
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Course EN', '{mlang en}Course EN{mlang}{mlang es}Curso ES{mlang}'),
+            $items[0]['fullname']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Location EN', '{mlang en}Location EN{mlang}{mlang es}Ubicación ES{mlang}'),
+            $items[0]['location']
+        );
     }
 
     /**

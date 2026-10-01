@@ -5,7 +5,22 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Tests for the forums JSON service.
+ *
+ * @package    local_appcrue
+ * @copyright  2026
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 namespace local_appcrue;
 
 defined('MOODLE_INTERNAL') || die();
@@ -81,13 +96,30 @@ final class forums_service_test extends appcrue_test_base {
         $this->assertSame(2, $count);
         $this->assertNotEmpty($items);
         $item = end($items);
-        $this->assertSame('Course EN', $item['course_title']);
-        $this->assertSame('Forum EN', $item['forum_name']);
-        $this->assertSame('Topic EN', $item['topic_title']);
-        $this->assertSame('Forum description EN', $item['description']);
+        $this->assertSame(
+            $this->expected_multilang_text('Course EN', '{mlang en}Course EN{mlang}{mlang es}Curso ES{mlang}'),
+            $item['course_title']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Forum EN', '{mlang en}Forum EN{mlang}{mlang es}Foro ES{mlang}'),
+            $item['forum_name']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text('Topic EN', '{mlang en}Topic EN{mlang}{mlang es}Tema ES{mlang}'),
+            $item['topic_title']
+        );
+        $this->assertSame(
+            $this->expected_multilang_text(
+                'Forum description EN',
+                '{mlang en}Forum description EN{mlang}{mlang es}Descripción ES{mlang}'
+            ),
+            $item['description']
+        );
         $this->assertCount(1, $item['replies']);
         $this->assertStringContainsString('Root message EN', $item['replies'][0]['message']);
-        $this->assertStringNotContainsString('{mlang', $item['replies'][0]['message']);
+        if ($this->has_multilang2_filter()) {
+            $this->assertStringNotContainsString('{mlang', $item['replies'][0]['message']);
+        }
     }
 
     /**

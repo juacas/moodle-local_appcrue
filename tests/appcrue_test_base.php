@@ -5,10 +5,17 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace local_appcrue;
 
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Shared helpers for the AppCrue PHPUnit tests.
@@ -16,7 +23,9 @@ defined('MOODLE_INTERNAL') || die();
  * This file is intentionally not suffixed with _test.php. It is a support
  * class loaded by the individual test cases and is not a test case itself.
  *
- * @package local_appcrue
+ * @package    local_appcrue
+ * @copyright  2026
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class appcrue_test_base extends \advanced_testcase {
     /** @var array Original GET parameters. */
@@ -88,12 +97,32 @@ abstract class appcrue_test_base extends \advanced_testcase {
      * @param string $language Current language.
      */
     protected function use_language(string $language): void {
-        // The plugin installed in this Moodle instance uses the {mlang ...}
-        // syntax provided by multilang2.
-        filter_set_global_state('multilang2', TEXTFILTER_ON);
-        filter_set_applies_to_strings('multilang2', true);
-        \filter_manager::instance()->reset_caches();
+        if ($this->has_multilang2_filter()) {
+            filter_set_global_state('multilang2', TEXTFILTER_ON);
+            filter_set_applies_to_strings('multilang2', true);
+            \filter_manager::instance()->reset_caches();
+        }
         force_current_language($language);
+    }
+
+    /**
+     * Whether the optional multilang2 filter is available in this Moodle checkout.
+     *
+     * @return bool
+     */
+    protected function has_multilang2_filter(): bool {
+        return array_key_exists('multilang2', \core_component::get_plugin_list('filter'));
+    }
+
+    /**
+     * Expected text for fixtures using multilang2 markup.
+     *
+     * @param string $english English text when the filter is available.
+     * @param string $source Original fixture text.
+     * @return string
+     */
+    protected function expected_multilang_text(string $english, string $source): string {
+        return $this->has_multilang2_filter() ? $english : $source;
     }
 
     /**

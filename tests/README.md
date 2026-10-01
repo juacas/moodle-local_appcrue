@@ -35,9 +35,9 @@ datos PHPUnit; cada caso restaura el estado de la base de datos al terminar.
   existentes de autologin, rotación de claves, seguridad de red y privacidad.
 
 Los casos de integración crean cursos, usuarios, matrículas, actividades,
-foros, recursos, eventos y calificaciones. También habilitan `multilang2` y
-comprueban que una cadena como `{mlang en}English{mlang}{mlang es}Español{mlang}`
-se devuelve en el idioma del usuario, sin las etiquetas `{mlang}`.
+foros, recursos, eventos y calificaciones. Cuando `multilang2` está instalado, también comprueban que una cadena como `{mlang en}English{mlang}{mlang es}Español{mlang}`
+se devuelve en el idioma del usuario, sin las etiquetas `{mlang}`. Sin ese filtro,
+comprueban que se conserva el texto original.
 
 ## Requisitos
 

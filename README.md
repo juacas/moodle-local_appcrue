@@ -291,8 +291,8 @@ extension. If the suite is missing from the root configuration, regenerate it
 with the initialisation command above.
 
 Run tests sequentially when they share a PHPUnit database: Moodle resets its
-state between tests. Some integration tests also require the `multilang2` filter
-to be installed. See [tests/README.md](tests/README.md) for the test inventory.
+state between tests. When `multilang2` is installed, integration tests also check translated text;
+without it, they check that the original text is preserved. See [tests/README.md](tests/README.md) for the test inventory.
 
 Notes and examples
 - To allow any network for API calls use `0.0.0.0/0`; leaving authorized networks empty blocks access.
