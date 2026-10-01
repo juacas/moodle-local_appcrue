@@ -16,8 +16,8 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the announcements JSON service.
  *
  * @package local_appcrue
- * @covers \local_appcrue\announcements_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\announcements_service::class)]
 final class announcements_service_test extends appcrue_test_base {
     /**
      * A disabled time window includes announcements regardless of age.

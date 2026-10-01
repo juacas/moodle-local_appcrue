@@ -24,8 +24,8 @@ defined('MOODLE_INTERNAL') || die();
  * @package    local_appcrue
  * @copyright  2026
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \local_appcrue\network_security_helper
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\network_security_helper::class)]
 final class network_security_helper_test extends \advanced_testcase {
     /**
      * Reset state before every test.

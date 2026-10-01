@@ -17,8 +17,8 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the assignments JSON service.
  *
  * @package local_appcrue
- * @covers \local_appcrue\assignments_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\assignments_service::class)]
 final class assignments_service_test extends appcrue_test_base {
     /**
      * A disabled or invalid time window includes all assignments.

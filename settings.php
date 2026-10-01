@@ -122,6 +122,13 @@ if ($hassiteconfig) {
         get_string('idp:use_custom_idp_help', 'local_appcrue'),
         false
     ));
+    $settings->add(new admin_setting_configcheckbox(
+        'local_appcrue/use_pre_server',
+        get_string('idp:use_pre_server', 'local_appcrue'),
+        get_string('idp:use_pre_server_help', 'local_appcrue'),
+        false
+    ));
+    $settings->hide_if('local_appcrue/use_pre_server', 'local_appcrue/use_custom_idp', 'eq', 1);
     // Appcrue AppId.
     $settings->add(new admin_setting_configtext(
         'local_appcrue/appcrue_appid',
@@ -188,12 +195,26 @@ if ($hassiteconfig) {
             get_string('autologinheader_help', 'local_appcrue')
         )
     );
-    $settings->add(new admin_setting_configcheckbox(
+    $autologinsetting = new admin_setting_configcheckbox(
         'local_appcrue/enable_autologin',
         get_string('enable_autologin', 'local_appcrue'),
         get_string('enable_autologin_help', 'local_appcrue'),
         false
-    ));
+    );
+    $autologinsetting->set_updatedcallback([\local_appcrue\mfa_helper::class, 'update_autologin_exclusion']);
+    $settings->add($autologinsetting);
+    if (get_config('tool_mfa', 'enabled') && get_config('local_appcrue', 'enable_autologin')
+            && \local_appcrue\mfa_helper::has_autologin_exclusion()) {
+        $mfaurl = new moodle_url('/admin/search.php', ['query' => 'redir_exclusions']);
+        $settings->add(new admin_setting_description(
+            'local_appcrue/autologin_mfa_notice',
+            '',
+            html_writer::div(
+                get_string('autologin:mfa_exclusion_notice', 'local_appcrue', $mfaurl->out()),
+                'alert alert-info'
+            )
+        ));
+    }
     // Select "bearer" or "token" mark in deep urls.
     // Note: As february 2026, Android and iOS CustomTabs only support "token" mark.
     $tokenmarksetting = new admin_setting_configselect(

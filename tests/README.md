@@ -28,6 +28,8 @@ datos PHPUnit; cada caso restaura el estado de la base de datos al terminar.
 - `endpoints_test.php`: resolución de los siete endpoints REST dinámicos,
   errores de endpoint, mapa de códigos y las tres declaraciones de
   `db/services.php`.
+- `mfa_helper_test.php`: alta y retirada de la excepción MFA de autologin,
+  conservación de otras URLs y prevención de duplicados.
 - `autologin_logic_test.php`, `keyrotation_service_test.php`,
   `network_security_helper_test.php` y `privacy_provider_test.php`: pruebas
   existentes de autologin, rotación de claves, seguridad de red y privacidad.
@@ -46,28 +48,32 @@ se devuelve en el idioma del usuario, sin las etiquetas `{mlang}`.
 
 ## Cómo ejecutarlos
 
-Desde la raíz de Moodle:
+Desde la raíz de Moodle, usando su `phpunit.xml`.
+Para preparar PHPUnit por primera vez, consulta
+[Tests en el README principal](../README.md#tests).
+
+Toda la suite:
 
 ```bash
-vendor/bin/phpunit -c public/local/appcrue/phpunit.xml.dist
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite
 ```
 
 Para ver los nombres de los casos:
 
 ```bash
-vendor/bin/phpunit -c public/local/appcrue/phpunit.xml.dist --testdox
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite --testdox
 ```
 
 Para ejecutar un grupo concreto:
 
 ```bash
-vendor/bin/phpunit -c public/local/appcrue/phpunit.xml.dist --filter assignments_service_test
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite --filter assignments_service_test
 ```
 
 También se puede filtrar por método, por ejemplo:
 
 ```bash
-vendor/bin/phpunit -c public/local/appcrue/phpunit.xml.dist \
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite \
   --filter test_get_items_returns_enrolled_assignment
 ```
 

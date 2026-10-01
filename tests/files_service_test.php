@@ -16,8 +16,8 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the files JSON service.
  *
  * @package local_appcrue
- * @covers \local_appcrue\files_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\files_service::class)]
 final class files_service_test extends appcrue_test_base {
     /**
      * A disabled or invalid time window includes all files.

@@ -19,8 +19,8 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the forums JSON service.
  *
  * @package local_appcrue
- * @covers \local_appcrue\forums_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\forums_service::class)]
 final class forums_service_test extends appcrue_test_base {
     /**
      * Post trees recursively attach replies to their parent post.

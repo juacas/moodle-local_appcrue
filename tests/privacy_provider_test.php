@@ -24,8 +24,8 @@ defined('MOODLE_INTERNAL') || die();
  * @package    local_appcrue
  * @copyright  2026
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \local_appcrue\privacy\provider
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\privacy\provider::class)]
 final class privacy_provider_test extends \advanced_testcase {
     /**
      * Provider must identify null-provider reason language key.

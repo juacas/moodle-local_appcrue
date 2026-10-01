@@ -18,13 +18,13 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the AppCrue procedural library and request authentication helpers.
  *
  * @package local_appcrue
- * @covers ::local_appcrue_get_json_node
- * @covers ::local_appcrue_get_user_from_request
- * @covers ::local_appcrue_is_apikey_valid
- * @covers ::local_appcrue_config_user
- * @covers ::local_appcrue_filter_sitemap_urls
- * @covers ::local_appcrue_get_event_type
  */
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_json_node')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_user_from_request')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_is_apikey_valid')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_config_user')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_filter_sitemap_urls')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_event_type')]
 final class locallib_test extends appcrue_test_base {
     /**
      * JSON path traversal supports nested objects and takes the first array item.

@@ -18,8 +18,8 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the grades JSON service.
  *
  * @package local_appcrue
- * @covers \local_appcrue\grades_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\grades_service::class)]
 final class grades_service_test extends appcrue_test_base {
     /**
      * A disabled time window includes grades regardless of modification date.

@@ -18,8 +18,8 @@ require_once($CFG->dirroot . '/local/appcrue/externallib.php');
  * Tests for the AppCrue external web-service functions.
  *
  * @package local_appcrue
- * @covers \local_appcrue_external
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue_external::class)]
 final class externallib_test extends appcrue_test_base {
     /**
      * Message parameters expose the expected user key and format defaults.

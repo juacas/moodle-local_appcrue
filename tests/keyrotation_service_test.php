@@ -24,8 +24,8 @@ defined('MOODLE_INTERNAL') || die();
  * @package    local_appcrue
  * @copyright  2026
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \local_appcrue\keyrotation_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\keyrotation_service::class)]
 final class keyrotation_service_test extends \advanced_testcase {
     /**
      * Reset state before every test.

@@ -19,8 +19,8 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for the calendar service and both calendar response formats.
  *
  * @package local_appcrue
- * @covers \local_appcrue\calendar_service
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\calendar_service::class)]
 final class calendar_service_test extends appcrue_test_base {
     /**
      * Request parameters configure the calendar time range.

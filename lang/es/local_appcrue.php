@@ -39,6 +39,7 @@ $string['autologin:follow_metacourses'] = 'Seguir metacursos';
 $string['autologin:follow_metacourses_help'] = 'Si está habilitado, al redirigir a cursos por patrón, se seguirán los metacursos para ir al curso "padre" donde el usuario está meta-inscrito. Si el curso está meta-enrolado en más de un curso padre, no se realizará ninguna redirección.';
 $string['autologin:loggedasguest'] = 'Ha iniciado sesión como invitado en {$a->sitename} desde la aplicación. Esto usualmente significa que su token no era válido, por lo que tiene acceso limitado al sitio. Pulse el enlace siguiente para continuar.';
 $string['autologin:loggedasuser'] = 'Ha iniciado sesión como {$a->fullname} en {$a->sitename} desde la aplicación.';
+$string['autologin:mfa_exclusion_notice'] = 'Se ha añadido una excepción MFA para AppCRUE a su <a href="{$a}">configuración de Moodle</a>.';
 $string['autologin:notauthenticated'] = 'Redirección no autorizada. Intente cerrar y reabrir la sesión en la aplicación y vuelva a intentarlo. Si el problema persiste, contacte al administrador del sitio.';
 $string['autologin:redirecting'] = 'Redirigiendo al sitio...';
 $string['autologin:use_redirection_page'] = 'Usar una página de redirección en lugar de HTTP 303';
@@ -98,6 +99,8 @@ $string['idp:url_help'] = 'URL del IDP para invocar el servicio de token de usua
 $string['idp:use_custom_idp'] = 'Usar IdP personalizado';
 $string['idp:use_custom_idp_help'] = 'Si está habilitado, se utilizará un endpoint de Proveedor de Identidad personalizado para validar los tokens proporcionados por AppCrue. El IdP personalizado debe implementar un endpoint de introspección de token OAuth2 que devuelva información de identidad del usuario en formato JSON. ' .
         'Si está deshabilitado, se utilizará el IdP predeterminado de AppCrue. El servicio servicio AppCRUE devolverá los campos de usuario: id, username, email, document_type, document, nia.';
+$string['idp:use_pre_server'] = 'Usar servidor PRE';
+$string['idp:use_pre_server_help'] = 'Si está habilitado, los tokens se validarán usando el servidor de preproducción de Universia. Si está deshabilitado, se usará el servidor de producción. Este ajuste solo se aplica cuando no se usa un IdP personalizado.';
 $string['idp:user_json_path'] = 'Selector en la respuesta del IDP.';
 $string['idp:user_json_path_help'] = 'Selectr como jsonpath para identificar el valor para identificar al usuario. Los valores para el Idp de AppCrue pueden ser ".id", ".username", ".email", ".document", ".nia".';
 $string['lmsappcrue:announcements'] = 'Anuncios AppCRUE';

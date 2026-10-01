@@ -232,8 +232,10 @@ function local_appcrue_validate_token($token, $debug = false): array {
     require_once($CFG->dirroot . '/lib/filelib.php');
     // Check if custom or default idp server.
     if (get_config('local_appcrue', 'use_custom_idp') == false) {
-        // Default AppCRUE userdata endpoint.
-        $idpurl = 'https://appuniversitaria.universia.net/api/external/v3/users/info';
+        // Select the AppCRUE userdata endpoint for the configured environment.
+        $idpurl = get_config('local_appcrue', 'use_pre_server')
+            ? 'https://pre.appuniversitaria.idsant.com/api/external/v3/users/info'
+            : 'https://appuniversitaria.universia.net/api/external/v3/users/info';
         // Prepare curl POST request.
         $curl = new \curl();
         $options = [

@@ -19,15 +19,15 @@ require_once(__DIR__ . '/appcrue_test_base.php');
  * Tests for dynamic REST endpoint discovery and web-service declarations.
  *
  * @package local_appcrue
- * @covers \local_appcrue\appcrue_service::instance_from_request
  */
+#[\PHPUnit\Framework\Attributes\CoversMethod(\local_appcrue\appcrue_service::class, 'instance_from_request')]
 final class endpoints_test extends appcrue_test_base {
     /**
      * Every dynamic REST service resolves to the expected implementation class.
      *
-     * @dataProvider dynamic_endpoint_provider
      * @param string $endpoint Endpoint name.
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dynamic_endpoint_provider')]
     public function test_dynamic_endpoint_resolves_to_service(string $endpoint): void {
         $user = self::getDataGenerator()->create_user(['username' => 'endpoint_user']);
         set_config('api_key', 'endpointkey', 'local_appcrue');

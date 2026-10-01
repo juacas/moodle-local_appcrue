@@ -220,13 +220,79 @@ Token / IdP validation (for token-based endpoints)
 
 ## Tests
 
-This plugin includes a dedicated PHPUnit suite named `local_appcrue_testsuite` in:
-`local/appcrue/phpunit.xml.dist`
+Run the tests from the Moodle repository root (the directory containing
+`composer.json`, `vendor/` and `phpunit.xml`). For example:
 
-Run only this plugin suite:
 ```bash
-vendor/bin/phpunit -c local/appcrue/phpunit.xml.dist --testsuite local_appcrue_testsuite
+cd /var/www/moodle
 ```
+
+### First-time setup
+
+Install Moodle's development dependencies with `composer install`. Configure a
+dedicated PHPUnit data directory and table prefix in Moodle's `config.php`,
+before the call to `lib/setup.php`:
+
+```php
+$CFG->phpunit_prefix = 'phpu_';
+$CFG->phpunit_dataroot = '/path/to/moodle-phpunit-data';
+```
+
+Use a writable data directory and a table prefix different from those of the
+regular Moodle installation. Moodle creates and resets the test tables and data.
+Then initialise the test environment and generate Moodle's root `phpunit.xml`:
+
+```bash
+php public/admin/tool/phpunit/cli/init.php --disable-composer
+```
+
+Run the initialisation again after installing or upgrading plugins if PHPUnit
+reports that its test environment needs updating. An already initialised checkout
+does not need this step before each test run. `--disable-composer` keeps the
+installed dependency versions when they are already available.
+
+### Run the plugin tests
+
+Run all AppCRUE tests using the suite registered in Moodle's root configuration:
+
+```bash
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite
+```
+
+Show readable test names:
+
+```bash
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite --testdox
+```
+
+Run one test file, for example the autologin MFA exclusion tests:
+
+```bash
+vendor/bin/phpunit -c phpunit.xml public/local/appcrue/tests/mfa_helper_test.php
+```
+
+Run one test method:
+
+```bash
+vendor/bin/phpunit -c phpunit.xml public/local/appcrue/tests/mfa_helper_test.php \
+  --filter test_disable_removes_only_autologin
+```
+
+To show the details of PHPUnit deprecation notices:
+
+```bash
+vendor/bin/phpunit -c phpunit.xml --testsuite local_appcrue_testsuite \
+  --display-phpunit-deprecations
+```
+
+Use the root `phpunit.xml` for this checkout. The plugin's `phpunit.xml.dist`
+contains legacy PHPUnit options and does not include the current Moodle test
+extension. If the suite is missing from the root configuration, regenerate it
+with the initialisation command above.
+
+Run tests sequentially when they share a PHPUnit database: Moodle resets its
+state between tests. Some integration tests also require the `multilang2` filter
+to be installed. See [tests/README.md](tests/README.md) for the test inventory.
 
 Notes and examples
 - To allow any network for API calls use `0.0.0.0/0`; leaving authorized networks empty blocks access.

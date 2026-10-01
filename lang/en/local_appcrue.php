@@ -39,6 +39,7 @@ $string['autologin:follow_metacourses'] = 'Follow metacourses';
 $string['autologin:follow_metacourses_help'] = 'If enabled, when sarching courses by pattern, metacourses will be followed to go to the "parent" course where the user is meta-enrolled. If the course is meta-enrolled in more than one parent course, no redirection will be done.';
 $string['autologin:loggedasguest'] = 'You have been logged in as guest in {$a->sitename} from the App. This usuaally means that your token was not valid, so you have limited access to the site. Please click the following link to continue.';
 $string['autologin:loggedasuser'] = 'You have been logged in as {$a->fullname} in {$a->sitename} from the App.';
+$string['autologin:mfa_exclusion_notice'] = 'An MFA exception for AppCRUE has been added to your <a href="{$a}">Moodle configuration</a>.';
 $string['autologin:notauthenticated'] = 'Redirection not authorized. Try to reopen the session in the App and try again. If the problem persists, contact the site administrator.';
 $string['autologin:redirecting'] = 'Redirecting to the site...';
 $string['autologin:use_redirection_page'] = 'Use a redirection page instead of HTTP 303';
@@ -98,6 +99,8 @@ $string['idp:url_help'] = 'URL of the IDP to invoke the user token service.';
 $string['idp:use_custom_idp'] = 'Use custom IdP';
 $string['idp:use_custom_idp_help'] = 'If enabled, a custom Identity Provider endpoint will be used to validate the tokens provided by AppCrue. The custom IdP must implement an OAuth2 token introspection endpoint that returns user identity information in JSON format. ' .
                                      'If disabled, the default AppCrue IdP will be used. AppCRUE service will return user fields: .id, .username, .email, .document, .nia.';
+$string['idp:use_pre_server'] = 'Use PRE server';
+$string['idp:use_pre_server_help'] = 'If enabled, tokens will be validated using the Universia pre-production server. If disabled, the production server will be used. This setting only applies when a custom IdP is not used.';
 $string['idp:user_json_path'] = 'Selector in the IDP response.';
 $string['idp:user_json_path_help'] = 'Selector like jsonpath to identify the value to identify the user. Values for AppCrue Idp can be ".id", ".username", ".email", ".document", ".nia".';
 
