@@ -53,6 +53,20 @@ final class calendar_service_test extends appcrue_test_base {
     }
 
     /**
+     * The inherited data response returns calendar items and their count.
+     */
+    public function test_get_data_response_returns_items_and_count(): void {
+        $items = [['id' => 10], ['id' => 20]];
+        $service = $this->getMockBuilder(calendar_service::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_items'])
+            ->getMock();
+        $service->expects($this->once())->method('get_items')->willReturn($items);
+
+        $this->assertSame([$items, 2], $service->get_data_response());
+    }
+
+    /**
      * Invalid ranges are rejected before querying the calendar.
      */
     public function test_get_events_rejects_inverted_time_range(): void {

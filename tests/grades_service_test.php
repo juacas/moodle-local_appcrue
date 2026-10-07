@@ -51,6 +51,34 @@ final class grades_service_test extends appcrue_test_base {
     }
 
     /**
+     * A configured time window can be overridden by a later requested start.
+     */
+    public function test_configure_uses_later_requested_start(): void {
+        $requestedstart = time() - 100;
+        set_config('lmsappcrue_grades_timewindow', 3600, 'local_appcrue');
+        $this->set_request_parameters(['timestart' => $requestedstart]);
+        $service = new grades_service_test_double();
+
+        $service->configure_for_test();
+
+        $this->assertSame($requestedstart, $service->timestart);
+    }
+
+    /**
+     * Data response wraps grade items and derives their count.
+     */
+    public function test_get_data_response_wraps_items_and_count(): void {
+        $items = [['id' => 10], ['id' => 20]];
+        $service = $this->getMockBuilder(grades_service::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_items'])
+            ->getMock();
+        $service->expects($this->once())->method('get_items')->willReturn($items);
+
+        $this->assertSame([['grades' => $items], 2], $service->get_data_response());
+    }
+
+    /**
      * The grades endpoint returns visible final grades with filtered names.
      */
     public function test_get_items_returns_final_grade_and_filtered_names(): void {

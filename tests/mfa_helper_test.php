@@ -51,12 +51,12 @@ final class mfa_helper_test extends \advanced_testcase {
         $this->resetAfterTest(true);
         set_config('enable_autologin', 0, 'local_appcrue');
         set_config('redir_exclusions', "/local/appcrue/autologin.php\r\n"
-            . " /local/appcrue/autologin.php \r/local/other/login.php\n/local/appcrue/autologin_direct.php", 'tool_mfa');
+            . " /local/appcrue/autologin.php \r/local/other/login.php\n/local/other/direct.php", 'tool_mfa');
 
         mfa_helper::update_autologin_exclusion();
 
         $this->assertSame(
-            "/local/other/login.php\n/local/appcrue/autologin_direct.php",
+            "/local/other/login.php\n/local/other/direct.php",
             get_config('tool_mfa', 'redir_exclusions')
         );
         $this->assertFalse(mfa_helper::has_autologin_exclusion());

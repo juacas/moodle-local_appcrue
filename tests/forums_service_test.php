@@ -40,6 +40,41 @@ require_once(__DIR__ . '/fixtures/forums_service_test_fixture.php');
 #[\PHPUnit\Framework\Attributes\CoversClass(\local_appcrue\forums_service::class)]
 final class forums_service_test extends appcrue_test_base {
     /**
+     * Forum request timestamps are bounded by the configured time window.
+     */
+    public function test_configure_uses_time_window_and_requested_start(): void {
+        $window = 3600;
+        set_config('lmsappcrue_forums_timewindow', $window, 'local_appcrue');
+        $this->set_request_parameters(['timestart' => 100]);
+        $service = $this->service_without_constructor(forums_service::class);
+        $before = time() - $window;
+
+        $service->configure_from_request();
+
+        $this->assertGreaterThanOrEqual($before, $service->timestart);
+        $this->assertLessThanOrEqual(time(), $service->timestart);
+
+        $requestedstart = time() + 10;
+        $this->set_request_parameters(['timestart' => $requestedstart]);
+        $service->configure_from_request();
+        $this->assertSame($requestedstart, $service->timestart);
+    }
+
+    /**
+     * Data response wraps forum items and preserves their count.
+     */
+    public function test_get_data_response_wraps_items_and_count(): void {
+        $items = [['id' => 10], ['id' => 20]];
+        $service = $this->getMockBuilder(forums_service::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_items'])
+            ->getMock();
+        $service->expects($this->once())->method('get_items')->willReturn([$items, 2]);
+
+        $this->assertSame([['forums' => $items], 2], $service->get_data_response());
+    }
+
+    /**
      * Post trees recursively attach replies to their parent post.
      */
     public function test_build_post_tree_builds_nested_replies(): void {

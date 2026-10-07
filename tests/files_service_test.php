@@ -35,7 +35,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/appcrue_test_base.php');
 require_once(__DIR__ . '/fixtures/files_service_test_double.php');
-require_once(__DIR__ . '/fixtures/files_service_test_double.php');
 
 /**
  * Tests for the files JSON service.
@@ -54,6 +53,34 @@ final class files_service_test extends appcrue_test_base {
         $service->configure_for_test();
 
         $this->assertSame(0, $service->timestart);
+    }
+
+    /**
+     * A configured time window can be overridden by a later requested start.
+     */
+    public function test_configure_uses_later_requested_start(): void {
+        $requestedstart = time() - 100;
+        set_config('lmsappcrue_files_timewindow', 3600, 'local_appcrue');
+        $this->set_request_parameters(['timestart' => $requestedstart]);
+        $service = new files_service_test_double();
+
+        $service->configure_for_test();
+
+        $this->assertSame($requestedstart, $service->timestart);
+    }
+
+    /**
+     * Data response wraps file items and derives their count.
+     */
+    public function test_get_data_response_wraps_items_and_count(): void {
+        $items = [['id' => 10], ['id' => 20]];
+        $service = $this->getMockBuilder(files_service::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_items'])
+            ->getMock();
+        $service->expects($this->once())->method('get_items')->willReturn($items);
+
+        $this->assertSame([['files' => $items], 2], $service->get_data_response());
     }
 
     /**

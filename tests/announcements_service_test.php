@@ -49,6 +49,35 @@ final class announcements_service_test extends appcrue_test_base {
     }
 
     /**
+     * A configured time window is combined with the requested start timestamp.
+     */
+    public function test_configure_uses_latest_requested_or_window_start(): void {
+        $window = 3600;
+        $requestedstart = time() - 100;
+        set_config('lmsappcrue_announcements_timewindow', $window, 'local_appcrue');
+        $this->set_request_parameters(['timestart' => $requestedstart]);
+        $service = new announcements_service_test_double();
+
+        $service->configure_for_test();
+
+        $this->assertSame($requestedstart, $service->timestart);
+    }
+
+    /**
+     * Data response wraps announcement items and preserves their count.
+     */
+    public function test_get_data_response_wraps_items_and_count(): void {
+        $items = [['id' => 10], ['id' => 20]];
+        $service = $this->getMockBuilder(announcements_service::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_items'])
+            ->getMock();
+        $service->expects($this->once())->method('get_items')->willReturn([$items, 2]);
+
+        $this->assertSame([['announcements' => $items], 2], $service->get_data_response());
+    }
+
+    /**
      * News forum posts are returned with filtered course, forum and subject text.
      */
     public function test_get_items_returns_news_post(): void {

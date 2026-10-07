@@ -65,6 +65,20 @@ final class assignments_service_test extends appcrue_test_base {
     }
 
     /**
+     * Data response wraps assignment items and derives their count.
+     */
+    public function test_get_data_response_wraps_items_and_count(): void {
+        $items = [['id' => 10], ['id' => 20]];
+        $service = $this->getMockBuilder(assignments_service::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['get_items'])
+            ->getMock();
+        $service->expects($this->once())->method('get_items')->willReturn($items);
+
+        $this->assertSame([['assignments' => $items], 2], $service->get_data_response());
+    }
+
+    /**
      * Activity formatting applies the module and course contexts to multilang text.
      */
     public function test_format_activity_filters_title_description_and_course_name(): void {
