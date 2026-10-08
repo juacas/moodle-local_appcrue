@@ -87,6 +87,6 @@ class keyrotation_service extends \local_appcrue\appcrue_service {
         set_config('api_key', $newapikey, 'local_appcrue');
         // Record the rotation time.
         set_config('api_key_last_rotation', time(), 'local_appcrue');
-        debugging("API key updated from {$oldapikey} to {$newapikey}", DEBUG_NORMAL);
-    }
+        // Log the API key rotation.
+        debugging("API key updated from {$oldapikey} to {$newapikey}", DEBUG_DEVELOPER);    }
 }

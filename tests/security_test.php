@@ -114,8 +114,12 @@ final class security_test extends appcrue_test_base {
     public function test_urltogo_accepts_local_destinations(): void {
         global $CFG;
         $CFG->wwwroot = 'https://moodle.example.test/campus';
-        foreach (['/course/view.php?id=7&section=2#topic-2', 'course/view.php?id=7&section=2#topic-2',
-            $CFG->wwwroot . '/course/view.php?id=7&section=2#topic-2'] as $input) {
+        $inputs = [
+            '/course/view.php?id=7&section=2#topic-2',
+            'course/view.php?id=7&section=2#topic-2',
+            $CFG->wwwroot . '/course/view.php?id=7&section=2#topic-2',
+        ];
+        foreach ($inputs as $input) {
             $target = local_appcrue_get_target_url('', $input, null, null, null, null, null, null, null);
             $this->assertSame($CFG->wwwroot . '/course/view.php?id=7&section=2#topic-2', $target->out(false));
         }
@@ -159,8 +163,14 @@ final class security_test extends appcrue_test_base {
             $this->assertStringNotContainsString('</script', $script);
             $this->assertStringNotContainsString("'", $script);
             $this->assertStringNotContainsString('&amp;', $script);
-            $this->assertSame(1, preg_match('/^setTimeout\(function\(\) \{ window.location.href = (.+); \}, 100\);$/',
-                $script, $matches));
+            $this->assertSame(
+                1,
+                preg_match(
+                    '/^setTimeout\(function\(\) \{ window.location.href = (.+); \}, 100\);$/',
+                    $script,
+                    $matches
+                )
+            );
             $this->assertSame($target->out(false), json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR));
         }
     }
