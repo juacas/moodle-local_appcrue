@@ -1,16 +1,12 @@
 ## Release Notes for Appcrue Plugin
-### Version 2.0.10 (2026-10-01)
-#### Features and Improvements
-- Add a setting to validate Universia tokens against the PRE endpoint when a custom IdP is not used.
-- Add and remove the AppCrue autologin URL from Moodle MFA redirect exclusions when autologin is enabled or disabled. When both autologin and Moodle MFA are active, show a notice linking to the exclusion setting.
-- Use the redirection page and API key rotation by default for new installations. Support relative LMS URLs in autologin deep links.
-- Apply the requested user's language and context filters to course names, activity titles, forum and discussion titles, announcements, calendar events, files, grades, and feedback returned by the JSON endpoints.
-- Require Moodle 4.5 or later and update the external API integration for current Moodle `core_external` classes.
-- Add PHPUnit coverage for services, authentication, dynamic endpoints, external functions, and MFA configuration, with instructions for running the tests.
+### Version 2.1.0 (2026-10-08)
+#### Security
+- Fix the XSS vulnerabilities reported in [issue #11](https://github.com/juacas/moodle-local_appcrue/issues/11). Escape stored invalid API keys in the settings page and reject malformed API keys from both request parameters and headers.
+- Validate explicit autologin `urltogo` destinations as local Moodle URLs. Reject external, malformed, and path-traversal destinations, and safely encode redirect URLs embedded in JavaScript.
+- Add regression tests for API-key validation and rendering, local URL checks, and JavaScript redirect encoding.
 
-### Version 2.0.9 (2026-06-18)
-#### Changes and Improvements
-- Change order of network restrictions check.
+#### Compatibility
+- API keys may contain ASCII letters, digits, hyphens, and underscores. Explicit `urltogo` links must resolve within the Moodle site.
 
 Other notes
 - Full commit history is available in the repository. To view the complete git log run:

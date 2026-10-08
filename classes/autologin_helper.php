@@ -25,6 +25,47 @@ namespace local_appcrue;
  */
 class autologin_helper {
     /**
+     * Validate an explicit redirect destination within this Moodle installation.
+     * Fix #11: Prevent open redirect attacks by validating the destination URL.
+     * @param string $url Requested destination.
+     * @return \moodle_url Validated URL.
+     * @throws \moodle_exception If the destination is malformed or outside Moodle.
+     */
+    public static function get_local_target_url(string $url): \moodle_url {
+        if ($url === '' || clean_param($url, PARAM_LOCALURL) !== $url || str_starts_with($url, '//')) {
+            throw new \moodle_exception('invalidurl');
+        }
+
+        // Resolve relative paths against Moodle's root, independently of the current endpoint.
+        if ($url[0] !== '/' && !preg_match('~^https?://~i', $url)) {
+            $url = '/' . $url;
+        }
+        $target = new \moodle_url($url);
+        // Browsers normalize backslashes and dot segments before navigating.
+        $path = rawurldecode($target->get_path());
+        if (preg_match('~[\\\\\x00-\x1f\x7f]|(?:^|/)\.{1,2}(?:/|$)~', $path)) {
+            throw new \moodle_exception('invalidurl');
+        }
+        try {
+            $target->out_as_local_url(false);
+        } catch (\coding_exception $e) {
+            throw new \moodle_exception('invalidurl');
+        }
+        return $target;
+    }
+
+    /**
+     * Build a redirect script with the destination encoded as JavaScript data.
+     * Fix #11: Prevent open redirect attacks by validating the destination URL and encoding it as JSON.
+     * @param \moodle_url $url Destination, including URLs from administrator-defined patterns.
+     * @return string Script safe to embed in an HTML script element.
+     */
+    public static function get_redirect_script(\moodle_url $url): string {
+        $destination = json_encode($url->out(false), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        return "setTimeout(function() { window.location.href = {$destination}; }, 100);";
+    }
+
+    /**
      * Apply the configured fallback after token validation fails.
      *
      * @param string $fallback Configured fallback mode. Only 'continue' and 'logout' are valid.

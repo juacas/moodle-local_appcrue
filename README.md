@@ -1,222 +1,153 @@
 # AppCRUE services
 
-Implements services to give access to AppCRUE to different types of information about a user identified by a token or an API key.
+This Moodle local plugin exposes user-specific LMS data to the AppCRUE mobile app and backend. It also provides token-based login, calendar, avatar and sitemap endpoints, plus Moodle web services for messages and grade notifications.
 
-The token must be validated and authenticated by a configurable external identity provider (IdP).
+## Installation and troubleshooting
 
-This plugin was developed to enable Moodle to publish information for the AppCRUE application.
+### Installation
 
-# Functionality
+1. Install this plugin in Moodle's `local/appcrue` directory, either from a release archive or a Git checkout.
+2. Sign in as a site administrator and open **Site administration → Notifications** to complete the upgrade.
+3. Open **Site administration → Plugins → Local plugins → AppCrue Connection Services**, or go directly to `/admin/settings.php?section=local_appcrue`.
+4. Configure the API key, allowed source networks, user matching and the endpoints required by your AppCRUE integration. See [Settings](#settings) and [LMS integration APIs](#lms-integration-apis).
+5. Configure the AppCRUE backend with the Moodle base URL and the API key through your approved secret-management process. Use HTTPS.
 
-This plugin implements a set of simple REST endpoints that provide a backend with calendar events, forum posts, files, grades, and announcements accessible by a particular user.
-It authenticates the caller, identifies the queried user, impersonates that user and queries Moodle internal APIs.
-It implements endpoints compatible with the classical AppCRUE API (calendar events, autologin, sitemap generation, avatar retrieval) and web services to send notifications from external systems.
+The plugin's endpoints rely on Moodle core libraries and require an installed Moodle version supported by the plugin release. When upgrading, follow Moodle's normal plugin upgrade process and review the release notes.
+
+### First connection checklist
+
+Before testing, confirm that:
+
+- The AppCRUE backend can reach the Moodle site over HTTPS. Check DNS, TLS certificates, reverse proxies, WAF rules and firewalls if requests time out or return a server error.
+- The calling AppCRUE server's source IP is included in **API authorized networks** for `/local/appcrue/appcrue.php/*` requests. Add only the required IP addresses or CIDR ranges; do not use a wildcard range as a diagnostic shortcut.
+- The required LMS API endpoint is enabled.
+- The AppCRUE user exists in Moodle and the configured request identifier matches the selected Moodle profile field. For data endpoints, the user also needs relevant course access and content.
+- The request uses the configured identity parameter (`studentemail` or `username`) and a valid API key, preferably in the `X-API-KEY` header.
+
+A request to `/local/appcrue/appcrue.php/forums` without credentials is a useful installation check when the caller is on an allowed network: it should reach Moodle and return a structured missing-credentials error. A `403` usually means the request did not pass the network check; a `404` may mean the endpoint is disabled or the route is unavailable. An authentication error indicates that the request reached the plugin but its credentials need attention. Exact HTTP status and error details can vary by endpoint and Moodle configuration.
+
+### AppCRUE autoconfiguration
+
+The **Enable AppCRUE autoconfig procedure** setting is intended for initial connection setup. On an eligible request from an accepted AppCRUE server, it can add the official AppCRUE source IP to the configured network list, save the first API key, enable API key rotation and then turn itself off. Review the resulting key and network list in settings. Keep the allowed network list limited to trusted backend addresses.
+
+### Troubleshooting
+
+| Symptom | Checks |
+| --- | --- |
+| Connection timeout or HTTP 5xx | Check Moodle availability, TLS, reverse proxy, WAF and inbound firewall rules. Confirm the AppCRUE backend is using the correct Moodle base URL and path. |
+| HTTP 403 from `appcrue.php` | Check **API authorized networks** and the client address Moodle sees. If Moodle is behind a proxy, configure Moodle's trusted proxy settings so client addresses are reported correctly. |
+| Missing/invalid API key | Confirm the current **Local API key**, use the `X-API-KEY` header, and check for whitespace or accidental URL encoding. API keys accept ASCII letters, digits, hyphens and underscores. Do not paste keys into tickets or logs. |
+| User not found | Confirm `studentemail` or `username` is selected under **Use user parameter for matching**, then ensure **Field for matching user's profile** points to the Moodle field containing that value. Check casing and duplicate values. |
+| Empty calendar, grades, files, forums, announcements or assignments | Enable the corresponding endpoint, check that the user can access courses with that content, and review the endpoint's time-window settings. A value of `0` disables the time cutoff for services whose setting documents that behavior. |
+| Login fails or MFA appears | Check the IdP mode, token validation endpoint and user-field mapping. If Moodle MFA is enabled and AppCRUE autologin is enabled, the plugin adds its autologin path to Moodle MFA redirect exclusions; the settings page links to the relevant Moodle search. |
+| Push notification test fails | Check the separate `message_appcrue` plugin, its push provider credentials and the target user's AppCRUE registration. This plugin's LMS data API key is not the push provider credential. |
+
+For an IP-filtering test, add the test machine's *single known source IP* as a temporary `/32` (IPv4) or `/128` (IPv6) entry, test, and remove it afterward. Never use `0.0.0.0/0`, `::/0` or another all-address range to troubleshoot a production system. Avoid putting API keys in query strings because URLs may be retained in proxy, browser or application logs.
 
 ## LMS integration APIs
 
-This plugin implements a set of REST endpoints to provide information for a specific user. They accept an API key to authorize the AppCRUE backend, a user identifier (for example, email), then match the identifier against user fields, impersonate the user, and query Moodle internal APIs.
+The AppCRUE backend calls the slash-argument endpoint `/local/appcrue/appcrue.php/{endpoint}`. Requests authenticate with an API key plus a user identifier, or with an identity-provider token whose validated response identifies the user. For API-key requests, the plugin resolves the user using the configured request parameter and Moodle profile field.
 
-- local/appcrue/appcrue.php/calendar: provides calendar events for a user. Parameters: apikey, userid, timestart, timeend.
-- local/appcrue/appcrue.php/forums: provides forum posts for a user. Parameters: apikey, userid, optional timestart.
-- local/appcrue/appcrue.php/files: provides files downloadable by a user. Parameters: apikey, userid.
-- local/appcrue/appcrue.php/grades: provides grades for a user. Parameters: apikey, userid.
-- local/appcrue/appcrue.php/announcements: provides announcements for a user (news forums). Parameters: apikey, userid.
-- local/appcrue/appcrue.php/rotatekey: rotates the API key used by AppCRUE to call the LMS APIs. Parameters: apikey (current), newapikey.
+The `appcrue.php` controller checks the caller against **API authorized networks** before processing requests. Send the API key in the `X-API-KEY` HTTP header; the `apikey` query parameter remains supported for compatibility but can expose the secret in logs.
 
-This local plugin provides the following services following the AppCRUE API:
+| Endpoint | Required user identifier with API key | Optional request parameters | Response |
+| --- | --- | --- | --- |
+| `/calendar` | `studentemail` or `username` | `timestart`, `timeend` (Unix timestamps) | Calendar events within the requested range or configured default window. |
+| `/forums` | `studentemail` or `username` | `timestart` (Unix timestamp) | User-visible forum posts, grouped into discussion threads. |
+| `/grades` | `studentemail` or `username` | `timestart` (Unix timestamp) | User grades, subject to the configured time window. |
+| `/announcements` | `studentemail` or `username` | `timestart` (Unix timestamp) | User-visible announcements from course news forums. |
+| `/files` | `studentemail` or `username` | `timestart` (Unix timestamp) | User-visible course files and download links. Legacy course files are optional. |
+| `/assignments` | `studentemail` or `username` | `timestart` (Unix timestamp) | Supported activity assignments with due dates and status. |
+| `/keyrotation` | None; API key only | `newapikey` | Replaces the current key. The route is exposed by **Enable API rotation endpoint**; initial autoconfiguration also enables the runtime rotation flag. |
 
-- usercalendar: reports calendar events for a user. It accepts the parameters fromDate, toDate, token.
+Example request (using email matching):
 
-Example response:
-```json
-{
-  "calendar": [
-    {
-      "date": "2020-04-21",
-      "events": [
-        {
-          "id": 1033992237,
-          "title": "Tutoring",
-          "description": "Tutoring in Mathematics",
-          "url": "http://universidad.es/tuperfil/tutorias",
-          "nameAuthor": "Autor",
-          "imgDetail": "http://test.host/uploads/event/logo/1033992237/example.png",
-          "type": "TUTORIA",
-          "startsAt": "1575990139",
-          "endsAt": "1575990139"
-        },
-        {
-          "id": 1033992247,
-          "title": "Clase",
-          "description": "Clase asignatura Inglés",
-          "url": "http://universidad.es/tuperfil/tutorias",
-          "nameAuthor": "Autor",
-          "imgDetail": "http://test.host/uploads/event/logo/1033992237/example.png",
-          "type": "HORARIO",
-          "startsAt": "1575990139",
-          "endsAt": "1575990139"
-        }
-      ]
-    },
-    {
-      "date": "2020-04-22",
-      "events": [
-        {
-          "id": 1033945237,
-          "title": "Tutoria",
-          "description": "Tutoria asignatura Matemáticas",
-          "url": "http://universidad.es/tuperfil/tutorias",
-          "nameAuthor": "Autor",
-          "imgDetail": "http://test.host/uploads/event/logo/1033992237/example.png",
-          "type": "TUTORIA",
-          "startsAt": "157593453",
-          "endsAt": "157593453"
-        },
-        {
-          "id": 1033992449,
-          "title": "Clase",
-          "description": "Clase asignatura Inglés",
-          "url": "http://universidad.es/tuperfil/tutorias",
-          "nameAuthor": "Autor",
-          "imgDetail": "http://test.host/uploads/event/logo/1033992237/example.png",
-          "type": "HORARIO",
-          "startsAt": "157593453",
-          "endsAt": "157593453"
-        }
-      ]
-    }
-  ]
-}
+```bash
+curl --get 'https://moodle.example.edu/local/appcrue/appcrue.php/forums' \
+  --data-urlencode 'studentemail=student@example.edu' \
+  --header "X-API-KEY: ${APPCRUE_API_KEY}"
 ```
 
-## Utility endpoints
+If **Use user parameter for matching** is set to `username`, send `username` instead of `studentemail`. The selected **Field for matching user's profile** determines which Moodle profile field is compared with that value. Store the API key in a secret manager or protected environment variable; do not commit it or include it in shared command history.
 
-These endpoints simplify integration with the AppCRUE mobile app and make navigation from the mobile device to Moodle easier. Most endpoints can also be reused for URL redirection, course dereferencing, and other purposes.
+Other AppCRUE endpoints:
 
-- autologin: logs in a user with an external token and redirects them to a deep link. It can also build redirect URLs from a library of configured URL patterns and parameters. Parameters: token, fallback, urltogo, course, group, pattern, param1, param2, param3.
-  - token: auth token.
-  - pattern: if specified, parameters are used to generate the URL by replacing placeholders in a registered pattern.
-  - fallback: response when token is absent or invalid. Values: "ignore", "error", "logout".
-  - urltogo: deep link relative to the Moodle site to visit after token validation.
-  - course, group, param1, param2, param3: general-purpose parameters for pattern-based URL generation or course lookup (see local_appcrue/pattern_lib and local_appcrue/course_pattern settings).
+| Endpoint | Purpose and parameters | Authentication / network check |
+| --- | --- | --- |
+| `/local/appcrue/usercalendar.php` | Legacy calendar response. Accepts `lang` (required), `fromDate` and `toDate` (`YYYYMMDD`), and optional `category`. | User token or API key; does not use the `appcrue.php` network allowlist. |
+| `/local/appcrue/avatar.php` | User picture; `mode=base64` (default) or `mode=raw`. | User token or API key; does not use the `appcrue.php` network allowlist. |
+| `/local/appcrue/sitemap.php` | Course/category tree; accepts `category`, `courses`, `hidden[]` and `endurls`. | No API key required. Enable the sitemap setting and protect access at the network or Moodle deployment layer if needed. |
+| `/local/appcrue/autologin.php` | Validates an identity-provider token and redirects to a Moodle deep link. Supports `fallback`, `urltogo`, `course`, `group`, `pattern` and `param1`–`param3`. | Identity-provider token in the configured token parameter or a Bearer header. `urltogo` is restricted to this Moodle site. |
 
-- sitemap: generates a JSON representation of categories and courses. Parameters: token, category, includecourses, hiddencats, urlsonlyonends.
-  - token: auth token.
-  - includecourses: whether to include courses (do not stop at category level).
-  - hiddencats: omit a list of categories from the sitemap using PHP array form parameters. Example: hiddencats[0]=2&hiddencats[1]=34.
-  - urlsonlyonends: if true, only the last element of each branch has a URL; otherwise every node has a URL.
+The standalone `usercalendar.php` and `avatar.php` routes accept the shared API key for compatibility, but they do not apply the `/appcrue.php` source-network allowlist. Apply suitable access controls at the reverse proxy or firewall if these routes are exposed to untrusted networks.
 
-Example sitemap:
-```json
-{
-  "navegable": [
-    {
-      "name": "Miscellaneous",
-      "description": "A bit of everything",
-      "id": "1",
-      "navegable": [
-        {
-          "name": "Ingenier\u00eda",
-          "description": "<p dir=\"ltr\" style=\"text-align: left;\">Categoria xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p>",
-          "id": "3",
-          "url": "https://XXXXX/moodle310/course/index.php?categoryid=3"
-        }
-      ]
-    },
-    {
-      "name": "empty",
-      "description": "<p>&nbsp;vccc</p>",
-      "id": "2",
-      "url": "https://XXXXX/moodle310/course/index.php?categoryid=2"
-    }
-  ]
-}
-```
+## Moodle web services
 
-- avatar: identifies a user with an external token and returns their avatar image in raw or base64 format.
-- notifygrades web service: receives a webhook from an external academic management system, composes a localized message with the grade and other details, and sends it via the messaging API (may be routed to AppCRUE as well). Works with message_appcrue push notification plugin to deliver messages to AppCRUE.
-- send_instant_message web service: sends a private message to a user via the messaging API. Works with message_appcrue push notification plugin to deliver messages to AppCRUE.
+The plugin registers the external service `external_notifications` (short name `external_notifications`). It is disabled by default and restricted to users explicitly linked by a Moodle administrator. Enable Moodle web services, enable this service, link a dedicated service user and issue that user a token. The user needs the `moodle/site:sendmessage` capability for the registered functions.
 
+Registered functions:
 
-## Web services
+- `local_appcrue_send_instant_message`
+- `local_appcrue_send_instant_messages`
+- `local_appcrue_notify_grade`
 
-This plugin provides web services to perform actions from external systems:
+Call them through Moodle's REST endpoint, normally `/webservice/rest/server.php`, using Moodle's standard `wstoken`, `wsfunction` and `moodlewsrestformat=json` parameters. Use a dedicated, restricted account and keep its web-service token secret.
 
-- notifygrades: receives a webhook from an external academic management system, composes a localized message with the grade and other details, and sends it via the messaging API.
-- send_instant_message: sends a private message to a user via the messaging API.
+## Settings
 
-Activate the web services following the instructions at:
-https://[SERVER]/admin/settings.php?section=webservicesoverview
+Open **Site administration → Plugins → Local plugins → AppCrue Connection Services** or `/admin/settings.php?section=local_appcrue`. Moodle renders a help icon beside each setting. Screenshots below show the current settings controls with example values; secrets and site-specific addresses are redacted.
 
-## Configuration
+### Connection and API key
 
-After installing the `local_appcrue` plugin, configure it at:
+![Connection and network settings](pix/screenshots/settings-connection.png)
 
-Site administration → Plugins → Local plugins → AppCrue Connection Services
-or: `https://[YOUR_MOODLE_SITE]/admin/settings.php?section=local_appcrue`
-Each setting has a help icon with more information.
+- **Enable AppCRUE autoconfig procedure**: initial setup flow described above.
+- **Local API key**: shared secret for API-key requests. Use only ASCII letters, digits, hyphens and underscores.
+- **API authorized networks**: source IP addresses or CIDR ranges allowed to call the LMS widget API through `appcrue.php`.
+- **Enable API rotation endpoint**: exposes `/keyrotation`. The initial autoconfiguration flow enables the runtime rotation flag used by the key-rotation service.
 
-General settings
-- Autoconfig mode: enable to let AppCRUE configure the plugin automatically on first API call.
-- API Key: shared secret used by AppCRUE backend to call LMS API endpoints.
-- API key rotation: enable if AppCRUE should be allowed to rotate the API key.
-- Authorized networks: list of IP addresses / CIDR ranges (one per line) allowed to call the LMS API.
-- Enable/disable per-service switches (calendar, forums, files, grades, announcements, sitemap, avatar, autologin, notifications, assignments).
+### Identity provider and user matching
 
-LMS API (widget integration)
-- Calendar
-  - Enable unified calendar endpoint.
-  - Options: include site events, course events, personal events.
-  - Configure event types to mark as "EXAM" if applicable.
-- Forums
-  - Enable forum integration.
-  - Configure a time window to limit returned posts.
-  - local_mail support: optional toggle to treat local_mail folders as forums (requires `local_mail` plugin).
-- Files
-  - Enable files integration to expose downloadable files and links.
-- Grades
-  - Enable grades integration to expose user grade items.
-- Announcements
-  - Enable news/forum announcements endpoint.
+![Identity provider settings](pix/screenshots/settings-identity-provider.png)
 
-Autologin
-- Enable autologin endpoint (token-based). Need to have a IdP token-user resolver endpoint.
-- Token mark: decide whether tokens arrive as URL parameter or bearer header.
-- Fallback behavior on invalid/missing token: `ignore/continue`, `logout`, or `error`.
-- Optional pattern library and course lookup SQL pattern to build deep links.
+- **Use custom IdP**: use an institution's token-validation endpoint instead of the AppCRUE IdP.
+- **Use PRE server**: when custom IdP is off, validate tokens against the Universia pre-production service instead of production.
+- **AppCrue AppId / AppCrue API token**: AppCRUE IdP client credentials; keep the token secret.
+- **IdP token endpoint URL** and **IdP user JSON path**: configure the custom token validation response and the JSON field containing the Moodle user identifier.
+- **Field for matching user's profile**: Moodle user profile field used to find the account resolved by token validation.
 
-Sitemap
-- Enable sitemap generation.
-- Options: include courses, hide specified categories, urlsonlyonends toggle.
-- Cache options: enable sitemap cache and set TTL.
+### Autologin
 
-Avatar
-- Enable avatar endpoint.
-- Mode: base64 or native binary.
+![Autologin settings](pix/screenshots/settings-autologin.png)
 
-Assignments
-- Enable assignments integration.
-- Provide activity mapping lines in the format:
-  ```
-  mod_activityname|table|startdatefield|enddatefield
-  ```
+- **Enable autologin**: enables token-based login and deep-link redirects.
+- **Deep URL token mark**: selects the token marker used in generated deep links.
+- **Allow continue**: controls whether a failed or missing token may continue as a guest when `fallback=continue` is requested.
+- **Use redirection page**, **Course pattern**, **Follow metacourses** and **List of URL patterns**: control the redirect flow and course/pattern-based URL generation.
+- When Moodle MFA is active, enabling autologin adds `/local/appcrue/autologin.php` to `tool_mfa | redir_exclusions`; disabling autologin removes that entry. The page displays an information notice linking to Moodle's `redir_exclusions` setting search.
 
-Notify grade web service (notifygrades)
-1. Enable web services in Moodle (Site administration → Advanced features / Web services).
-2. Create a dedicated user and assign required capabilities.
-3. Generate a token for that user and configure the external system to call:
-   ```
-   https://[YOUR_MOODLE_SITE]/webservice/rest/server.php
-   wsfunction=local_appcrue_notify_grade
-   wstoken=[ACCESS_TOKEN]
-   moodlewsrestformat=json
-   ```
-4. Parameters: student id (or identifier), course, grade, gradealpha, revdate, comment, subject, subjectname, group, call, nip.
+### Other AppCRUE services
 
-Token / IdP validation (for token-based endpoints)
-- Configure IdP token endpoint URL and JSON selector (JSONPath) used to extract the user identifier.
-- Configure which Moodle profile field holds the external identifier.
-- Optionally set OAuth client id/secret and token endpoint if using an OAuth IdP.
+![Other AppCRUE service settings](pix/screenshots/settings-services.png)
+
+- **Avatar service** and **Sitemap service** enable the corresponding legacy endpoints.
+- **Cache sitemap** and **Sitemap cache TTL** control sitemap caching.
+- **Web service for notifying grades** selects the sender used for grade notifications.
+
+### LMS widget APIs
+
+![LMS API calendar settings](pix/screenshots/settings-lms-api-calendar.png)
+
+- **Use user parameter for matching** selects whether AppCRUE identifies users by email or username.
+- **Field for matching user's profile** selects the Moodle field that is matched against the incoming value.
+- **Calendar**: enables the widget endpoint, sets the default time window before and after now, selects whether site, course and personal events are shared, and marks selected activity types as exams. The separate legacy user-calendar endpoint has its own enable setting.
+
+![LMS API data settings](pix/screenshots/settings-lms-api-data.png)
+
+- **Grades**, **Forums**, **Announcements**, **Files** and **Assignments**: enable each endpoint and set its time window. For these windows, `0` includes all items regardless of age.
+- **Show total grade as final grade**: reports the course total as a final grade.
+- **Include legacy course files**: includes files from Moodle's legacy course file area; enable only if those files are managed appropriately.
+- **Assignments activity mapping**: one mapping per line in the format `mod_name|table|start-date-field|due-date-field`. The default mapping is shown in the settings page.
 
 ## Tests
 
@@ -294,84 +225,6 @@ Run tests sequentially when they share a PHPUnit database: Moodle resets its
 state between tests. When `multilang2` is installed, integration tests also check translated text;
 without it, they check that the original text is preserved. See [tests/README.md](tests/README.md) for the test inventory.
 
-Notes and examples
-- To allow any network for API calls use `0.0.0.0/0`; leaving authorized networks empty blocks access.
-- Example sitemap and calendar JSON responses are in this README (see above).
-- Keep API Key confidential and, if possible, enable API key rotation.
-
-For detailed step-by-step installation, git-based installation, and examples, see the rest of this README and the `LMS AppCrue Configuración` guide bundled with the plugin.
-
-## Troubleshooting installation
-
-### 1. LMS connection diagnosis
-IMPORTANT: Before running any tests, make sure the latest versions of the local_appcrue and message_appcrue plugins are installed.
-Be sure to have a valid user in Moodle with the same email as the AppCRUE user. The user must be enrolled in at least one course with content (assignments, messages, grades, etc.) to see data in the App.
-Be sure to enable the services you want to expose in the plugin configuration page.
-
-#### 1.1 Pre-diagnosis (from AppCRUE Backend side)
-After registering an LMS in the backend, confirm that the microservices can reach the LMS endpoint.
-
-Possible cause of failure: No connectivity between the microservices layer and the Moodle server.
-- Check that the LMS URL configured in the backend includes the trailing "/". The microservices layer should handle this character, but path handling issues have been observed.
-- If you receive 500, timeout, or similar errors, review the WAF and firewalls at the university.
-- HTTP 400, 401, 403, and 404 responses are part of the API when no API key is supplied, the request payload is invalid, or the service is disabled.
-
-#### 1.2 University: Connectivity available, automatic key setup
-If there is connectivity between UNIVERSIA and the Moodle server but the keys are not configured, the plugin administration page should display diagnostic messages.
-
-<img src="pix/autoconfig.png" alt="AppCRUE diagnostics" style="max-width:600px;"/>
-
-(1) Warning: No API key configured. Enable checkbox 3 to allow automatic key setup.
-(2) Info: Last key renewal at [timestamp].
-
-Checklist:
-1) Do the warning messages (1) appear? Enable checkbox 3, save the configuration, trigger a request from the app, reload the browser, and confirm that message 1 disappears. Message 2 should display the timestamp of the latest action. If nothing changes, review the LMS URL and the IP filters defined in UNIVERSIA.
-2) Do you see a timestamped key renewal message similar to (2)? If no message appears, review the LMS URL and the IP filters configured with UNIVERSIA.
-3) If steps 1 and 2 are correct, review the activation status of the services you want to expose in each configuration section. Each API can be disabled individually and they ship disabled by default.
-
-#### 1.3 University: No connectivity
-
-Symptoms:
-- App requests do not return LMS data.
-- The administration page does not show any of the diagnostics listed above.
-
-Diagnosis: There is no connectivity between UNIVERSIA and Moodle.
-
-**Test 1: Server and plugin**
-1) Leave the default IP list unchanged.
-2) From any browser, load https://ServidorMoodle/local/appcrue/appcrue.php/forums
-3) The response should be "403 Forbidden".
-This confirms the plugin is installed and Moodle is serving requests.
-
-**Test 2: local_appcrue plugin**
-1) Add 10.0.0.1/0 (allow all IP addresses) to the allowed IP list.
-2) Load https://ServidorMoodle/local/appcrue/appcrue.php/forums
-3) Confirm you receive HTTP 400 with the following JSON payload:
-```
-{
-  "success": false,
-  "error": {
-    "code": 2,
-    "message": "Missing token and API key",
-    "timestamp": 1770108919
-  }
-}
-```
-If this test succeeds, the plugin is operating correctly.
-
-**Test 3: IP filtering**
-1) Add 10.0.0.1/0 (allow all IP addresses) to the allowed IP list.
-2) Load any LMS widget in the App.
-3) Check whether the diagnostic messages described in section 1.2 appear.
-If this test succeeds, the issue lies in the local Moodle installation. Possible causes:
-- A firewall blocking outbound connections from Moodle (common on staging environments but not acceptable in production).
-- A firewall or reverse proxy that does not include the X-FORWARDED-FOR header, preventing the API from determining the request origin and applying IP filtering.
-
-**Test 4: User data**
-LMS widgets will not display data (or will return errors) if the AppCRUE user is not present in the LMS.
-Verify that a user with the same email as the AppCRUE profile exists in Moodle, is enrolled in a course, and has content to show (assignments, messages, grades, etc.).
-
-
 ## What is AppCRUE?
 
 AppCRUE (https://tic.crue.org/app-crue/) is a mobile app developed by CRUE (Conference of Rectors of Spanish Universities) and Santander Bank. It is used by:
@@ -395,58 +248,8 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Release notes
 
-AppCRUE — Release notes
-=======================
-v2.0.9 - 2026-06-18
-- Change order of network restrictions check.
+See [RELEASE.md](RELEASE.md) for release notes.
 
-v2.0.8 - 2026-05-28
-- Set default value for 'match_user_by' setting to 'username' instead of defaulting to first user field 'auth'. This change ensures that the plugin will match users based on their username by default, which is a more common and user-friendly approach.
+## Changelog
 
-v2.0.7 - 2026-05-06
-- Add time-windows for all LMS services.
-- Format forum fields to allow multilang plugins.
-
-v2.0.6 - 2026-04-26
-- Support and use relative urls in LMS endpoints when using autologin to avoid using autologin urls.
-- Support case insensitive headers.
-
-v2.0.5 - 2026-02-25
-- Enables LMS endpoints by default in the AppCRUE local plugin. AdministersCalling these features are now enabled out-of-the-box instead of requiring manual configuration, making the AppCRUE LMS integration more accessible by default.
-
-v2.0.4
-- Setting for showing total grade as final grade in AppCRUE, with itemtype adjustment for better compatibility.
-- Setting for using user parameters for matching, allowing more flexible user identification.
-- Updated documentation to reflect new settings and features.
-- Fix: gradelib was not loaded in some cases, causing errors in assignments endpoint for some users.
-
-v2.0.3 — 2026-03-15
-- Autologin redirector to navigate users to deep links after token-based authentication.
-- Improved documentation for LMS connection diagnosis and autologin setup.
-- Minor bug fixes and code improvements.
-
-v2.0.2 — 2026-01-12
-- Fix API key extraction from headers to handle different casing and server variables.
-
-v2.0.1 — 2025-11-05
-- 2025-10-30 — Add API key support in header `X-API-KEY` and adjust HTTP status handling.
-- 2025-10-24 — Auto configuration mode added.
-
-v2.0.0 — 2025-10-17
-- Official AppCRUE integration and platform-ready improvements.
-- Enforced IP filtering for API endpoints and improved redirect handling to avoid MFA issues.
-- Added file and assignment services, assignment dates mapping and related settings.
-- PHPCS fixes, documentation and GitHub Actions CI added.
-
-v1.0.0 — 2025-08-19
-- Stable 1.0.0 release: API key support and key-rotation endpoint.
-- Define `AJAX_SCRIPT` constant and other reliability fixes.
-
-v0.1.4 — 2022-10-28
-- Configurable default field name for webservices and several small improvements.
-
-v0.1.3 — 2022-05-31
-- Log token errors; fixes to `notifygrades` message format.
-
-v0.0.8 — 2021-10-08
-- Early stable features: user calendar support, messaging web services, grade notifications.
+See [CHANGELOG.md](CHANGELOG.md) for the change history.

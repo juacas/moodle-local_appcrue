@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.1.0 - 2026-10-08
+
+### Security
+
+- Fix the XSS issues reported in [GitHub issue #11](https://github.com/juacas/moodle-local_appcrue/issues/11). Escape stored invalid API keys before displaying them in plugin settings and reject malformed credentials from both the `apikey` parameter and `X-API-KEY` header.
+- Validate explicit autologin `urltogo` values as local Moodle destinations. Reject external URLs, malformed input, browser path-normalization tricks, and path traversal.
+- Encode redirect destinations as JavaScript data before embedding the automatic redirect script, including destinations generated from administrator-configured patterns.
+- Add regression coverage for API-key validation, safe rendering of stored values, `urltogo` validation, and redirect script encoding.
+
+### Compatibility
+
+- API keys must use ASCII letters, digits, hyphens, or underscores. Explicit `urltogo` destinations must remain within the Moodle installation; external destinations are no longer accepted.
+
 ## v2.0.10 - 2026-10-01
 
 ### Features and improvements

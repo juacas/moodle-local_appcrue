@@ -181,15 +181,19 @@ function local_appcrue_get_token_param($required = false): string {
  * @return string the apikey from the request or empty string.
  */
 function local_appcrue_get_apikey_param($required = false): string {
-    $apikey = optional_param('apikey', '', PARAM_ALPHANUM);
-    if (empty($apikey)) {
+    // Validate credentials without silently changing them into a different key.
+    $apikey = optional_param('apikey', '', PARAM_RAW);
+    if ($apikey === '') {
         // Try to extract an API key from the headers.
         $headers = local_appcrue_get_request_headers();
         if (isset($headers['x-api-key'])) {
             $apikey = $headers['x-api-key'];
         }
     }
-    if ($required && empty($apikey)) {
+    if ($apikey !== '' && clean_param($apikey, PARAM_ALPHANUMEXT) !== $apikey) {
+        throw new Exception('Invalid API key format', appcrue_service::INVALID_API_KEY);
+    }
+    if ($required && $apikey === '') {
         throw new Exception('Missing API Key', appcrue_service::INVALID_API_KEY);
     }
     return $apikey;
@@ -244,7 +248,7 @@ function local_appcrue_get_request_headers(): array {
  * From that JSON response we extract the value configured in idp_user_json_path.
  *
  * @param string $token authorization token given to AppCrue by the University IDP. Usually an OAuth2 token.
- * @param bool $degug if true, enables debugging output.
+ * @param bool $debug if true, enables debugging output.
  * @return list(string|false, stdClass) the matchvalue or false if the token is not valid and a status object.
  */
 function local_appcrue_validate_token($token, $debug = false): array {
@@ -474,7 +478,7 @@ function local_appcrue_get_json_node($text, $jsonpath) {
  */
 function local_appcrue_get_target_url($token, $urltogo, $course, $group, $year, $pattern, $param1, $param2, $param3) {
     if ($urltogo !== null) {
-        return new moodle_url($urltogo);
+        return \local_appcrue\autologin_helper::get_local_target_url($urltogo);
     } else if ($pattern !== null) {
         // Use pattern lib.
         $patterns = get_config('local_appcrue', 'pattern_lib');

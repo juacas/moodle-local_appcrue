@@ -63,7 +63,7 @@ if ($hassiteconfig) {
     $attemptkey = get_config('local_appcrue', 'api_key_attempt');
     $apikeyhelp = get_string('lmsappcrue:api_key_help', 'local_appcrue');
     if ($attemptkey) {
-        $warning = get_string('lmsappcrue:api_key_warning', 'local_appcrue', $attemptkey);
+        $warning = get_string('lmsappcrue:api_key_warning', 'local_appcrue', s($attemptkey));
         $apikeyhelp .= '<div class="alert alert-danger">' .
                        $warning .
                        '</div>';

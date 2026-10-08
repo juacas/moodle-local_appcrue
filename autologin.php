@@ -78,7 +78,8 @@ try {
     }
 
     // Get parameters to apply the redirection rules.
-    $urltogo = optional_param('urltogo', null, PARAM_URL);    // Relative URL to redirect.
+    // Validate in get_target_url so invalid input is rejected rather than silently cleaned.
+    $urltogo = optional_param('urltogo', null, PARAM_RAW);
     $course = optional_param('course', null, PARAM_INT); // Course internal ID.
     $group = optional_param('group', 1, PARAM_INT); // Grupo docente.
     $year = optional_param('year', null, PARAM_INT); // Curso docente.
@@ -118,7 +119,7 @@ try {
         echo $OUTPUT->notification(get_string('autologin:redirecting', 'local_appcrue'), \core\output\notification::NOTIFY_INFO);
         if ($USER->username != 'guest') {
             // Add automatic redirection.
-            echo html_writer::tag('script', "setTimeout(function() { window.location.href = '" . $urltogo . "'; }, 100);");
+            echo html_writer::tag('script', \local_appcrue\autologin_helper::get_redirect_script($urltogo));
         }
         echo $OUTPUT->footer();
     }
