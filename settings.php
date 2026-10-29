@@ -30,6 +30,12 @@ use local_appcrue\appcrue_service;
 
 if ($hassiteconfig) {
     global $CFG;
+    $ADMIN->add('localplugins', new admin_externalpage(
+        'local_appcrue_troubleshooting',
+        get_string('troubleshooting:title', 'local_appcrue'),
+        new moodle_url('/local/appcrue/troubleshooting.php')
+    ));
+
     $settings = new admin_settingpage('local_appcrue', get_string('pluginname', 'local_appcrue'));
     $ADMIN->add('localplugins', $settings);
     // AppCRUE release information and tips for autoconfig feature.
@@ -38,6 +44,15 @@ if ($hassiteconfig) {
         'local_appcrue/releaseinfo',
         get_string('pluginname', 'local_appcrue'),
         get_string('welcome_message', 'local_appcrue', ['installedversion' => $installedversion])
+    ));
+    $settings->add(new admin_setting_description(
+        'local_appcrue/troubleshooting_link',
+        '',
+        html_writer::link(
+            new moodle_url('/local/appcrue/troubleshooting.php'),
+            get_string('troubleshooting:settingsbutton', 'local_appcrue'),
+            ['class' => 'btn btn-primary']
+        ) . html_writer::tag('p', get_string('troubleshooting:description', 'local_appcrue'))
     ));
     // Switch to activate autoconfiguration mode of the APIKey.
     // If activated  the next apikey request will set the api_key.
