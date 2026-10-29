@@ -518,6 +518,7 @@ function local_appcrue_troubleshooting_apply_action(string $action): void {
                 null,
                 \core\output\notification::NOTIFY_SUCCESS
             );
+            return;
         case 'refresh_plugin_versions':
             $checker = \core\update\checker::instance();
             if (!$checker->enabled()) {
@@ -544,6 +545,7 @@ function local_appcrue_troubleshooting_apply_action(string $action): void {
                     \core\output\notification::NOTIFY_ERROR
                 );
             }
+            return;
         default:
             throw new moodle_exception('invalidparameter');
     }
@@ -850,7 +852,7 @@ if ($logsummary === null) {
         $activity = $logsummary['activities'][$eventname];
         $reportlines[] = get_string($stringkey, 'local_appcrue') . ': ' . ($logsummary['counts'][$eventname] ?? 0);
         $usernames = array_map(
-            static function(int $userid) use ($users): string {
+            static function (int $userid) use ($users): string {
                 return isset($users[$userid]) ? fullname($users[$userid]) : '#' . $userid;
             },
             $activity['users']['values']
@@ -867,7 +869,7 @@ if ($logsummary === null) {
     $badkeycount = $logsummary['counts']['\\local_appcrue\\event\\bad_apikey_failed'] ?? 0;
     if ($badkeycount > 0) {
         $officialips = \local_appcrue\appcrue_service::APPCRUE_SERVERS;
-        $criticalips = array_map(static function($record): string {
+        $criticalips = array_map(static function ($record): string {
             return (string)$record->ip . ' (' . (int)$record->total . ')';
         }, $logsummary['badkeyofficialips']);
         $technicianips = [];

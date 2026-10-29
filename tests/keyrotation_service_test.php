@@ -57,6 +57,7 @@ final class keyrotation_service_test extends appcrue_test_base {
         $this->set_service_property($service, 'newapikey', 'newapikey');
 
         $response = $service->get_data_response();
+        $this->assertDebuggingCalled('API key updated successfully.', DEBUG_DEVELOPER);
 
         $this->assertSame([
             'success' => true,

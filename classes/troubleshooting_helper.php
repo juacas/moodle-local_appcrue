@@ -306,7 +306,7 @@ class troubleshooting_helper {
         );
 
         return [
-            'counts' => array_map(static function($record): int {
+            'counts' => array_map(static function ($record): int {
                 return (int)$record->total;
             }, $counts),
             'lastsuccessfulautologin' => $lastsuccessfulautologin,
@@ -361,7 +361,7 @@ class troubleshooting_helper {
     public static function get_local_test_ips(): array {
         $configured = (string)get_config('local_appcrue', 'api_authorized_local_test_ips');
         $entries = preg_split('/\\r\\n|\\r|\\n/', $configured, -1, PREG_SPLIT_NO_EMPTY);
-        return array_values(array_unique(array_filter(array_map('trim', $entries), static function(string $ip): bool {
+        return array_values(array_unique(array_filter(array_map('trim', $entries), static function (string $ip): bool {
             return (bool)filter_var($ip, FILTER_VALIDATE_IP);
         })));
     }
@@ -418,7 +418,7 @@ class troubleshooting_helper {
             return null;
         }
 
-        usort($updates, static function(\core\update\info $left, \core\update\info $right): int {
+        usort($updates, static function (\core\update\info $left, \core\update\info $right): int {
             return (int)$right->version <=> (int)$left->version;
         });
         return $updates[0];
@@ -606,7 +606,7 @@ class troubleshooting_helper {
                     } else {
                         // Preserve any unrelated network changes made during the HTTP request.
                         $entries = preg_split('/\r\n|\r|\n/', $networks, -1, PREG_SPLIT_NO_EMPTY);
-                        $entries = array_values(array_filter($entries, static function(string $entry): bool {
+                        $entries = array_values(array_filter($entries, static function (string $entry): bool {
                             return trim($entry) !== '127.0.0.1';
                         }));
                         set_config('api_authorized_networks', implode("\n", $entries), 'local_appcrue');
@@ -679,11 +679,13 @@ class troubleshooting_helper {
         }
 
         foreach ($node as $key => $value) {
-            if (is_array($value) && in_array(
-                $key,
-                ['events', 'announcements', 'files', 'assignments', 'grades', 'forums', 'data'],
-                true
-            )) {
+            if (
+                is_array($value) && in_array(
+                    $key,
+                    ['events', 'announcements', 'files', 'assignments', 'grades', 'forums', 'data'],
+                    true
+                )
+            ) {
                 $counts[$key][] = count($value);
             }
             self::collect_named_item_counts($value, $counts);
