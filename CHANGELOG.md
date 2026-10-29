@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.2.0 - 2026-10-29
+
+### Added
+
+- Add an administrator troubleshooting page linked from the plugin settings. It checks published plugin updates through Moodle's update checker, API key and rotation status, official and additional source IPs, proxy-related IP information, MFA exclusions, IdP connectivity, enabled endpoints, and user matching.
+- Add a configurable date filter and per-activity summaries of AppCRUE events in Moodle's standard log, including totals and limited lists of users and source IPs. Record successful API access as a new Moodle event without storing API credentials.
+- Add a browser-to-Moodle endpoint probe and real HTTP tests for enabled LMS endpoints. Show the HTTP status, response time, item count, date range, and expandable JSON for each response, including expected user-not-found errors.
+- Show `message_appcrue` configuration diagnostics when that plugin is installed. A real test push notification requires a separate administrator confirmation.
+- Offer targeted administrator actions to correct the API source-IP list, register or remove a local test IP, enable required services and endpoints, synchronize the Moodle MFA exclusion, and update the user-matching field.
+
+### Changed
+
+- Make the forums endpoint's top-level `count` equal the number of forum entries in `data.forums`.
+- Update the CI matrix and MariaDB health check, and add regression tests for diagnostic helpers and API access events.
+
+### Security
+
+- Remove old and new API key values from key-rotation debugging messages.
+- Recognize any valid IPv4 or IPv6 `/0` network as unrestricted when checking the API allowlist.
+- Escape the displayed endpoint URL and diagnostic response data. Configuration actions require site-administration permission and a valid Moodle session key.
+
 ## v2.1.0 - 2026-10-08
 
 ### Security
