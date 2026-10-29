@@ -18,7 +18,7 @@ define([], function() {
         const button = document.getElementById('local-appcrue-api-test-button');
         const result = document.getElementById('local-appcrue-api-test-result');
         if (!button || !result) {
-            return;
+            return Promise.resolve();
         }
 
         const showResult = (message, severity) => {
@@ -61,8 +61,102 @@ define([], function() {
         };
 
         button.addEventListener('click', runTest);
-        runTest();
+        return runTest();
     };
 
-    return {init};
+    const initPage = (strings) => {
+        const loading = document.getElementById('local-appcrue-loading');
+        const report = document.getElementById('local-appcrue-report');
+        if (!loading || !report) {
+            return;
+        }
+
+        const loadingMarkup = loading.innerHTML;
+        const showLoading = () => {
+            report.hidden = true;
+            loading.hidden = false;
+            loading.className = 'alert alert-info';
+            loading.innerHTML = loadingMarkup;
+        };
+        const showFailure = () => {
+            loading.className = 'alert alert-danger';
+            loading.textContent = strings.failed;
+            const retry = document.createElement('button');
+            retry.type = 'button';
+            retry.className = 'btn btn-secondary ms-2';
+            retry.textContent = strings.retry;
+            retry.addEventListener('click', () => loadReport(window.location.href));
+            loading.appendChild(retry);
+        };
+        const renderReport = async(response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const documentContent = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const fragment = documentContent.getElementById('local-appcrue-report-fragment');
+            if (!fragment) {
+                throw new Error('Missing diagnostic report');
+            }
+            report.innerHTML = fragment.innerHTML;
+            const config = report.querySelector('#local-appcrue-api-test-config');
+            if (config) {
+                await init(config.dataset.url, JSON.parse(config.dataset.strings));
+            }
+            report.hidden = false;
+            loading.hidden = true;
+        };
+        const loadReport = async(url) => {
+            showLoading();
+            try {
+                const requestUrl = new URL(url, window.location.href);
+                requestUrl.searchParams.set('fragment', '1');
+                const response = await fetch(requestUrl, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                });
+                await renderReport(response);
+            } catch (error) {
+                showFailure();
+            }
+        };
+
+        report.addEventListener('submit', async(event) => {
+            const form = event.target;
+            if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post') {
+                return;
+            }
+            event.preventDefault();
+            showLoading();
+            try {
+                const requestUrl = new URL(form.getAttribute('action'), window.location.href);
+                requestUrl.searchParams.set('fragment', '1');
+                const response = await fetch(requestUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    body: new FormData(form),
+                });
+                if (response.redirected) {
+                    const redirectUrl = new URL(response.url);
+                    const isFragment = redirectUrl.searchParams.get('fragment') === '1';
+                    redirectUrl.searchParams.delete('fragment');
+                    window.history.replaceState(null, '', redirectUrl);
+                    if (isFragment) {
+                        await renderReport(response);
+                    } else {
+                        await loadReport(redirectUrl);
+                    }
+                } else {
+                    await renderReport(response);
+                }
+            } catch (error) {
+                showFailure();
+            }
+        });
+
+        loadReport(window.location.href);
+    };
+
+    return {init, initPage};
 });

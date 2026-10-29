@@ -25,6 +25,67 @@ namespace local_appcrue;
  */
 class troubleshooting_helper {
     /**
+     * Parse a datetime-local value in the administrator's Moodle timezone.
+     *
+     * @param string $value HTML datetime-local value.
+     * @return int|null Unix timestamp, or null for an invalid value.
+     */
+    public static function parse_log_since(string $value): ?int {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $value)) {
+            return null;
+        }
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d\TH:i', $value, \core_date::get_user_timezone_object());
+        if ($date === false || $date->format('Y-m-d\TH:i') !== $value) {
+            return null;
+        }
+        return $date->getTimestamp();
+    }
+
+    /**
+     * Probe the configured Universia IdP using a random invalid user token.
+     * Only the HTTP and cURL status and elapsed time are returned; credentials and response bodies remain private.
+     *
+     * @return array HTTP status, cURL error number and elapsed seconds.
+     */
+    public static function probe_universia_idp(): array {
+        global $CFG;
+
+        require_once($CFG->libdir . '/filelib.php');
+        require_once($CFG->dirroot . '/local/appcrue/locallib.php');
+        $curl = new \curl();
+        $curl->setHeader(['Content-Type: application/json', 'Accept: application/json']);
+        $started = microtime(true);
+        try {
+            $curl->post(
+                local_appcrue_get_universia_idp_url(),
+                json_encode([
+                    'import_code' => get_config('local_appcrue', 'appcrue_appid'),
+                    'token' => get_config('local_appcrue', 'appcrue_apptoken'),
+                    'user_token' => 'appcrue-diagnostic-' . bin2hex(random_bytes(24)),
+                ]),
+                [
+                    'CURLOPT_RETURNTRANSFER' => true,
+                    'CURLOPT_CONNECTTIMEOUT' => 5,
+                    'CURLOPT_TIMEOUT' => 15,
+                    'CURLOPT_FOLLOWLOCATION' => false,
+                    'CURLOPT_HTTPAUTH' => CURLAUTH_ANY,
+                ]
+            );
+            return [
+                'httpcode' => (int)($curl->get_info()['http_code'] ?? 0),
+                'curlerror' => (int)$curl->get_errno(),
+                'duration' => max(0, microtime(true) - $started),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'httpcode' => 0,
+                'curlerror' => (int)$curl->get_errno(),
+                'duration' => max(0, microtime(true) - $started),
+            ];
+        }
+    }
+
+    /**
      * Moodle event names included in the administrator troubleshooting report.
      *
      * @return array
@@ -177,9 +238,14 @@ class troubleshooting_helper {
         $params['since'] = $since;
         $where = "component = :component AND eventname {$insql} AND timecreated >= :since";
         $counts = $DB->get_records_sql(
-            "SELECT eventname, COUNT(*) AS total FROM {logstore_standard_log} WHERE {$where} GROUP BY eventname",
+            "SELECT eventname, COUNT(*) AS total, MAX(timecreated) AS lasttimecreated " .
+                "FROM {logstore_standard_log} WHERE {$where} GROUP BY eventname",
             $params
         );
+        $autologinevent = '\\local_appcrue\\event\\autologin_login';
+        $lastsuccessfulautologin = isset($counts[$autologinevent])
+            ? (int)$counts[$autologinevent]->lasttimecreated
+            : null;
 
         $limit = min(max($listlimit, 1), 200);
         $activities = [];
@@ -243,6 +309,7 @@ class troubleshooting_helper {
             'counts' => array_map(static function($record): int {
                 return (int)$record->total;
             }, $counts),
+            'lastsuccessfulautologin' => $lastsuccessfulautologin,
             'activities' => $activities,
             'badkeyofficialtotal' => $badkeyofficialtotal,
             'badkeyofficialips' => array_values($badkeyofficialips),
@@ -394,7 +461,7 @@ class troubleshooting_helper {
                 continue;
             }
             $packed = @inet_pton(trim($parts[0]));
-            if ($packed !== false && trim($parts[1]) === '0' && strspn($packed, "\0") === strlen($packed)) {
+            if ($packed !== false) {
                 return true;
             }
         }

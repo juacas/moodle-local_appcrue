@@ -32,6 +32,97 @@ require_capability('moodle/site:config', $context);
 $PAGE->set_url(new moodle_url('/local/appcrue/troubleshooting.php'));
 $PAGE->set_title(get_string('troubleshooting:title', 'local_appcrue'));
 $PAGE->set_heading(get_string('troubleshooting:title', 'local_appcrue'));
+// Maximum distinct diagnostic result types: versions (3), logs (3), IdP (3),
+// configuration (9), user and endpoints (7), push test (1), MFA (1), and message_appcrue (7).
+$maxchecks = 34;
+
+$eastereggdata = json_encode([
+    'image' => (new moodle_url('/local/appcrue/pix/JP_AppCrue_problemas.jpg'))->out(false),
+    'alt' => get_string('troubleshooting:easteregg_alt', 'local_appcrue'),
+    'message' => get_string('troubleshooting:easteregg_message', 'local_appcrue'),
+    'close' => get_string('troubleshooting:easteregg_close', 'local_appcrue'),
+], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE);
+$PAGE->requires->js_init_code(<<<JS
+(function() {
+    const content = $eastereggdata;
+    const selector = '.local-appcrue-installed-version';
+    let clicks = 0;
+
+    const openDialog = () => {
+        const dialog = document.createElement('dialog');
+        dialog.className = 'p-4 rounded border-0 shadow';
+        dialog.style.maxWidth = 'min(90vw, 560px)';
+        const image = document.createElement('img');
+        image.src = content.image;
+        image.alt = content.alt;
+        image.className = 'img-fluid rounded mb-3 d-block mx-auto';
+        image.style.maxHeight = '60vh';
+        const message = document.createElement('p');
+        message.textContent = content.message;
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'btn btn-primary';
+        close.textContent = content.close;
+        close.addEventListener('click', () => dialog.close());
+        dialog.addEventListener('close', () => dialog.remove());
+        dialog.append(image, message, close);
+        document.body.appendChild(dialog);
+        dialog.showModal();
+    };
+
+    const countClick = (target) => {
+        if (!(target instanceof Element) || !target.closest(selector)) {
+            return;
+        }
+        clicks++;
+        if (clicks === 5) {
+            clicks = 0;
+            openDialog();
+        }
+    };
+
+    document.addEventListener('click', (event) => countClick(event.target));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            if (event.target instanceof Element && event.target.closest(selector)) {
+                event.preventDefault();
+                countClick(event.target);
+            }
+        }
+    });
+})()
+JS);
+
+/**
+ * Read and validate the optional log cutoff in the administrator's timezone.
+ *
+ * @return array Cutoff timestamp, HTML input value and validity flag.
+ */
+function local_appcrue_troubleshooting_log_filter(): array {
+    $value = optional_param('logsince', '', PARAM_RAW_TRIMMED);
+    if ($value === '') {
+        return ['since' => time() - (30 * DAYSECS), 'value' => '', 'valid' => true];
+    }
+    $since = \local_appcrue\troubleshooting_helper::parse_log_since($value);
+    if ($since === null) {
+        return ['since' => time() - (30 * DAYSECS), 'value' => '', 'valid' => false];
+    }
+    return ['since' => $since, 'value' => $value, 'valid' => true];
+}
+
+/**
+ * Keep the selected log cutoff when a troubleshooting action reloads the page.
+ *
+ * @return moodle_url Troubleshooting page URL.
+ */
+function local_appcrue_troubleshooting_page_url(): moodle_url {
+    $filter = local_appcrue_troubleshooting_log_filter();
+    $params = $filter['value'] === '' ? [] : ['logsince' => $filter['value']];
+    if (optional_param('fragment', 0, PARAM_BOOL)) {
+        $params['fragment'] = 1;
+    }
+    return new moodle_url('/local/appcrue/troubleshooting.php', $params);
+}
 
 /**
  * Build a small POST form for an explicit administrator action.
@@ -50,7 +141,7 @@ function local_appcrue_troubleshooting_post_button(
 ): string {
     $html = html_writer::start_tag('form', [
         'method' => 'post',
-        'action' => (new moodle_url('/local/appcrue/troubleshooting.php'))->out(false),
+        'action' => local_appcrue_troubleshooting_page_url()->out(false),
         'class' => 'local-appcrue-troubleshooting-action mb-2',
     ]);
     $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
@@ -68,14 +159,10 @@ function local_appcrue_troubleshooting_post_button(
 }
 
 /**
- * Render one diagnostic result.
+ * Explain the meaning of a diagnostic result.
  *
- * @param string $title Check name.
- * @param string $message Explanation.
- * @param string $severity Bootstrap alert severity.
- * @param string $action Optional action HTML.
- * @param string $titleprefix Optional unbolded title prefix.
- * @return string HTML result.
+ * @param string $title Diagnostic title.
+ * @return string Interpretation text.
  */
 function local_appcrue_troubleshooting_interpretation(string $title): string {
     global $messageplugininstalled, $messageplugincodeavailable;
@@ -83,6 +170,7 @@ function local_appcrue_troubleshooting_interpretation(string $title): string {
     $interpretations = [
         get_string('troubleshooting:versions', 'local_appcrue') => 'versions',
         get_string('troubleshooting:logs', 'local_appcrue') => 'logs',
+        get_string('troubleshooting:lastsuccessfulautologin', 'local_appcrue') => 'logs',
         get_string('troubleshooting:log_bad_apikey', 'local_appcrue') => 'badapikey',
         get_string('troubleshooting:key', 'local_appcrue') => 'apikey',
         get_string('troubleshooting:networks', 'local_appcrue') => 'networks',
@@ -93,6 +181,7 @@ function local_appcrue_troubleshooting_interpretation(string $title): string {
         get_string('troubleshooting:proxyheaders', 'local_appcrue') => 'ipdiagnostics',
         get_string('troubleshooting:autoconfig', 'local_appcrue') => 'autoconfig',
         get_string('troubleshooting:idpcredentials', 'local_appcrue') => 'idpdiagnostics',
+        get_string('troubleshooting:idp_environment', 'local_appcrue') => 'idpdiagnostics',
         get_string('troubleshooting:idpresponse', 'local_appcrue') => 'idpdiagnostics',
         get_string('troubleshooting:mfa', 'local_appcrue') => 'mfa',
         get_string('troubleshooting:apitest', 'local_appcrue') => 'apitest',
@@ -122,6 +211,7 @@ function local_appcrue_troubleshooting_interpretation(string $title): string {
     }
     foreach (['calendar', 'forums', 'grades', 'announcements', 'files', 'assignments'] as $endpoint) {
         $interpretations[get_string('troubleshooting:endpointtesttitle', 'local_appcrue', $endpoint)] = 'endpointtest';
+        $interpretations[get_string('troubleshooting:endpointtitle', 'local_appcrue', $endpoint)] = 'endpoint';
     }
     $key = $interpretations[$title] ?? 'general';
     return get_string('troubleshooting:interpretation_' . $key, 'local_appcrue');
@@ -145,21 +235,203 @@ function local_appcrue_troubleshooting_interpretation_panel(string $title): stri
     return html_writer::tag('details', $content, ['class' => 'local-appcrue-interpretation mt-2']);
 }
 
+/**
+ * Return the settings page and anchor that control a diagnostic.
+ *
+ * @param string $title Diagnostic title.
+ * @return moodle_url|null Direct link to the setting, when one exists.
+ */
+function local_appcrue_troubleshooting_setting_url(string $title): ?moodle_url {
+    global $messageplugininstalled, $messageplugincodeavailable;
+
+    $settings = [
+        get_string('troubleshooting:log_bad_apikey', 'local_appcrue') => 'api_key',
+        get_string('troubleshooting:key', 'local_appcrue') => 'api_key',
+        get_string('troubleshooting:networks', 'local_appcrue') => 'api_authorized_networks',
+        get_string('troubleshooting:extra_networks', 'local_appcrue') => 'api_authorized_networks',
+        get_string('troubleshooting:localtestips', 'local_appcrue') => 'api_authorized_networks',
+        get_string('troubleshooting:clientip', 'local_appcrue') => 'api_authorized_networks',
+        get_string('troubleshooting:keyrotation', 'local_appcrue') => 'lmsappcrue_enable_keyrotation',
+        get_string('troubleshooting:autoconfig', 'local_appcrue') => 'lmsappcrue_enable_autoconfig',
+        get_string('troubleshooting:idpcredentials', 'local_appcrue') =>
+            trim((string)get_config('local_appcrue', 'appcrue_appid')) === '' ? 'appcrue_appid' : 'appcrue_apptoken',
+        get_string('troubleshooting:idp_environment', 'local_appcrue') => 'use_pre_server',
+        get_string('troubleshooting:idpresponse', 'local_appcrue') => 'use_pre_server',
+        get_string('troubleshooting:testuser', 'local_appcrue') => 'lmsappcrue_match_user_by',
+        get_string('troubleshooting:mfa', 'local_appcrue') => 'enable_autologin',
+        get_string('troubleshooting:apitest', 'local_appcrue') => 'api_authorized_networks',
+    ];
+    foreach (['calendar', 'forums', 'grades', 'announcements', 'files', 'assignments'] as $endpoint) {
+        $setting = 'lmsappcrue_enable_' . $endpoint;
+        $settings[get_string('troubleshooting:endpointtitle', 'local_appcrue', $endpoint)] = $setting;
+        $settings[get_string('troubleshooting:endpointtesttitle', 'local_appcrue', $endpoint)] = $setting;
+    }
+    if (isset($settings[$title])) {
+        $url = new moodle_url('/admin/settings.php', ['section' => 'local_appcrue']);
+        $url->set_anchor('admin-' . $settings[$title]);
+        return $url;
+    }
+
+    if ($messageplugininstalled && $messageplugincodeavailable) {
+        $messagesettings = [
+            get_string('enable_push', 'message_appcrue') => 'enable_push',
+            get_string('api_key', 'message_appcrue') => 'apikey',
+            get_string('app_id', 'message_appcrue') => 'appid',
+            get_string('match_user_by', 'message_appcrue') => 'match_user_by',
+            get_string('bufferedmode', 'message_appcrue') => 'bufferedmode',
+            get_string('testconnection', 'message_appcrue') => 'testconnection',
+            get_string('troubleshooting:messagetest_title', 'local_appcrue') => 'testconnection',
+        ];
+        if (isset($messagesettings[$title])) {
+            $url = new moodle_url('/admin/settings.php', ['section' => 'messagesettingappcrue']);
+            $url->set_anchor('admin-' . $messagesettings[$title]);
+            return $url;
+        }
+    }
+    return null;
+}
+
+/**
+ * Render an icon link to the setting that controls a diagnostic.
+ *
+ * @param string $title Diagnostic title.
+ * @return string Icon link, or an empty string if there is no setting.
+ */
+function local_appcrue_troubleshooting_setting_link(string $title): string {
+    global $OUTPUT;
+
+    $url = local_appcrue_troubleshooting_setting_url($title);
+    if ($url === null) {
+        return '';
+    }
+    $label = get_string('troubleshooting:opensetting', 'local_appcrue', $title);
+    return html_writer::link($url, $OUTPUT->pix_icon('i/settings', '', 'moodle'), [
+        'class' => 'btn btn-sm btn-outline-secondary me-2',
+        'title' => $label,
+        'aria-label' => $label,
+    ]);
+}
+
+/**
+ * Render one diagnostic result.
+ *
+ * @param string $title Check name.
+ * @param string $message Explanation.
+ * @param string $severity Bootstrap alert severity.
+ * @param string $action Optional action HTML.
+ * @param string $titleprefix Optional unbolded title prefix.
+ * @param bool $trustedhtml Whether the message is already escaped HTML made by this page.
+ * @return string HTML result.
+ */
 function local_appcrue_troubleshooting_result(
     string $title,
     string $message,
     string $severity = 'info',
     string $action = '',
-    string $titleprefix = ''
+    string $titleprefix = '',
+    bool $trustedhtml = false
 ): string {
-    $html = $titleprefix !== '' ? html_writer::tag('span', s($titleprefix)) : '';
+    $html = local_appcrue_troubleshooting_setting_link($title);
+    $html .= $titleprefix !== '' ? html_writer::tag('span', s($titleprefix)) : '';
     $html .= html_writer::tag('strong', s($title) . ': ');
-    $html .= html_writer::tag('span', s($message));
+    $html .= ' ' . html_writer::tag('span', $trustedhtml ? $message : s($message));
     if ($action !== '') {
         $html .= html_writer::div($action, 'mt-2');
     }
     $html .= local_appcrue_troubleshooting_interpretation_panel($title);
     return html_writer::div($html, 'alert alert-' . $severity, ['role' => 'status']);
+}
+
+/**
+ * Run one enabled endpoint check and prepare its visible summary and JSON panel.
+ *
+ * @param string $endpoint Endpoint name.
+ * @param string $identifier User identifier submitted by the administrator.
+ * @param bool $usernotfound Whether the identifier did not match a Moodle user locally.
+ * @return array Status text, severity and report HTML.
+ */
+function local_appcrue_troubleshooting_endpoint_test(
+    string $endpoint,
+    string $identifier,
+    bool $usernotfound = false
+): array {
+    $endpointresult = \local_appcrue\troubleshooting_helper::run_endpoint_for_user($endpoint, $identifier);
+    $json = json_encode(
+        $endpointresult['response'],
+        JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+    );
+    if ($json === false) {
+        $endpointresult['success'] = false;
+        $json = json_encode([
+            'success' => false,
+            'error' => ['message' => json_last_error_msg()],
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    $summary = $endpointresult['success']
+        ? \local_appcrue\troubleshooting_helper::summarize_endpoint_response($endpointresult['response'])
+        : null;
+    $warning = $endpointresult['success'] && (
+        $summary === null || $summary['count'] === null || $summary['count'] === 0
+    );
+    $expectedmissinguser = $usernotfound && !$endpointresult['success']
+        && (int)$endpointresult['httpcode'] === 404
+        && is_array($endpointresult['response'])
+        && (int)($endpointresult['response']['error']['code'] ?? 0)
+            === \local_appcrue\appcrue_service::USER_NOT_ENROLLED;
+    $severity = $expectedmissinguser ? 'success'
+        : (!$endpointresult['success'] ? 'danger' : ($warning ? 'warning' : 'success'));
+    $statuskey = $expectedmissinguser ? 'troubleshooting:endpointtestmissinguser'
+        : (!$endpointresult['success'] ? 'troubleshooting:endpointtesterror'
+            : ($warning ? 'troubleshooting:endpointtestwarning' : 'troubleshooting:endpointtestsuccess'));
+    $status = get_string($statuskey, 'local_appcrue');
+    if (!empty($endpointresult['httpcode'])) {
+        $status .= ' (' . get_string(
+            'troubleshooting:endpointtesthttpstatus',
+            'local_appcrue',
+            (int)$endpointresult['httpcode']
+        ) . ')';
+    }
+
+    $details = [];
+    if ($expectedmissinguser) {
+        $details[] = get_string('troubleshooting:endpointtestmissinguserexplanation', 'local_appcrue');
+    }
+    if ($endpointresult['success'] && $summary !== null) {
+        $details[] = $summary['count'] === null
+            ? get_string('troubleshooting:endpointtestcountunknown', 'local_appcrue')
+            : get_string('troubleshooting:endpointtestcount', 'local_appcrue', $summary['count']);
+        if ($summary['from'] !== null && $summary['to'] !== null) {
+            $daterange = (object)[
+                'from' => userdate($summary['from']),
+                'to' => userdate($summary['to']),
+            ];
+            $details[] = get_string('troubleshooting:endpointtestdaterange', 'local_appcrue', $daterange);
+        }
+    } else if ($endpointresult['success']) {
+        $details[] = get_string('troubleshooting:endpointtestnoitems', 'local_appcrue');
+    } else if (
+        is_array($endpointresult['response'])
+        && isset($endpointresult['response']['error']['message'])
+        && is_string($endpointresult['response']['error']['message'])
+    ) {
+        $details[] = $endpointresult['response']['error']['message'];
+    }
+    $details[] = isset($endpointresult['responsetime'])
+        ? get_string(
+            'troubleshooting:endpointtestresponsetime',
+            'local_appcrue',
+            format_float($endpointresult['responsetime'], 3)
+        )
+        : get_string('troubleshooting:endpointtestresponsetime_unknown', 'local_appcrue');
+    $report = '';
+    foreach ($details as $detail) {
+        $report .= html_writer::tag('p', s($detail), ['class' => 'local-appcrue-endpoint-summary mb-1']);
+    }
+    $jsonpanel = html_writer::tag('summary', get_string('troubleshooting:endpointtestjson', 'local_appcrue'));
+    $jsonpanel .= html_writer::tag('pre', s($json), ['class' => 'local-appcrue-endpoint-json']);
+    $report .= html_writer::tag('details', $jsonpanel, ['class' => 'local-appcrue-endpoint-result mt-2']);
+    return ['status' => $status, 'severity' => $severity, 'report' => $report];
 }
 
 /**
@@ -241,7 +513,7 @@ function local_appcrue_troubleshooting_apply_action(string $action): void {
             }
             set_config('lmsappcrue_match_user_by', $field, 'local_appcrue');
             redirect(
-                new moodle_url('/local/appcrue/troubleshooting.php'),
+                local_appcrue_troubleshooting_page_url(),
                 get_string('troubleshooting:userfieldchanged', 'local_appcrue', $field),
                 null,
                 \core\output\notification::NOTIFY_SUCCESS
@@ -250,7 +522,7 @@ function local_appcrue_troubleshooting_apply_action(string $action): void {
             $checker = \core\update\checker::instance();
             if (!$checker->enabled()) {
                 redirect(
-                    new moodle_url('/local/appcrue/troubleshooting.php'),
+                    local_appcrue_troubleshooting_page_url(),
                     get_string('troubleshooting:versioncheckdisabled', 'local_appcrue'),
                     null,
                     \core\output\notification::NOTIFY_WARNING
@@ -259,14 +531,14 @@ function local_appcrue_troubleshooting_apply_action(string $action): void {
             try {
                 $checker->fetch();
                 redirect(
-                    new moodle_url('/local/appcrue/troubleshooting.php'),
+                    local_appcrue_troubleshooting_page_url(),
                     get_string('troubleshooting:versionfetchsuccess', 'local_appcrue'),
                     null,
                     \core\output\notification::NOTIFY_SUCCESS
                 );
             } catch (Throwable $e) {
                 redirect(
-                    new moodle_url('/local/appcrue/troubleshooting.php'),
+                    local_appcrue_troubleshooting_page_url(),
                     get_string('troubleshooting:versionfetchfailed', 'local_appcrue'),
                     null,
                     \core\output\notification::NOTIFY_ERROR
@@ -277,11 +549,31 @@ function local_appcrue_troubleshooting_apply_action(string $action): void {
     }
 
     redirect(
-        new moodle_url('/local/appcrue/troubleshooting.php'),
+        local_appcrue_troubleshooting_page_url(),
         get_string('troubleshooting:changesaved', 'local_appcrue'),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
+}
+
+$fragmentmode = optional_param('fragment', 0, PARAM_BOOL);
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && !$fragmentmode) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('troubleshooting:title', 'local_appcrue'));
+    echo html_writer::tag('p', get_string('troubleshooting:checkscount', 'local_appcrue', $maxchecks));
+    echo html_writer::div(
+        html_writer::span('', 'spinner-border spinner-border-sm me-2', ['aria-hidden' => 'true']) .
+            s(get_string('troubleshooting:runningtests', 'local_appcrue', $maxchecks)),
+        'alert alert-info',
+        ['id' => 'local-appcrue-loading', 'role' => 'status', 'aria-live' => 'polite']
+    );
+    echo html_writer::div('', '', ['id' => 'local-appcrue-report', 'hidden' => 'hidden']);
+    $PAGE->requires->js_call_amd('local_appcrue/troubleshooting', 'initPage', [[
+        'failed' => get_string('troubleshooting:loadfailed', 'local_appcrue'),
+        'retry' => get_string('troubleshooting:retry', 'local_appcrue'),
+    ]]);
+    echo $OUTPUT->footer();
+    exit;
 }
 
 $usertestaction = '';
@@ -302,9 +594,6 @@ $ipdiagnostics = \local_appcrue\troubleshooting_helper::get_request_ip_diagnosti
 $remoteip = $ipdiagnostics['effective'];
 $validremoteip = (bool) filter_var($remoteip, FILTER_VALIDATE_IP);
 $localtestips = \local_appcrue\troubleshooting_helper::get_local_test_ips();
-$cantracklocaltestip = $validremoteip
-    && !in_array($remoteip, \local_appcrue\appcrue_service::APPCRUE_SERVERS, true)
-    && !in_array($remoteip, $localtestips, true);
 $additionalnetworks = \local_appcrue\troubleshooting_helper::get_additional_networks(
     $networkconfig,
     \local_appcrue\appcrue_service::APPCRUE_SERVERS,
@@ -316,6 +605,11 @@ $missingofficialips = \local_appcrue\troubleshooting_helper::get_missing_address
     \local_appcrue\appcrue_service::APPCRUE_SERVERS
 );
 $currentipallowed = $validremoteip && (new \local_appcrue\network_security_helper())->is_request_in_list();
+$currentiptemporary = $currentipallowed && !in_array($remoteip, \local_appcrue\appcrue_service::APPCRUE_SERVERS, true);
+$cantracklocaltestip = $validremoteip
+    && !$currentipallowed
+    && !in_array($remoteip, \local_appcrue\appcrue_service::APPCRUE_SERVERS, true)
+    && !in_array($remoteip, $localtestips, true);
 $apikey = (string) get_config('local_appcrue', 'api_key');
 $apikeyvalid = $apikey !== '' && clean_param($apikey, PARAM_ALPHANUMEXT) === $apikey;
 $pluginmanager = core_plugin_manager::instance();
@@ -342,6 +636,7 @@ foreach ($endpointsettings as $endpoint => $stringkey) {
 $testurl = $enabledendpoint !== ''
     ? (new moodle_url('/local/appcrue/appcrue.php/' . $enabledendpoint))->out(false)
     : '';
+$autoconfigenabled = (bool) get_config('local_appcrue', 'lmsappcrue_enable_autoconfig');
 
 $useridentifier = '';
 $userresult = null;
@@ -374,8 +669,22 @@ if (in_array($usertestaction, ['check_user', 'send_message_push'], true)) {
     }
 }
 
-echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('troubleshooting:title', 'local_appcrue'));
+if (!$fragmentmode) {
+    echo $OUTPUT->header();
+}
+echo html_writer::start_tag('div', ['id' => 'local-appcrue-report-fragment']);
+if ($fragmentmode) {
+    foreach (\core\notification::fetch() as $notification) {
+        echo $OUTPUT->render_from_template(
+            $notification->get_template_name(),
+            $notification->export_for_template($OUTPUT)
+        );
+    }
+}
+if (!$fragmentmode) {
+    echo $OUTPUT->heading(get_string('troubleshooting:title', 'local_appcrue'));
+    echo html_writer::tag('p', get_string('troubleshooting:checkscount', 'local_appcrue', $maxchecks));
+}
 echo $OUTPUT->heading(get_string('troubleshooting:versions', 'local_appcrue'), 3);
 $updateschecker = \core\update\checker::instance();
 $lastupdatescheck = $updateschecker->get_last_timefetched();
@@ -401,8 +710,6 @@ foreach ($versionplugins as $component => $plugininfo) {
     $availableversion = $plugininfo->versiondisk ?? null;
     $release = $plugininfo->release ?? get_string('troubleshooting:version_norelease', 'local_appcrue');
     $versiondata = (object)[
-        'installed' => $installedversion === null
-            ? get_string('none') : (string)$installedversion,
         'available' => $availableversion === null
             ? get_string('none') : (string)$availableversion,
         'release' => $release,
@@ -423,7 +730,6 @@ foreach ($versionplugins as $component => $plugininfo) {
         $severity = 'warning';
         $versionmessage = get_string('troubleshooting:version_unavailable', 'local_appcrue');
     } else if ($latestupdate) {
-        $versiondata->db = $versiondata->installed;
         $severity = 'warning';
         $versionmessage = get_string('troubleshooting:version_update_found', 'local_appcrue', $versiondata);
     } else if (!$updateschecker->enabled()) {
@@ -437,13 +743,76 @@ foreach ($versionplugins as $component => $plugininfo) {
         $versiondata->checked = userdate($lastupdatescheck);
         $versionmessage = get_string('troubleshooting:version_no_update', 'local_appcrue', $versiondata);
     }
-    echo local_appcrue_troubleshooting_result($component, $versionmessage, $severity);
+    $installeddisplay = $installedversion === null
+        ? s(get_string('none'))
+        : html_writer::tag('span', s((string)$installedversion), [
+            'class' => 'local-appcrue-installed-version',
+            'role' => 'button',
+            'tabindex' => '0',
+            'style' => 'cursor: pointer',
+        ]);
+    $versionhtml = s(get_string('troubleshooting:version_installed', 'local_appcrue')) . ' ' .
+        $installeddisplay . '. ' . s($versionmessage);
+    echo local_appcrue_troubleshooting_result($component, $versionhtml, $severity, '', '', true);
 }
 echo $OUTPUT->notification(get_string('troubleshooting:intro', 'local_appcrue'), \core\output\notification::NOTIFY_INFO);
 
 echo $OUTPUT->heading(get_string('troubleshooting:logs', 'local_appcrue'), 3);
-echo html_writer::tag('p', get_string('troubleshooting:logsintro', 'local_appcrue'));
-$logsummary = \local_appcrue\troubleshooting_helper::get_recent_log_summary(time() - (30 * DAYSECS));
+$logfilter = local_appcrue_troubleshooting_log_filter();
+$logsince = $logfilter['since'];
+$logform = html_writer::start_tag('form', [
+    'method' => 'get',
+    'action' => (new moodle_url('/local/appcrue/troubleshooting.php'))->out(false),
+    'class' => 'mb-3',
+]);
+$logform .= html_writer::label(get_string('troubleshooting:logsince', 'local_appcrue'), 'local-appcrue-logsince');
+$logform .= html_writer::empty_tag('input', [
+    'type' => 'datetime-local',
+    'id' => 'local-appcrue-logsince',
+    'name' => 'logsince',
+    'value' => $logfilter['value'],
+    'class' => 'form-control mb-2',
+]);
+$logform .= html_writer::tag('p', get_string(
+    'troubleshooting:logsince_timezone',
+    'local_appcrue',
+    \core_date::get_user_timezone()
+), ['class' => 'form-text']);
+$logform .= html_writer::tag('button', get_string('troubleshooting:logsince_apply', 'local_appcrue'), [
+    'type' => 'submit',
+    'class' => 'btn btn-secondary me-2',
+]);
+if ($logfilter['value'] !== '') {
+    $logform .= html_writer::link(
+        new moodle_url('/local/appcrue/troubleshooting.php'),
+        get_string('troubleshooting:logsince_clear', 'local_appcrue'),
+        ['class' => 'btn btn-outline-secondary']
+    );
+}
+$logform .= html_writer::end_tag('form');
+echo $logform;
+if (!$logfilter['valid']) {
+    echo $OUTPUT->notification(
+        get_string('troubleshooting:logsince_invalid', 'local_appcrue'),
+        \core\output\notification::NOTIFY_WARNING
+    );
+}
+$logintro = $logfilter['value'] === ''
+    ? get_string('troubleshooting:logsintro', 'local_appcrue')
+    : get_string('troubleshooting:logsintro_custom', 'local_appcrue', userdate($logsince));
+echo html_writer::tag('p', $logintro);
+$logsummary = \local_appcrue\troubleshooting_helper::get_recent_log_summary($logsince);
+if ($logsummary !== null && $logsummary['lastsuccessfulautologin'] !== null) {
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:lastsuccessfulautologin', 'local_appcrue'),
+        get_string(
+            'troubleshooting:lastsuccessfulautologin_found',
+            'local_appcrue',
+            userdate($logsummary['lastsuccessfulautologin'])
+        ),
+        'success'
+    );
+}
 if ($logsummary === null) {
     echo local_appcrue_troubleshooting_result(
         get_string('troubleshooting:logs', 'local_appcrue'),
@@ -555,36 +924,50 @@ if (!get_config('local_appcrue', 'use_custom_idp')) {
             'danger'
         );
     } else {
+        $probe = \local_appcrue\troubleshooting_helper::probe_universia_idp();
+        $probedata = (object)[
+            'code' => $probe['httpcode'],
+            'seconds' => format_float($probe['duration'], 3),
+            'curlerror' => $probe['curlerror'],
+        ];
+        if ($probe['httpcode'] === 406 && $probe['curlerror'] === 0) {
+            $probemessage = get_string('troubleshooting:idp_probe_expected', 'local_appcrue', $probedata);
+            $probeseverity = 'success';
+        } else if ($probe['httpcode'] === 0 || $probe['curlerror'] !== 0) {
+            $probemessage = get_string('troubleshooting:idp_probe_unreachable', 'local_appcrue', $probedata);
+            $probeseverity = 'danger';
+        } else {
+            $probemessage = get_string('troubleshooting:idp_probe_unexpected', 'local_appcrue', $probedata);
+            $probeseverity = $probe['httpcode'] >= 500 || $probe['httpcode'] === 200 ? 'danger' : 'warning';
+        }
         echo local_appcrue_troubleshooting_result(
             get_string('troubleshooting:idpcredentials', 'local_appcrue'),
-            get_string('troubleshooting:idpcredentials_present', 'local_appcrue'),
-            'success'
+            get_string('troubleshooting:idpcredentials_present', 'local_appcrue') . ' ' . $probemessage,
+            $probeseverity
         );
     }
 
-    $idp406time = \local_appcrue\troubleshooting_helper::get_recent_idp_status(406, time() - (30 * DAYSECS));
+    if (!get_config('local_appcrue', 'use_pre_server') && stripos($appid, 'pre') !== false) {
+        echo local_appcrue_troubleshooting_result(
+            get_string('troubleshooting:idp_environment', 'local_appcrue'),
+            get_string('troubleshooting:idp_pre_hint', 'local_appcrue'),
+            'warning'
+        );
+    }
+
+    $idp406time = \local_appcrue\troubleshooting_helper::get_recent_idp_status(406, $logsince);
     if ($idp406time === null) {
         $idpmessage = get_string('troubleshooting:idp_log_unavailable', 'local_appcrue');
         $idpseverity = 'warning';
     } else if ($idp406time !== false) {
-        // Keep the app ID and API token private; use the app ID only to detect an environment hint.
-        if (!get_config('local_appcrue', 'use_pre_server') && stripos($appid, 'pre') !== false) {
-            $idpmessage = get_string(
-                'troubleshooting:idp406_pre_mismatch',
-                'local_appcrue',
-                userdate($idp406time)
-            );
-            $idpseverity = 'danger';
-        } else {
-            $idpmessage = get_string(
-                'troubleshooting:idp406',
-                'local_appcrue',
-                userdate($idp406time)
-            );
-            $idpseverity = 'warning';
-        }
+        $idpmessage = get_string(
+            'troubleshooting:idp406',
+            'local_appcrue',
+            userdate($idp406time)
+        );
+        $idpseverity = 'warning';
     } else {
-        $idpmessage = get_string('troubleshooting:idp406_not_found', 'local_appcrue');
+        $idpmessage = get_string('troubleshooting:idp406_not_found', 'local_appcrue', userdate($logsince));
         $idpseverity = 'info';
     }
     echo local_appcrue_troubleshooting_result(
@@ -613,6 +996,35 @@ if (!$apikey) {
         'success'
     );
 }
+
+$rotationtime = (int)get_config('local_appcrue', 'api_key_last_rotation');
+$rotationendpointenabled = (bool)get_config('local_appcrue', 'lmsappcrue_enable_keyrotation');
+$rotationserviceenabled = (bool)get_config('local_appcrue', 'enable_api_rotation');
+$rotationdata = (object)[
+    'date' => $rotationtime ? userdate($rotationtime) : get_string('none'),
+    'endpoint' => get_string(
+        $rotationendpointenabled ? 'troubleshooting:rotation_enabled' : 'troubleshooting:rotation_disabled',
+        'local_appcrue'
+    ),
+    'service' => get_string(
+        $rotationserviceenabled ? 'troubleshooting:rotation_enabled' : 'troubleshooting:rotation_disabled',
+        'local_appcrue'
+    ),
+];
+$rotationok = $rotationendpointenabled && $rotationserviceenabled;
+echo local_appcrue_troubleshooting_result(
+    get_string('troubleshooting:keyrotation', 'local_appcrue'),
+    get_string(
+        $rotationtime ? 'troubleshooting:rotation_seen' : 'troubleshooting:rotation_not_seen',
+        'local_appcrue',
+        $rotationdata
+    ),
+    $rotationok ? ($rotationtime ? 'success' : 'info') : 'warning',
+    $rotationok ? '' : local_appcrue_troubleshooting_post_button(
+        'enable_keyrotation',
+        get_string('troubleshooting:rotation_enable_button', 'local_appcrue')
+    )
+);
 
 if (!$networkentries) {
     echo local_appcrue_troubleshooting_result(
@@ -649,9 +1061,17 @@ if (!$networkentries) {
 }
 
 if ($additionalnetworks) {
+    $additionalmessage = get_string(
+        'troubleshooting:extra_networks_critical',
+        'local_appcrue',
+        implode(', ', $additionalnetworks)
+    );
+    if (in_array($remoteip, $additionalnetworks, true)) {
+        $additionalmessage .= ' ' . get_string('troubleshooting:extra_networks_browser', 'local_appcrue', $remoteip);
+    }
     echo local_appcrue_troubleshooting_result(
         get_string('troubleshooting:extra_networks', 'local_appcrue'),
-        get_string('troubleshooting:extra_networks_critical', 'local_appcrue', implode(', ', $additionalnetworks)),
+        $additionalmessage,
         'danger',
         local_appcrue_troubleshooting_post_button(
             'remove_additional_networks',
@@ -667,50 +1087,107 @@ if ($additionalnetworks) {
         'success'
     );
 }
+echo html_writer::start_tag('section');
+echo $OUTPUT->heading(get_string('troubleshooting:apitest', 'local_appcrue'), 4);
+if ($autoconfigenabled) {
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:apitest', 'local_appcrue'),
+        get_string('troubleshooting:apitestautoconfig', 'local_appcrue'),
+        'warning'
+    );
+} else if ($testurl === '') {
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:apitest', 'local_appcrue'),
+        get_string('troubleshooting:noendpoint', 'local_appcrue'),
+        'warning'
+    );
+} else {
+    echo html_writer::tag('p', s($testurl));
+    echo html_writer::tag('button', get_string('troubleshooting:apitestbutton', 'local_appcrue'), [
+        'id' => 'local-appcrue-api-test-button',
+        'type' => 'button',
+        'class' => 'btn btn-secondary mb-2',
+    ]);
+    echo html_writer::div(get_string('troubleshooting:statusinfo', 'local_appcrue'), '', [
+        'id' => 'local-appcrue-api-test-result',
+        'role' => 'status',
+        'aria-live' => 'polite',
+    ]);
+    $teststrings = [
+        'passed' => get_string('troubleshooting:apitestpassed', 'local_appcrue'),
+        'denied' => get_string('troubleshooting:apitestdenied', 'local_appcrue'),
+        'notfound' => get_string('troubleshooting:apitestnotfound', 'local_appcrue'),
+        'unexpected' => get_string('troubleshooting:apitestunexpected', 'local_appcrue'),
+        'networkerror' => get_string('troubleshooting:apitestnetworkerror', 'local_appcrue'),
+    ];
+    if ($fragmentmode) {
+        echo html_writer::div('', '', [
+            'id' => 'local-appcrue-api-test-config',
+            'data-url' => $testurl,
+            'data-strings' => json_encode($teststrings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+        ]);
+    } else {
+        $PAGE->requires->js_call_amd('local_appcrue/troubleshooting', 'init', [$testurl, $teststrings]);
+    }
+}
+
+echo html_writer::tag('p', get_string('troubleshooting:apitestintro', 'local_appcrue'));
+echo html_writer::end_tag('section');
+if ($validremoteip) {
+    $clientmessage = get_string(
+        $currentiptemporary
+            ? 'troubleshooting:clientallowed_temporary'
+            : ($currentipallowed ? 'troubleshooting:clientallowed' : 'troubleshooting:clientdenied'),
+        'local_appcrue',
+        $remoteip
+    );
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:clientip', 'local_appcrue'),
+        $clientmessage,
+        $currentiptemporary ? 'danger' : ($currentipallowed ? 'success' : 'warning'),
+        !$cantracklocaltestip ? '' : local_appcrue_troubleshooting_post_button(
+            'allow_browser_ip',
+            get_string('troubleshooting:allow_browser_ip', 'local_appcrue')
+        )
+    );
+} else {
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:clientip', 'local_appcrue'),
+        get_string('troubleshooting:clientunknown', 'local_appcrue'),
+        'warning'
+    );
+}
+$iplines = [
+    get_string('troubleshooting:ip_effective', 'local_appcrue') . ': ' . ($ipdiagnostics['effective'] ?: get_string('none')),
+    'REMOTE_ADDR: ' . ($ipdiagnostics['remoteaddr'] ?: get_string('none')),
+    'HTTP_CLIENT_IP: ' . ($ipdiagnostics['clientip'] ?: get_string('none')),
+    'HTTP_X_FORWARDED_FOR: ' . ($ipdiagnostics['forwardedfor'] ?: get_string('none')),
+    get_string('troubleshooting:ip_header_order', 'local_appcrue') . ': ' . $ipdiagnostics['selection'],
+    'reverseproxyignore: ' . ($ipdiagnostics['reverseproxyignore'] ?: get_string('none')),
+];
+echo html_writer::tag('pre', s(implode("\n", $iplines)), ['class' => 'local-appcrue-ip-diagnostics']);
+if ($ipdiagnostics['selection'] !== 'REMOTE_ADDR only') {
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:proxyheaders', 'local_appcrue'),
+        get_string('troubleshooting:proxyheaders_review', 'local_appcrue'),
+        'warning'
+    );
+}
+
 foreach ($localtestips as $localtestip) {
     echo local_appcrue_troubleshooting_result(
         get_string('troubleshooting:localtestips', 'local_appcrue'),
         get_string('troubleshooting:localtestip_value', 'local_appcrue', $localtestip),
-        'warning',
+        'danger',
         local_appcrue_troubleshooting_post_button(
             'remove_local_test_ip',
             get_string('troubleshooting:remove_local_test_ip', 'local_appcrue'),
             ['address' => $localtestip],
-            'btn btn-secondary'
+            'btn btn-danger'
         )
     );
 }
 
-$rotationtime = (int)get_config('local_appcrue', 'api_key_last_rotation');
-$rotationendpointenabled = (bool)get_config('local_appcrue', 'lmsappcrue_enable_keyrotation');
-$rotationserviceenabled = (bool)get_config('local_appcrue', 'enable_api_rotation');
-$rotationdata = (object)[
-    'date' => $rotationtime ? userdate($rotationtime) : get_string('none'),
-    'endpoint' => get_string(
-        $rotationendpointenabled ? 'troubleshooting:rotation_enabled' : 'troubleshooting:rotation_disabled',
-        'local_appcrue'
-    ),
-    'service' => get_string(
-        $rotationserviceenabled ? 'troubleshooting:rotation_enabled' : 'troubleshooting:rotation_disabled',
-        'local_appcrue'
-    ),
-];
-$rotationok = $rotationendpointenabled && $rotationserviceenabled;
-echo local_appcrue_troubleshooting_result(
-    get_string('troubleshooting:keyrotation', 'local_appcrue'),
-    get_string(
-        $rotationtime ? 'troubleshooting:rotation_seen' : 'troubleshooting:rotation_not_seen',
-        'local_appcrue',
-        $rotationdata
-    ),
-    $rotationok ? ($rotationtime ? 'success' : 'info') : 'warning',
-    $rotationok ? '' : local_appcrue_troubleshooting_post_button(
-        'enable_keyrotation',
-        get_string('troubleshooting:rotation_enable_button', 'local_appcrue')
-    )
-);
-
-$autoconfigenabled = (bool) get_config('local_appcrue', 'lmsappcrue_enable_autoconfig');
 if ($autoconfigenabled) {
     echo local_appcrue_troubleshooting_result(
         get_string('troubleshooting:autoconfig', 'local_appcrue'),
@@ -762,7 +1239,7 @@ echo html_writer::tag(
 echo html_writer::tag('p', get_string('troubleshooting:identifierhelp', 'local_appcrue'));
 $userform = html_writer::start_tag('form', [
     'method' => 'post',
-    'action' => (new moodle_url('/local/appcrue/troubleshooting.php'))->out(false),
+    'action' => local_appcrue_troubleshooting_page_url()->out(false),
     'class' => 'mb-3',
 ]);
 $userform .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
@@ -803,6 +1280,70 @@ if ($userresult) {
             )
         );
     }
+} else if ($useridentifier !== '') {
+    if ($usercandidate !== null) {
+        echo local_appcrue_troubleshooting_result(
+            get_string('troubleshooting:testuser', 'local_appcrue'),
+            get_string('troubleshooting:usercandidate', 'local_appcrue', $usercandidate),
+            'warning',
+            html_writer::tag('p', get_string('troubleshooting:applyuserfield', 'local_appcrue', $usercandidate)) .
+                local_appcrue_troubleshooting_post_button(
+                    'apply_user_field',
+                    get_string('troubleshooting:applyuserfield', 'local_appcrue', $usercandidate),
+                    ['identifier' => $useridentifier, 'field' => $usercandidate]
+                )
+        );
+    } else {
+        echo local_appcrue_troubleshooting_result(
+            get_string('troubleshooting:testuser', 'local_appcrue'),
+            get_string('troubleshooting:usernotfound', 'local_appcrue'),
+            'danger'
+        );
+    }
+}
+
+// Always call enabled endpoints for a submitted identifier, including one that does not match a Moodle user.
+$canrunendpointtests = $usertestaction === 'check_user' && $useridentifier !== ''
+    && (!$userresult || (empty($userresult->deleted) && empty($userresult->suspended)));
+if ($canrunendpointtests) {
+    echo html_writer::tag('p', get_string('troubleshooting:endpointtestintro', 'local_appcrue'));
+}
+foreach (array_keys($endpointsettings) as $endpoint) {
+    $enabled = (string) get_config('local_appcrue', "lmsappcrue_enable_{$endpoint}") === '1';
+    if (!$enabled) {
+        echo local_appcrue_troubleshooting_result(
+            get_string('troubleshooting:endpointtitle', 'local_appcrue', $endpoint),
+            get_string('troubleshooting:endpointdisabled', 'local_appcrue', $endpoint),
+            'warning',
+            local_appcrue_troubleshooting_post_button(
+                'enable_endpoint',
+                get_string('troubleshooting:enableendpoint', 'local_appcrue', $endpoint),
+                ['endpoint' => $endpoint]
+            )
+        );
+        continue;
+    }
+
+    $enabledmessage = get_string('troubleshooting:endpointenabled', 'local_appcrue', $endpoint);
+    if (!$canrunendpointtests) {
+        echo local_appcrue_troubleshooting_result(
+            get_string('troubleshooting:endpointtitle', 'local_appcrue', $endpoint),
+            $enabledmessage,
+            'success'
+        );
+        continue;
+    }
+
+    $test = local_appcrue_troubleshooting_endpoint_test($endpoint, $useridentifier, !$userresult);
+    echo local_appcrue_troubleshooting_result(
+        get_string('troubleshooting:endpointtesttitle', 'local_appcrue', $endpoint),
+        $enabledmessage . ' ' . $test['status'],
+        $test['severity'],
+        $test['report']
+    );
+}
+
+if ($userresult) {
     if (empty($userresult->deleted) && empty($userresult->suspended)) {
         if ($messageplugininstalled) {
             $messagetesttitle = get_string('troubleshooting:messagetest_title', 'local_appcrue');
@@ -870,47 +1411,6 @@ if ($userresult) {
             }
         }
     }
-} else if ($useridentifier !== '') {
-    if ($usercandidate !== null) {
-        echo local_appcrue_troubleshooting_result(
-            get_string('troubleshooting:testuser', 'local_appcrue'),
-            get_string('troubleshooting:usercandidate', 'local_appcrue', $usercandidate),
-            'warning',
-            html_writer::tag('p', get_string('troubleshooting:applyuserfield', 'local_appcrue', $usercandidate)) .
-                local_appcrue_troubleshooting_post_button(
-                    'apply_user_field',
-                    get_string('troubleshooting:applyuserfield', 'local_appcrue', $usercandidate),
-                    ['identifier' => $useridentifier, 'field' => $usercandidate]
-                )
-        );
-    } else {
-        echo local_appcrue_troubleshooting_result(
-            get_string('troubleshooting:testuser', 'local_appcrue'),
-            get_string('troubleshooting:usernotfound', 'local_appcrue'),
-            'danger'
-        );
-    }
-}
-
-foreach ($endpointsettings as $endpoint => $stringkey) {
-    $label = get_string($stringkey, 'local_appcrue');
-    $enabled = (string) get_config('local_appcrue', "lmsappcrue_enable_{$endpoint}") === '1';
-    $message = get_string(
-        $enabled ? 'troubleshooting:endpointenabled' : 'troubleshooting:endpointdisabled',
-        'local_appcrue',
-        $label
-    );
-    $action = $enabled ? '' : local_appcrue_troubleshooting_post_button(
-        'enable_endpoint',
-        get_string('troubleshooting:enableendpoint', 'local_appcrue', $label),
-        ['endpoint' => $endpoint]
-    );
-    echo local_appcrue_troubleshooting_result(
-        $label,
-        $message,
-        $enabled ? 'success' : 'warning',
-        $action
-    );
 }
 
 echo $OUTPUT->heading(get_string('troubleshooting:mfa', 'local_appcrue'), 3);
@@ -934,82 +1434,6 @@ if (!(bool) get_config('tool_mfa', 'enabled')) {
             get_string('troubleshooting:syncmfa', 'local_appcrue')
         )
     );
-}
-
-echo $OUTPUT->heading(get_string('troubleshooting:apitest', 'local_appcrue'), 3);
-echo html_writer::tag('p', get_string('troubleshooting:apitestintro', 'local_appcrue'));
-if ($validremoteip) {
-    $clientmessage = get_string(
-        $currentipallowed ? 'troubleshooting:clientallowed' : 'troubleshooting:clientdenied',
-        'local_appcrue',
-        $remoteip
-    );
-    echo local_appcrue_troubleshooting_result(
-        get_string('troubleshooting:clientip', 'local_appcrue'),
-        $clientmessage,
-        $currentipallowed ? 'success' : 'warning',
-        !$cantracklocaltestip ? '' : local_appcrue_troubleshooting_post_button(
-            'allow_browser_ip',
-            get_string('troubleshooting:allow_browser_ip', 'local_appcrue')
-        )
-    );
-} else {
-    echo local_appcrue_troubleshooting_result(
-        get_string('troubleshooting:clientip', 'local_appcrue'),
-        get_string('troubleshooting:clientunknown', 'local_appcrue'),
-        'warning'
-    );
-}
-$iplines = [
-    get_string('troubleshooting:ip_effective', 'local_appcrue') . ': ' . ($ipdiagnostics['effective'] ?: get_string('none')),
-    'REMOTE_ADDR: ' . ($ipdiagnostics['remoteaddr'] ?: get_string('none')),
-    'HTTP_CLIENT_IP: ' . ($ipdiagnostics['clientip'] ?: get_string('none')),
-    'HTTP_X_FORWARDED_FOR: ' . ($ipdiagnostics['forwardedfor'] ?: get_string('none')),
-    get_string('troubleshooting:ip_header_order', 'local_appcrue') . ': ' . $ipdiagnostics['selection'],
-    'reverseproxyignore: ' . ($ipdiagnostics['reverseproxyignore'] ?: get_string('none')),
-];
-echo html_writer::tag('pre', s(implode("\n", $iplines)), ['class' => 'local-appcrue-ip-diagnostics']);
-if ($ipdiagnostics['selection'] !== 'REMOTE_ADDR only') {
-    echo local_appcrue_troubleshooting_result(
-        get_string('troubleshooting:proxyheaders', 'local_appcrue'),
-        get_string('troubleshooting:proxyheaders_review', 'local_appcrue'),
-        'warning'
-    );
-}
-if ($autoconfigenabled) {
-    echo local_appcrue_troubleshooting_result(
-        get_string('troubleshooting:apitest', 'local_appcrue'),
-        get_string('troubleshooting:apitestautoconfig', 'local_appcrue'),
-        'warning'
-    );
-} else if ($testurl === '') {
-    echo local_appcrue_troubleshooting_result(
-        get_string('troubleshooting:apitest', 'local_appcrue'),
-        get_string('troubleshooting:noendpoint', 'local_appcrue'),
-        'warning'
-    );
-} else {
-    echo html_writer::tag('p', $testurl);
-    echo html_writer::tag('button', get_string('troubleshooting:apitestbutton', 'local_appcrue'), [
-        'id' => 'local-appcrue-api-test-button',
-        'type' => 'button',
-        'class' => 'btn btn-secondary mb-2',
-    ]);
-    echo html_writer::div(get_string('troubleshooting:statusinfo', 'local_appcrue'), '', [
-        'id' => 'local-appcrue-api-test-result',
-        'role' => 'status',
-        'aria-live' => 'polite',
-    ]);
-    $PAGE->requires->js_call_amd('local_appcrue/troubleshooting', 'init', [
-        $testurl,
-        [
-            'passed' => get_string('troubleshooting:apitestpassed', 'local_appcrue'),
-            'denied' => get_string('troubleshooting:apitestdenied', 'local_appcrue'),
-            'notfound' => get_string('troubleshooting:apitestnotfound', 'local_appcrue'),
-            'unexpected' => get_string('troubleshooting:apitestunexpected', 'local_appcrue'),
-            'networkerror' => get_string('troubleshooting:apitestnetworkerror', 'local_appcrue'),
-        ],
-    ]);
 }
 
 if ($messageplugininstalled && $messageplugincodeavailable) {
@@ -1106,4 +1530,7 @@ if ($messageplugininstalled && $messageplugincodeavailable) {
 }
 
 
-echo $OUTPUT->footer();
+echo html_writer::end_tag('div');
+if (!$fragmentmode) {
+    echo $OUTPUT->footer();
+}

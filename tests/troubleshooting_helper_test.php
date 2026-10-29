@@ -27,6 +27,71 @@ namespace local_appcrue;
 #[\PHPUnit\Framework\Attributes\CoversClass(troubleshooting_helper::class)]
 final class troubleshooting_helper_test extends \advanced_testcase {
     /**
+     * Finds the latest completed autologin within the selected log period.
+     */
+    public function test_recent_log_summary_reports_latest_successful_autologin(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        if (!$DB->get_manager()->table_exists(new \xmldb_table('logstore_standard_log'))) {
+            $this->markTestSkipped('The standard Moodle log table is unavailable.');
+        }
+
+        $user = $this->getDataGenerator()->create_user();
+        $context = \context_system::instance();
+        $now = time();
+        $record = (object)[
+            'eventname' => '\\local_appcrue\\event\\autologin_login',
+            'component' => 'local_appcrue',
+            'action' => 'loggedin',
+            'target' => 'user',
+            'objecttable' => null,
+            'objectid' => null,
+            'crud' => 'r',
+            'edulevel' => \core\event\base::LEVEL_OTHER,
+            'contextid' => $context->id,
+            'contextlevel' => CONTEXT_SYSTEM,
+            'contextinstanceid' => $context->instanceid,
+            'userid' => $user->id,
+            'courseid' => SITEID,
+            'relateduserid' => null,
+            'anonymous' => 0,
+            'other' => null,
+            'timecreated' => $now - 120,
+            'origin' => 'web',
+            'ip' => '192.0.2.1',
+            'realuserid' => null,
+        ];
+        $DB->insert_record('logstore_standard_log', clone $record);
+        $record->timecreated = $now - 30;
+        $DB->insert_record('logstore_standard_log', clone $record);
+        $record->eventname = '\\local_appcrue\\event\\autologin_failed';
+        $record->timecreated = $now - 10;
+        $DB->insert_record('logstore_standard_log', clone $record);
+
+        $summary = troubleshooting_helper::get_recent_log_summary($now - 180);
+        $this->assertSame($now - 30, $summary['lastsuccessfulautologin']);
+
+        $recent = troubleshooting_helper::get_recent_log_summary($now - 20);
+        $this->assertNull($recent['lastsuccessfulautologin']);
+    }
+
+    /**
+     * Interprets the optional log cutoff in the administrator's Moodle timezone.
+     */
+    public function test_parse_log_since_uses_user_timezone_and_rejects_invalid_dates(): void {
+        $this->resetAfterTest(true);
+        $this->setUser($this->getDataGenerator()->create_user(['timezone' => 'Europe/Madrid']));
+
+        $this->assertSame(
+            strtotime('2026-10-29 09:30:00 UTC'),
+            troubleshooting_helper::parse_log_since('2026-10-29T10:30')
+        );
+        $this->assertNull(troubleshooting_helper::parse_log_since('2026-02-30T10:30'));
+        $this->assertNull(troubleshooting_helper::parse_log_since('2026-10-29T10:30Z'));
+    }
+
+    /**
      * Reports the effective request IP through Moodle's global IP helper.
      */
     public function test_get_request_ip_diagnostics_uses_moodle_ip_helper(): void {
@@ -82,6 +147,8 @@ final class troubleshooting_helper_test extends \advanced_testcase {
         $this->assertFalse(troubleshooting_helper::has_unrestricted_network("192.0.2.10\n198.51.100.0/24"));
         $this->assertTrue(troubleshooting_helper::has_unrestricted_network("192.0.2.10\n0.0.0.0/0"));
         $this->assertTrue(troubleshooting_helper::has_unrestricted_network('::/0'));
+        $this->assertTrue(troubleshooting_helper::has_unrestricted_network('192.0.2.10/0'));
+        $this->assertTrue(troubleshooting_helper::has_unrestricted_network('2001:db8::1/0'));
     }
 
     /**
