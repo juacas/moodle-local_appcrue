@@ -63,6 +63,15 @@ try {
         die();
     }
     $response = $endpoint->get_response_json();
+    $endpointname = strtolower(str_replace(
+        ['local_appcrue\\', '_service'],
+        '',
+        get_class($endpoint)
+    ));
+    \local_appcrue\event\api_accessed::create([
+        'userid' => $endpoint->user->id ?? 0,
+        'other' => ['endpoint' => $endpointname],
+    ])->trigger();
     // Send the response as JSON.
     echo json_encode($response, JSON_HEX_QUOT | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {

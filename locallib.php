@@ -228,11 +228,21 @@ function local_appcrue_get_request_headers(): array {
 }
 
 /**
+ * Return the Universia token validation endpoint for the configured environment.
+ *
+ * @return string Endpoint URL.
+ */
+function local_appcrue_get_universia_idp_url(): string {
+    return get_config('local_appcrue', 'use_pre_server')
+        ? 'https://pre.appuniversitaria.idsant.com/api/external/v3/users/info'
+        : 'https://appuniversitaria.universia.net/api/external/v3/users/info';
+}
+
+/**
  * Validate token and return the matchvalue.
- * If the token resolutionservice is appcrue endpoint: https://appuniversitaria.universia.net/api/external/v3/users/info
- * With POST body:
+ * If the token resolution service is the configured UNIVERSIA endpoint, send a POST body:
  *  {
- *           "import_token" : "university_id_code",
+ *           "import_code" : "university_id_code",
  *           "token" : "university_api_token",
  *           "user_token" : "appcrue_user_token"
  *       }
@@ -263,9 +273,7 @@ function local_appcrue_validate_token($token, $debug = false): array {
     // Check if custom or default idp server.
     if (get_config('local_appcrue', 'use_custom_idp') == false) {
         // Select the AppCRUE userdata endpoint for the configured environment.
-        $idpurl = get_config('local_appcrue', 'use_pre_server')
-            ? 'https://pre.appuniversitaria.idsant.com/api/external/v3/users/info'
-            : 'https://appuniversitaria.universia.net/api/external/v3/users/info';
+        $idpurl = local_appcrue_get_universia_idp_url();
         // Prepare curl POST request.
         $curl = new \curl();
         $options = [
