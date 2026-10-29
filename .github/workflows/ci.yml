@@ -17,7 +17,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
 
       mariadb:
-        image: mariadb:latest
+        image: mariadb:11.4
         env:
           MYSQL_USER: 'root'
           MYSQL_ALLOW_EMPTY_PASSWORD: "true"
@@ -30,20 +30,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.3', '8.4']
         moodle-branch: ['MOODLE_405_STABLE', 'MOODLE_500_STABLE', 'MOODLE_501_STABLE', 'MOODLE_502_STABLE', 'MOODLE_503_STABLE']
         database: [pgsql, mariadb]
         exclude:
           - moodle-branch: MOODLE_405_STABLE
             php: '8.4'
-          - moodle-branch: MOODLE_502_STABLE
-            php: '8.2'
         include:
           - moodle-branch: MOODLE_405_STABLE
             php: '8.1'
-            database: pgsql
+            database: mariadb
           - moodle-branch: MOODLE_405_STABLE
-            php: '8.1'
+            php: '8.2'
             database: mariadb
 
     steps:
