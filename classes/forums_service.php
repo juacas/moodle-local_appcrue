@@ -49,13 +49,11 @@ class forums_service extends appcrue_service {
         $this->timestart = max($timestart, $timewindow);
     }
     /**
-     * Get data response.
+     * Get data response. The response count describes entries in data.forums.
      */
     public function get_data_response() {
-        // Get the items and count.
-        [$items, $count] = $this->get_items();
-        // Return the items and count.
-        return [ [ 'forums' => $items ], $count];
+        [$items] = $this->get_items();
+        return [['forums' => $items], count($items)];
     }
     /**
      * Build a tree of posts from a flat array.

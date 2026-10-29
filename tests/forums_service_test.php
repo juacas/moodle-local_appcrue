@@ -61,7 +61,7 @@ final class forums_service_test extends appcrue_test_base {
     }
 
     /**
-     * Data response wraps forum items and preserves their count.
+     * Data response counts forum entries even when they contain no posts.
      */
     public function test_get_data_response_wraps_items_and_count(): void {
         $items = [['id' => 10], ['id' => 20]];
@@ -69,7 +69,7 @@ final class forums_service_test extends appcrue_test_base {
             ->disableOriginalConstructor()
             ->onlyMethods(['get_items'])
             ->getMock();
-        $service->expects($this->once())->method('get_items')->willReturn([$items, 2]);
+        $service->expects($this->once())->method('get_items')->willReturn([$items, 0]);
 
         $this->assertSame([['forums' => $items], 2], $service->get_data_response());
     }
@@ -179,5 +179,8 @@ final class forums_service_test extends appcrue_test_base {
         $this->assertSame(0, $count);
         $this->assertSame([], $items[0]['replies']);
         $this->assertSame('Empty forum', $items[0]['topic_title']);
+        $response = $service->get_response_json();
+        $this->assertSame(1, $response['count']);
+        $this->assertCount(1, $response['data']['forums']);
     }
 }

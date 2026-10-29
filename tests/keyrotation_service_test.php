@@ -39,7 +39,7 @@ final class keyrotation_service_test extends appcrue_test_base {
         $before = time();
 
         keyrotation_service::rotate_key('oldapikey', 'newapikey');
-        $this->assertDebuggingCalled('API key updated from oldapikey to newapikey', DEBUG_NORMAL);
+        $this->assertDebuggingCalled('API key updated successfully.', DEBUG_DEVELOPER);
         $after = time();
 
         $this->assertSame('newapikey', get_config('local_appcrue', 'api_key'));
