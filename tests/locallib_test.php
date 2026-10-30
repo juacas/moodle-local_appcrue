@@ -42,7 +42,27 @@ require_once(__DIR__ . '/appcrue_test_base.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_config_user')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_filter_sitemap_urls')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_event_type')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('local_appcrue_get_universia_idp_url')]
 final class locallib_test extends appcrue_test_base {
+    /**
+     * The diagnostic can select the opposite IdP without changing the saved environment.
+     */
+    public function test_universia_idp_url_allows_temporary_environment_override(): void {
+        $this->resetAfterTest();
+        set_config('use_pre_server', 0, 'local_appcrue');
+
+        $productionurl = 'https://appuniversitaria.universia.net/api/external/v3/users/info';
+        $preproductionurl = 'https://pre.appuniversitaria.idsant.com/api/external/v3/users/info';
+        $this->assertSame($productionurl, local_appcrue_get_universia_idp_url());
+        $this->assertSame($preproductionurl, local_appcrue_get_universia_idp_url(true));
+        $this->assertSame($productionurl, local_appcrue_get_universia_idp_url());
+
+        set_config('use_pre_server', 1, 'local_appcrue');
+        $this->assertSame($preproductionurl, local_appcrue_get_universia_idp_url());
+        $this->assertSame($productionurl, local_appcrue_get_universia_idp_url(false));
+        $this->assertSame($preproductionurl, local_appcrue_get_universia_idp_url());
+    }
+
     /**
      * Request headers are read from CGI variables when getallheaders is unavailable.
      */

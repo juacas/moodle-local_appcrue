@@ -42,12 +42,13 @@ class troubleshooting_helper {
     }
 
     /**
-     * Probe the configured Universia IdP using a random invalid user token.
+     * Probe a Universia IdP environment using a random invalid user token.
      * Only the HTTP and cURL status and elapsed time are returned; credentials and response bodies remain private.
      *
+     * @param bool|null $usepre Override the configured environment without changing the saved setting.
      * @return array HTTP status, cURL error number and elapsed seconds.
      */
-    public static function probe_universia_idp(): array {
+    public static function probe_universia_idp(?bool $usepre = null): array {
         global $CFG;
 
         require_once($CFG->libdir . '/filelib.php');
@@ -57,7 +58,7 @@ class troubleshooting_helper {
         $started = microtime(true);
         try {
             $curl->post(
-                local_appcrue_get_universia_idp_url(),
+                local_appcrue_get_universia_idp_url($usepre),
                 json_encode([
                     'import_code' => get_config('local_appcrue', 'appcrue_appid'),
                     'token' => get_config('local_appcrue', 'appcrue_apptoken'),

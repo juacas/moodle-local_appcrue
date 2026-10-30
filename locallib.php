@@ -230,10 +230,12 @@ function local_appcrue_get_request_headers(): array {
 /**
  * Return the Universia token validation endpoint for the configured environment.
  *
+ * @param bool|null $usepre Override the configured environment for a diagnostic request.
  * @return string Endpoint URL.
  */
-function local_appcrue_get_universia_idp_url(): string {
-    return get_config('local_appcrue', 'use_pre_server')
+function local_appcrue_get_universia_idp_url(?bool $usepre = null): string {
+    $usepre ??= (bool)get_config('local_appcrue', 'use_pre_server');
+    return $usepre
         ? 'https://pre.appuniversitaria.idsant.com/api/external/v3/users/info'
         : 'https://appuniversitaria.universia.net/api/external/v3/users/info';
 }

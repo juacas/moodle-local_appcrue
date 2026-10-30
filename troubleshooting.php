@@ -317,7 +317,7 @@ function local_appcrue_troubleshooting_setting_link(string $title): string {
  *
  * @param string $title Check name.
  * @param string $message Explanation.
- * @param string $severity Bootstrap alert severity.
+ * @param string $severity Diagnostic status severity.
  * @param string $action Optional action HTML.
  * @param string $titleprefix Optional unbolded title prefix.
  * @param bool $trustedhtml Whether the message is already escaped HTML made by this page.
@@ -331,7 +331,18 @@ function local_appcrue_troubleshooting_result(
     string $titleprefix = '',
     bool $trustedhtml = false
 ): string {
+    $badges = [
+        'success' => ['text' => get_string('statusok'), 'class' => 'badge bg-success text-white'],
+        'warning' => ['text' => get_string('check'), 'class' => 'badge bg-warning text-dark'],
+        'danger' => ['text' => get_string('check'), 'class' => 'badge bg-danger text-white'],
+        'info' => [
+            'text' => get_string('troubleshooting:statusinfo', 'local_appcrue'),
+            'class' => 'badge bg-info text-dark',
+        ],
+    ];
+    $badge = $badges[$severity] ?? $badges['info'];
     $html = local_appcrue_troubleshooting_setting_link($title);
+    $html .= html_writer::span(s($badge['text']), $badge['class']) . ' ';
     $html .= $titleprefix !== '' ? html_writer::tag('span', s($titleprefix)) : '';
     $html .= html_writer::tag('strong', s($title) . ': ');
     $html .= ' ' . html_writer::tag('span', $trustedhtml ? $message : s($message));
@@ -339,7 +350,7 @@ function local_appcrue_troubleshooting_result(
         $html .= html_writer::div($action, 'mt-2');
     }
     $html .= local_appcrue_troubleshooting_interpretation_panel($title);
-    return html_writer::div($html, 'alert alert-' . $severity, ['role' => 'status']);
+    return html_writer::div($html, 'alert alert-' . $severity . ' p-2 mb-2', ['role' => 'status']);
 }
 
 /**
@@ -935,6 +946,27 @@ if (!get_config('local_appcrue', 'use_custom_idp')) {
         if ($probe['httpcode'] === 406 && $probe['curlerror'] === 0) {
             $probemessage = get_string('troubleshooting:idp_probe_expected', 'local_appcrue', $probedata);
             $probeseverity = 'success';
+        } else if ($probe['httpcode'] === 403 && $probe['curlerror'] === 0) {
+            $otherusepre = !(bool)get_config('local_appcrue', 'use_pre_server');
+            $otherprobe = \local_appcrue\troubleshooting_helper::probe_universia_idp($otherusepre);
+            if ($otherprobe['httpcode'] === 406 && $otherprobe['curlerror'] === 0) {
+                $probemessage = get_string(
+                    'troubleshooting:idp_probe_wrong_environment',
+                    'local_appcrue',
+                    $otherusepre ? 'PRE' : 'PRO'
+                );
+                $probeseverity = 'warning';
+            } else if ($otherprobe['httpcode'] === 403 && $otherprobe['curlerror'] === 0) {
+                $probemessage = get_string('troubleshooting:idp_probe_both_rejected', 'local_appcrue');
+                $probeseverity = 'danger';
+            } else {
+                $otherprobedata = (object)[
+                    'code' => $otherprobe['httpcode'],
+                    'curlerror' => $otherprobe['curlerror'],
+                ];
+                $probemessage = get_string('troubleshooting:idp_probe_other_failed', 'local_appcrue', $otherprobedata);
+                $probeseverity = 'danger';
+            }
         } else if ($probe['httpcode'] === 0 || $probe['curlerror'] !== 0) {
             $probemessage = get_string('troubleshooting:idp_probe_unreachable', 'local_appcrue', $probedata);
             $probeseverity = 'danger';
@@ -1330,8 +1362,8 @@ foreach (array_keys($endpointsettings) as $endpoint) {
     if (!$canrunendpointtests) {
         echo local_appcrue_troubleshooting_result(
             get_string('troubleshooting:endpointtitle', 'local_appcrue', $endpoint),
-            $enabledmessage,
-            'success'
+            $enabledmessage . ' ' . get_string('troubleshooting:endpointnotrequested', 'local_appcrue'),
+            'warning'
         );
         continue;
     }
